@@ -185,6 +185,14 @@ export const getEstEdades = () => api.get('/estadisticas/edades');
 export const getEstMetodosPago = (params) => api.get('/estadisticas/metodos-pago', { params });
 export const getEstEco = () => api.get('/estadisticas/eco');
 
+// Configuración
+export const getConfiguracion = () => api.get('/configuracion');
+export const updateConfiguracion = (data) => api.put('/configuracion', data);
+export const getConfiguracionPublica = () => api.get('/configuracion/publica');
+export const getDiasFestivos = () => api.get('/configuracion/dias-festivos');
+export const addDiaFestivo = (data) => api.post('/configuracion/dias-festivos', data);
+export const deleteDiaFestivo = (id) => api.delete(`/configuracion/dias-festivos/${id}`);
+
 // Comunicaciones
 export const getComunicaciones = (params) => api.get('/comunicaciones', { params });
 export const getPlantillasComunicacion = () => api.get('/comunicaciones/plantillas');

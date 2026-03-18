@@ -56,6 +56,7 @@ app.use('/api/comunicaciones', require('./routes/comunicaciones'));
 app.use('/api/tintas', require('./routes/tintas'));
 app.use('/api/agujas', require('./routes/agujas'));
 app.use('/api/estadisticas', require('./routes/estadisticas'));
+app.use('/api/configuracion', require('./routes/configuracion'));
 
 // Cron jobs
 require('./services/cronService');

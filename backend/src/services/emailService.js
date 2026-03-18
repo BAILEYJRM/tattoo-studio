@@ -5,7 +5,25 @@ const fs = require('fs');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@tattoo-studio.com';
-const ESTUDIO_NOMBRE = process.env.ESTUDIO_NOMBRE || 'Tattoo Studio';
+
+async function getEstudioConfig() {
+  try {
+    const res = await pool.query(
+      "SELECT clave, valor FROM configuracion_estudio WHERE clave IN ('estudio_nombre', 'estudio_email')"
+    );
+    const cfg = {};
+    res.rows.forEach(r => { cfg[r.clave] = r.valor; });
+    return {
+      nombre: cfg.estudio_nombre || process.env.ESTUDIO_NOMBRE || 'Tattoo Studio',
+      email: cfg.estudio_email || process.env.ESTUDIO_EMAIL || null,
+    };
+  } catch {
+    return {
+      nombre: process.env.ESTUDIO_NOMBRE || 'Tattoo Studio',
+      email: process.env.ESTUDIO_EMAIL || null,
+    };
+  }
+}
 
 // ── Registro en BD ────────────────────────────────────────────────────────────
 async function registrarEnvio({ tipo, canal = 'email', cliente_id, cita_id, asunto, destinatario, estado, enviado_en }) {
@@ -49,10 +67,11 @@ function fmtFecha(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function textoHtml(texto) {
+function textoHtml(texto, estudioNombre) {
+  const nombre = estudioNombre || process.env.ESTUDIO_NOMBRE || 'Tattoo Studio';
   return `<html><body style="font-family:Arial,sans-serif;color:#222;max-width:600px;margin:auto;padding:24px">
     <div style="background:#1a1a2e;padding:20px 24px;border-radius:8px;margin-bottom:24px">
-      <h2 style="color:#fff;margin:0;font-size:18px">${ESTUDIO_NOMBRE}</h2>
+      <h2 style="color:#fff;margin:0;font-size:18px">${nombre}</h2>
     </div>
     <div style="white-space:pre-line;line-height:1.7;font-size:15px">${texto.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
   </body></html>`;
@@ -75,7 +94,7 @@ async function getDatosCita(cita_id) {
 
 // ── enviarConfirmacionCita ────────────────────────────────────────────────────
 async function enviarConfirmacionCita(cita_id) {
-  const cita = await getDatosCita(cita_id);
+  const [cita, estudio] = await Promise.all([getDatosCita(cita_id), getEstudioConfig()]);
   if (!cita || !cita.cliente_email) return false;
 
   const vars = {
@@ -87,7 +106,7 @@ async function enviarConfirmacionCita(cita_id) {
     cabina_nombre: cita.cabina_nombre || 'Por asignar',
     precio: cita.precio ? Number(cita.precio).toFixed(2) : '—',
     politica_cancelacion: 'Para cancelar, contáctanos con al menos 24h de antelación.',
-    estudio: ESTUDIO_NOMBRE,
+    estudio: estudio.nombre,
   };
 
   const plantilla = await procesarPlantilla('confirmacion_cita', vars);
@@ -96,7 +115,7 @@ async function enviarConfirmacionCita(cita_id) {
   return enviarEmail({
     to: cita.cliente_email,
     subject: plantilla.asunto,
-    html: textoHtml(plantilla.contenido),
+    html: textoHtml(plantilla.contenido, estudio.nombre),
     tipo: 'confirmacion_cita',
     cliente_id: cita.cliente_id,
     cita_id: cita.id,
@@ -105,7 +124,7 @@ async function enviarConfirmacionCita(cita_id) {
 
 // ── enviarRecordatorioCita ────────────────────────────────────────────────────
 async function enviarRecordatorioCita(cita_id) {
-  const cita = await getDatosCita(cita_id);
+  const [cita, estudio] = await Promise.all([getDatosCita(cita_id), getEstudioConfig()]);
   if (!cita || !cita.cliente_email) return false;
 
   const vars = {
@@ -113,7 +132,7 @@ async function enviarRecordatorioCita(cita_id) {
     fecha: fmtFecha(cita.fecha?.split('T')[0]),
     hora_inicio: cita.hora_inicio?.slice(0, 5) || '',
     artista_nombre: cita.artista_nombre || '',
-    estudio: ESTUDIO_NOMBRE,
+    estudio: estudio.nombre,
   };
 
   const plantilla = await procesarPlantilla('recordatorio_cita', vars);
@@ -122,7 +141,7 @@ async function enviarRecordatorioCita(cita_id) {
   return enviarEmail({
     to: cita.cliente_email,
     subject: plantilla.asunto,
-    html: textoHtml(plantilla.contenido),
+    html: textoHtml(plantilla.contenido, estudio.nombre),
     tipo: 'recordatorio_cita',
     cliente_id: cita.cliente_id,
     cita_id: cita.id,
@@ -131,7 +150,7 @@ async function enviarRecordatorioCita(cita_id) {
 
 // ── enviarCuidadosPostServicio ────────────────────────────────────────────────
 async function enviarCuidadosPostServicio(cita_id) {
-  const cita = await getDatosCita(cita_id);
+  const [cita, estudio] = await Promise.all([getDatosCita(cita_id), getEstudioConfig()]);
   if (!cita || !cita.cliente_email) return false;
 
   const desc = (cita.descripcion || '').toLowerCase();
@@ -140,7 +159,7 @@ async function enviarCuidadosPostServicio(cita_id) {
 
   const vars = {
     cliente_nombre: cita.cliente_nombre,
-    estudio: ESTUDIO_NOMBRE,
+    estudio: estudio.nombre,
   };
 
   const plantilla = await procesarPlantilla(tipoCuidados, vars);
@@ -149,7 +168,7 @@ async function enviarCuidadosPostServicio(cita_id) {
   return enviarEmail({
     to: cita.cliente_email,
     subject: plantilla.asunto,
-    html: textoHtml(plantilla.contenido),
+    html: textoHtml(plantilla.contenido, estudio.nombre),
     tipo: tipoCuidados,
     cliente_id: cita.cliente_id,
     cita_id: cita.id,
@@ -158,13 +177,16 @@ async function enviarCuidadosPostServicio(cita_id) {
 
 // ── enviarCumpleanos ──────────────────────────────────────────────────────────
 async function enviarCumpleanos(cliente_id) {
-  const res = await pool.query('SELECT * FROM clientes WHERE id = $1', [cliente_id]);
-  const cliente = res.rows[0];
+  const [clienteRes, estudio] = await Promise.all([
+    pool.query('SELECT * FROM clientes WHERE id = $1', [cliente_id]),
+    getEstudioConfig(),
+  ]);
+  const cliente = clienteRes.rows[0];
   if (!cliente || !cliente.email) return false;
 
   const vars = {
     cliente_nombre: `${cliente.nombre} ${cliente.apellidos}`,
-    estudio: ESTUDIO_NOMBRE,
+    estudio: estudio.nombre,
   };
 
   const plantilla = await procesarPlantilla('cumpleanos', vars);
@@ -173,7 +195,7 @@ async function enviarCumpleanos(cliente_id) {
   return enviarEmail({
     to: cliente.email,
     subject: plantilla.asunto,
-    html: textoHtml(plantilla.contenido),
+    html: textoHtml(plantilla.contenido, estudio.nombre),
     tipo: 'cumpleanos',
     cliente_id: cliente.id,
   });
@@ -181,20 +203,23 @@ async function enviarCumpleanos(cliente_id) {
 
 // ── enviarConsentimientoFirmado ───────────────────────────────────────────────
 async function enviarConsentimientoFirmado(consentimiento_id) {
-  const res = await pool.query(
-    `SELECT con.*, cl.nombre || ' ' || cl.apellidos AS cliente_nombre, cl.email AS cliente_email
-     FROM consentimientos con
-     LEFT JOIN clientes cl ON cl.id = con.cliente_id
-     WHERE con.id = $1`,
-    [consentimiento_id]
-  );
-  const con = res.rows[0];
+  const [conRes, estudio] = await Promise.all([
+    pool.query(
+      `SELECT con.*, cl.nombre || ' ' || cl.apellidos AS cliente_nombre, cl.email AS cliente_email
+       FROM consentimientos con
+       LEFT JOIN clientes cl ON cl.id = con.cliente_id
+       WHERE con.id = $1`,
+      [consentimiento_id]
+    ),
+    getEstudioConfig(),
+  ]);
+  const con = conRes.rows[0];
   if (!con || !con.cliente_email) return false;
 
   const vars = {
     cliente_nombre: con.cliente_nombre,
     fecha: fmtFecha(con.firmado_en?.toISOString()?.split('T')[0]),
-    estudio: ESTUDIO_NOMBRE,
+    estudio: estudio.nombre,
   };
 
   const plantilla = await procesarPlantilla('consentimiento_firmado', vars);
@@ -214,7 +239,7 @@ async function enviarConsentimientoFirmado(consentimiento_id) {
   return enviarEmail({
     to: con.cliente_email,
     subject: plantilla.asunto,
-    html: textoHtml(plantilla.contenido),
+    html: textoHtml(plantilla.contenido, estudio.nombre),
     tipo: 'consentimiento_firmado',
     cliente_id: con.cliente_id,
     attachments: attachments.length ? attachments : undefined,

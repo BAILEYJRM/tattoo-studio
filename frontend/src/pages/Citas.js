@@ -6,6 +6,7 @@ import {
   enviarComunicacion,
   getMaterialCita, addMaterialCita, deleteMaterialCita,
   getTintas, getAgujas,
+  getDiasFestivos,
 } from '../api';
 import Modal from '../components/Modal';
 
@@ -42,7 +43,7 @@ function Toggle({ label, checked, onChange }) {
   );
 }
 
-function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChange }) {
+function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [] }) {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
@@ -84,12 +85,13 @@ function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChan
           const daysCitas = citasByDate[dateStr] || [];
           const isToday = dateStr === today;
           const isSelected = dateStr === selectedDate;
+          const isFestivo = diasFestivos.includes(dateStr);
           return (
             <button
               key={dateStr}
               onClick={() => onSelectDate(isSelected ? null : dateStr)}
               className={`relative aspect-square flex flex-col items-center justify-start pt-1 rounded-lg text-xs transition-colors ${
-                isSelected ? 'bg-indigo-600 text-white' : isToday ? 'bg-indigo-600/20 text-indigo-400 font-bold' : 'text-gray-300 hover:bg-gray-800'
+                isSelected ? 'bg-indigo-600 text-white' : isFestivo ? 'bg-red-500/15 text-red-400 font-semibold' : isToday ? 'bg-indigo-600/20 text-indigo-400 font-bold' : 'text-gray-300 hover:bg-gray-800'
               }`}
             >
               <span>{day}</span>
@@ -135,6 +137,7 @@ export default function Citas() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [diasFestivos, setDiasFestivos] = useState([]);
 
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -180,6 +183,12 @@ export default function Citas() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => {
+    getDiasFestivos().then(res => {
+      setDiasFestivos(res.data.map(f => f.fecha?.split('T')[0]));
+    }).catch(() => {});
+  }, []);
 
   const openNew = () => {
     setEditando(null);
@@ -389,7 +398,7 @@ export default function Citas() {
 
       {vista === 'calendario' && (
         <Calendar citas={citas} selectedDate={selectedDate} onSelectDate={setSelectedDate}
-          currentMonth={currentMonth} onMonthChange={handleMonthChange} />
+          currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos} />
       )}
 
       {/* List */}

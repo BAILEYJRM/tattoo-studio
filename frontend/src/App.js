@@ -18,6 +18,7 @@ import Comunicaciones from './pages/Comunicaciones';
 import Tintas from './pages/Tintas';
 import Agujas from './pages/Agujas';
 import Estadisticas from './pages/Estadisticas';
+import Configuracion from './pages/Configuracion';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -185,6 +186,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Comunicaciones />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/configuracion"
+            element={
+              <PrivateRoute adminOnly>
+                <Configuracion />
               </PrivateRoute>
             }
           />
