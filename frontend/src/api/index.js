@@ -133,3 +133,20 @@ export const getEventos = (params) => api.get('/eventos-calendario', { params })
 export const crearEvento = (data) => api.post('/eventos-calendario', data);
 export const updateEvento = (id, data) => api.put(`/eventos-calendario/${id}`, data);
 export const eliminarEvento = (id) => api.delete(`/eventos-calendario/${id}`);
+
+// Contabilidad
+export const getRecuentoDiario = (fecha) =>
+  api.get('/contabilidad/recuento-diario', { params: { fecha } });
+export const getLiquidacionArtista = (artista_id, fecha_inicio, fecha_fin) =>
+  api.get('/contabilidad/liquidacion-artista', { params: { artista_id, fecha_inicio, fecha_fin } });
+export const getLiquidacionEstudio = (fecha_inicio, fecha_fin) =>
+  api.get('/contabilidad/liquidacion-estudio', { params: { fecha_inicio, fecha_fin } });
+
+// Recibos
+export const getRecibos = (params) => api.get('/recibos', { params });
+export const getRecibo = (id) => api.get(`/recibos/${id}`);
+export const createRecibo = (data) => api.post('/recibos', data);
+
+// Facturas
+export const getFacturas = (params) => api.get('/facturas', { params });
+export const crearFactura = (data) => api.post('/facturas', data);

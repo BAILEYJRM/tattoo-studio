@@ -13,6 +13,7 @@ import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
 import Cabinas from './pages/Cabinas';
 import EventosCalendario from './pages/EventosCalendario';
+import { RecuentoDiario, LiquidacionArtista, LiquidacionEstudio, Recibos } from './pages/contabilidad';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -116,6 +117,38 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Cabinas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contabilidad/recuento-diario"
+            element={
+              <PrivateRoute>
+                <RecuentoDiario />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contabilidad/liquidacion-artista"
+            element={
+              <PrivateRoute>
+                <LiquidacionArtista />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contabilidad/liquidacion-estudio"
+            element={
+              <PrivateRoute>
+                <LiquidacionEstudio />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contabilidad/recibos"
+            element={
+              <PrivateRoute>
+                <Recibos />
               </PrivateRoute>
             }
           />

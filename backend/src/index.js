@@ -49,6 +49,9 @@ app.use('/api/limpiezas', require('./routes/limpiezas'));
 app.use('/api/incidencias', require('./routes/incidencias'));
 app.use('/api/ausencias', require('./routes/ausencias'));
 app.use('/api/eventos-calendario', require('./routes/eventosCalendario'));
+app.use('/api/recibos', require('./routes/recibos'));
+app.use('/api/facturas', require('./routes/facturas'));
+app.use('/api/contabilidad', require('./routes/contabilidad'));
 
 // Puerto
 const PORT = process.env.PORT || 3000;
