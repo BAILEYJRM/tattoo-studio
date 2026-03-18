@@ -34,6 +34,10 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/empleados', require('./routes/empleados'));
 app.use('/api/citas', require('./routes/citas'));
+app.use('/api/productos', require('./routes/productos'));
+app.use('/api/movimientos-stock', require('./routes/movimientosStock'));
+app.use('/api/ventas', require('./routes/ventas'));
+app.use('/api/gastos', require('./routes/gastos'));
 
 // Puerto
 const PORT = process.env.PORT || 3000;

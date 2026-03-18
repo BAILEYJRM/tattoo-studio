@@ -36,3 +36,77 @@ CREATE TABLE IF NOT EXISTS citas (
   precio DECIMAL(10,2),
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Productos (inventario)
+CREATE TABLE IF NOT EXISTS productos (
+  id SERIAL PRIMARY KEY,
+  sku VARCHAR(100) UNIQUE NOT NULL,
+  nombre VARCHAR(200) NOT NULL,
+  descripcion TEXT,
+  categoria VARCHAR(50) NOT NULL DEFAULT 'otros',
+  codigo_barras VARCHAR(100),
+  precio_compra DECIMAL(10,2),
+  precio_venta DECIMAL(10,2),
+  stock_actual INTEGER DEFAULT 0,
+  stock_minimo INTEGER DEFAULT 0,
+  lote VARCHAR(100),
+  fecha_caducidad DATE,
+  proveedor VARCHAR(200),
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Movimientos de stock
+CREATE TABLE IF NOT EXISTS movimientos_stock (
+  id SERIAL PRIMARY KEY,
+  producto_id INTEGER REFERENCES productos(id),
+  tipo VARCHAR(20) NOT NULL,
+  cantidad INTEGER NOT NULL,
+  motivo VARCHAR(50),
+  referencia_id INTEGER,
+  notas TEXT,
+  empleado_id INTEGER REFERENCES empleados(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Ventas
+CREATE TABLE IF NOT EXISTS ventas (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id),
+  cita_id INTEGER REFERENCES citas(id),
+  fecha DATE NOT NULL,
+  subtotal DECIMAL(10,2) NOT NULL,
+  total DECIMAL(10,2) NOT NULL,
+  metodo_pago VARCHAR(20) DEFAULT 'efectivo',
+  estado VARCHAR(20) DEFAULT 'pagado',
+  notas TEXT,
+  empleado_id INTEGER REFERENCES empleados(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Líneas de venta
+CREATE TABLE IF NOT EXISTS venta_lineas (
+  id SERIAL PRIMARY KEY,
+  venta_id INTEGER REFERENCES ventas(id) ON DELETE CASCADE,
+  tipo VARCHAR(20) NOT NULL DEFAULT 'servicio',
+  producto_id INTEGER REFERENCES productos(id),
+  descripcion TEXT NOT NULL,
+  cantidad INTEGER NOT NULL DEFAULT 1,
+  precio_unitario DECIMAL(10,2) NOT NULL,
+  subtotal DECIMAL(10,2) NOT NULL
+);
+
+-- Gastos
+CREATE TABLE IF NOT EXISTS gastos (
+  id SERIAL PRIMARY KEY,
+  fecha DATE NOT NULL,
+  concepto VARCHAR(300) NOT NULL,
+  tipo VARCHAR(30) NOT NULL DEFAULT 'fijo',
+  categoria VARCHAR(50) DEFAULT 'otros',
+  importe DECIMAL(10,2) NOT NULL,
+  proveedor VARCHAR(200),
+  producto_id INTEGER REFERENCES productos(id),
+  notas TEXT,
+  empleado_id INTEGER REFERENCES empleados(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);

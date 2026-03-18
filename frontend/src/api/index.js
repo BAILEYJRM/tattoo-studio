@@ -49,3 +49,33 @@ export const createCita = (data) => api.post('/citas', data);
 export const updateCita = (id, data) => api.put(`/citas/${id}`, data);
 export const updateCitaEstado = (id, estado) =>
   api.patch(`/citas/${id}/estado`, { estado });
+
+// Productos
+export const getProductos = () => api.get('/productos');
+export const buscarProductos = (q) => api.get('/productos/buscar', { params: { q } });
+export const getStockBajo = () => api.get('/productos/stock-bajo');
+export const getProducto = (id) => api.get(`/productos/${id}`);
+export const createProducto = (data) => api.post('/productos', data);
+export const updateProducto = (id, data) => api.put(`/productos/${id}`, data);
+
+// Movimientos de stock
+export const getMovimientos = (params) => api.get('/movimientos-stock', { params });
+export const registrarMovimiento = (data) => api.post('/movimientos-stock', data);
+
+// Ventas
+export const getVentas = (params) => api.get('/ventas', { params });
+export const getVenta = (id) => api.get(`/ventas/${id}`);
+export const createVenta = (data) => api.post('/ventas', data);
+export const updateVenta = (id, data) => api.put(`/ventas/${id}`, data);
+export const getResumenDia = (fecha) => api.get('/ventas/resumen-dia', { params: { fecha } });
+export const getResumenMesVentas = (year, month) =>
+  api.get('/ventas/resumen-mes', { params: { year, month } });
+
+// Gastos
+export const getGastos = (params) => api.get('/gastos', { params });
+export const getGasto = (id) => api.get(`/gastos/${id}`);
+export const createGasto = (data) => api.post('/gastos', data);
+export const updateGasto = (id, data) => api.put(`/gastos/${id}`, data);
+export const deleteGasto = (id) => api.delete(`/gastos/${id}`);
+export const getResumenMesGastos = (year, month) =>
+  api.get('/gastos/resumen-mes', { params: { year, month } });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getClientes, getEmpleados, getCitas } from '../api';
+import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo } from '../api';
 
 const ESTADO_CONFIG = {
   pendiente: { label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
@@ -37,15 +37,23 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ clientes: 0, empleados: 0, hoy: 0, pendientes: 0 });
   const [citasHoy, setCitasHoy] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [finanzas, setFinanzas] = useState({ ventas: 0, gastos: 0 });
+  const [stockBajo, setStockBajo] = useState([]);
 
   useEffect(() => {
     const hoy = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
     Promise.all([
       getClientes(),
       getEmpleados(),
       getCitas({ fecha: hoy }),
       getCitas(),
-    ]).then(([clientes, empleados, citasDeHoy, todasCitas]) => {
+      getResumenMesVentas(year, month).catch(() => ({ data: { total: 0 } })),
+      getResumenMesGastos(year, month).catch(() => ({ data: { total: 0 } })),
+      getStockBajo().catch(() => ({ data: [] })),
+    ]).then(([clientes, empleados, citasDeHoy, todasCitas, ventas, gastos, bajo]) => {
       const pendientes = todasCitas.data.filter((c) => c.estado === 'pendiente').length;
       setStats({
         clientes: clientes.data.length,
@@ -54,6 +62,11 @@ export default function Dashboard() {
         pendientes,
       });
       setCitasHoy(citasDeHoy.data);
+      setFinanzas({
+        ventas: Number(ventas.data.total || 0),
+        gastos: Number(gastos.data.total || 0),
+      });
+      setStockBajo(bajo.data || []);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -70,6 +83,22 @@ export default function Dashboard() {
           {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
+
+      {/* Alerta stock bajo */}
+      {!loading && stockBajo.length > 0 && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
+          <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <div>
+            <p className="text-red-400 text-sm font-medium">Stock bajo en {stockBajo.length} producto{stockBajo.length > 1 ? 's' : ''}</p>
+            <p className="text-red-400/70 text-xs mt-0.5">
+              {stockBajo.slice(0, 3).map((p) => p.nombre).join(', ')}{stockBajo.length > 3 ? '…' : ''}
+            </p>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -123,6 +152,26 @@ export default function Dashboard() {
               </svg>
             }
           />
+        </div>
+      )}
+
+      {/* Tarjetas financieras del mes */}
+      {!loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gray-900 rounded-xl p-5">
+            <p className="text-gray-400 text-sm">Ventas del mes</p>
+            <p className="text-green-400 text-2xl font-bold mt-1">{finanzas.ventas.toFixed(2)} €</p>
+          </div>
+          <div className="bg-gray-900 rounded-xl p-5">
+            <p className="text-gray-400 text-sm">Gastos del mes</p>
+            <p className="text-red-400 text-2xl font-bold mt-1">{finanzas.gastos.toFixed(2)} €</p>
+          </div>
+          <div className="bg-gray-900 rounded-xl p-5">
+            <p className="text-gray-400 text-sm">Beneficio del mes</p>
+            <p className={`text-2xl font-bold mt-1 ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
+              {(finanzas.ventas - finanzas.gastos).toFixed(2)} €
+            </p>
+          </div>
         </div>
       )}
 
