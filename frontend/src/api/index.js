@@ -176,6 +176,15 @@ export const getMaterialCita = (cita_id) => api.get(`/citas/${cita_id}/material`
 export const addMaterialCita = (cita_id, data) => api.post(`/citas/${cita_id}/material`, data);
 export const deleteMaterialCita = (cita_id, material_id) => api.delete(`/citas/${cita_id}/material/${material_id}`);
 
+// Estadísticas
+export const getEstResumen = (params) => api.get('/estadisticas/resumen', { params });
+export const getEstArtistas = (params) => api.get('/estadisticas/artistas', { params });
+export const getEstTopClientes = (params) => api.get('/estadisticas/top-clientes', { params });
+export const getEstEvolucion = (año) => api.get('/estadisticas/evolucion-mensual', { params: { año } });
+export const getEstEdades = () => api.get('/estadisticas/edades');
+export const getEstMetodosPago = (params) => api.get('/estadisticas/metodos-pago', { params });
+export const getEstEco = () => api.get('/estadisticas/eco');
+
 // Comunicaciones
 export const getComunicaciones = (params) => api.get('/comunicaciones', { params });
 export const getPlantillasComunicacion = () => api.get('/comunicaciones/plantillas');

@@ -17,6 +17,7 @@ import { RecuentoDiario, LiquidacionArtista, LiquidacionEstudio, Recibos } from 
 import Comunicaciones from './pages/Comunicaciones';
 import Tintas from './pages/Tintas';
 import Agujas from './pages/Agujas';
+import Estadisticas from './pages/Estadisticas';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -48,6 +49,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/estadisticas"
+            element={
+              <PrivateRoute>
+                <Estadisticas />
               </PrivateRoute>
             }
           />
