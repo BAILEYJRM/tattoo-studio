@@ -10,6 +10,7 @@ import Empleados from './pages/Empleados';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
 import Gastos from './pages/Gastos';
+import Consentimientos from './pages/Consentimientos';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -89,6 +90,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Gastos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/consentimientos"
+            element={
+              <PrivateRoute>
+                <Consentimientos />
               </PrivateRoute>
             }
           />

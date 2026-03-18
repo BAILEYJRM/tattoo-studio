@@ -79,3 +79,19 @@ export const updateGasto = (id, data) => api.put(`/gastos/${id}`, data);
 export const deleteGasto = (id) => api.delete(`/gastos/${id}`);
 export const getResumenMesGastos = (year, month) =>
   api.get('/gastos/resumen-mes', { params: { year, month } });
+
+// Plantillas de consentimiento
+export const getPlantillas = (tipo) =>
+  api.get('/plantillas-consentimiento', { params: tipo ? { tipo } : {} });
+export const getPlantilla = (id) => api.get(`/plantillas-consentimiento/${id}`);
+export const createPlantilla = (data) => api.post('/plantillas-consentimiento', data);
+export const updatePlantilla = (id, data) => api.put(`/plantillas-consentimiento/${id}`, data);
+
+// Consentimientos
+export const getConsentimientos = (params) => api.get('/consentimientos', { params });
+export const getConsentimiento = (id) => api.get(`/consentimientos/${id}`);
+export const createConsentimiento = (data) => api.post('/consentimientos', data);
+export const regenerarPdfConsentimiento = (id) =>
+  api.post(`/consentimientos/${id}/regenerar-pdf`);
+export const getPdfUrl = (pdfPath) =>
+  `${api.defaults.baseURL.replace('/api', '')}/${pdfPath}`;

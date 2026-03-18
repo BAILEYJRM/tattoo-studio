@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const path = require('path');
 const pool = require('./config/database');
 
 dotenv.config();
@@ -11,8 +12,11 @@ const app = express();
 // Middlewares
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// Servir PDFs de consentimientos
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
@@ -38,11 +42,15 @@ app.use('/api/productos', require('./routes/productos'));
 app.use('/api/movimientos-stock', require('./routes/movimientosStock'));
 app.use('/api/ventas', require('./routes/ventas'));
 app.use('/api/gastos', require('./routes/gastos'));
+app.use('/api/plantillas-consentimiento', require('./routes/plantillasConsentimiento'));
+app.use('/api/consentimientos', require('./routes/consentimientos'));
 
 // Puerto
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  const seedPlantillas = require('./config/seedPlantillas');
+  await seedPlantillas();
 });
 
 module.exports = app;

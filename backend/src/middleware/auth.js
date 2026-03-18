@@ -1,7 +1,8 @@
  const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  // Soporta token en header Authorization o como query param (?token=) para descarga de archivos
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token;
   if (!token) return res.status(401).json({ error: 'Token requerido' });
 
   try {

@@ -96,6 +96,31 @@ CREATE TABLE IF NOT EXISTS venta_lineas (
   subtotal DECIMAL(10,2) NOT NULL
 );
 
+-- Plantillas de consentimiento
+CREATE TABLE IF NOT EXISTS plantillas_consentimiento (
+  id SERIAL PRIMARY KEY,
+  tipo VARCHAR(50) NOT NULL,
+  nombre VARCHAR(200) NOT NULL,
+  contenido TEXT NOT NULL,
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Consentimientos firmados
+CREATE TABLE IF NOT EXISTS consentimientos (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id),
+  cita_id INTEGER REFERENCES citas(id),
+  plantilla_id INTEGER REFERENCES plantillas_consentimiento(id),
+  tipo VARCHAR(50) NOT NULL,
+  datos_cliente JSONB NOT NULL,
+  firma_imagen TEXT,
+  pdf_path VARCHAR(500),
+  firmado_en TIMESTAMP,
+  empleado_id INTEGER REFERENCES empleados(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Gastos
 CREATE TABLE IF NOT EXISTS gastos (
   id SERIAL PRIMARY KEY,
