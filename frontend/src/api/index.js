@@ -185,6 +185,15 @@ export const getEstEdades = () => api.get('/estadisticas/edades');
 export const getEstMetodosPago = (params) => api.get('/estadisticas/metodos-pago', { params });
 export const getEstEco = () => api.get('/estadisticas/eco');
 
+// Clientes — historial y duplicados
+export const getHistorialCliente = (id) => api.get(`/clientes/${id}/historial`);
+export const getDuplicadosClientes = () => api.get('/clientes/duplicados');
+export const fusionarClientes = (data) => api.post('/clientes/fusionar', data);
+
+// Citas — solapamiento y grupo
+export const verificarSolapamientoCita = (params) => api.get('/citas/verificar-solapamiento', { params });
+export const crearCitasGrupo = (data) => api.post('/citas/grupo', data);
+
 // Configuración
 export const getConfiguracion = () => api.get('/configuracion');
 export const updateConfiguracion = (data) => api.put('/configuracion', data);

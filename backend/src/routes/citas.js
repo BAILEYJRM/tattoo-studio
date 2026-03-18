@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
-const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita } = require('../controllers/citaController');
+const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita, verificarSolapamiento, crearCitasGrupo } = require('../controllers/citaController');
 const { getMaterialCita, registrarMaterial, eliminarMaterial } = require('../controllers/citaMaterialController');
 const { auth } = require('../middleware/auth');
 
@@ -16,6 +16,8 @@ const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.use(auth);
 
+router.get('/verificar-solapamiento', verificarSolapamiento);
+router.post('/grupo', crearCitasGrupo);
 router.get('/', getCitas);
 router.get('/:id', getCita);
 router.post('/', crearCita);

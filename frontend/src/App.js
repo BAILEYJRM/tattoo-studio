@@ -19,6 +19,7 @@ import Tintas from './pages/Tintas';
 import Agujas from './pages/Agujas';
 import Estadisticas from './pages/Estadisticas';
 import Configuracion from './pages/Configuracion';
+import ClientesDuplicados from './pages/ClientesDuplicados';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -186,6 +187,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Comunicaciones />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/clientes/duplicados"
+            element={
+              <PrivateRoute>
+                <ClientesDuplicados />
               </PrivateRoute>
             }
           />

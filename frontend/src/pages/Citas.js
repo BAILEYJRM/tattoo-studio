@@ -7,6 +7,7 @@ import {
   getMaterialCita, addMaterialCita, deleteMaterialCita,
   getTintas, getAgujas,
   getDiasFestivos,
+  verificarSolapamientoCita, crearCitasGrupo,
 } from '../api';
 import Modal from '../components/Modal';
 
@@ -40,6 +41,72 @@ function Toggle({ label, checked, onChange }) {
       </div>
       <span className="text-sm text-gray-300">{label}</span>
     </label>
+  );
+}
+
+function YearView({ citas, year, onYearChange, onSelectDay }) {
+  const citasByDate = {};
+  citas.forEach(c => {
+    const key = c.fecha?.split('T')[0];
+    if (!citasByDate[key]) citasByDate[key] = [];
+    citasByDate[key].push(c);
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAY_NAMES = ['D','L','M','X','J','V','S'];
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-5">
+      <div className="flex items-center justify-between mb-5">
+        <button onClick={() => onYearChange(year - 1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <span className="text-white font-semibold">{year}</span>
+        <button onClick={() => onYearChange(year + 1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 12 }, (_, month) => {
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const cells = [];
+          for (let i = 0; i < firstDay; i++) cells.push(null);
+          for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+          return (
+            <div key={month} className="bg-gray-800 rounded-lg p-3">
+              <p className="text-white text-xs font-semibold mb-2 text-center">{MONTH_NAMES[month]}</p>
+              <div className="grid grid-cols-7 mb-1">
+                {DAY_NAMES.map(d => <div key={d} className="text-center text-gray-600 text-xs">{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-px">
+                {cells.map((day, idx) => {
+                  if (!day) return <div key={`e-${idx}`} />;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const dayCitas = citasByDate[dateStr] || [];
+                  const isToday = dateStr === today;
+                  return (
+                    <button key={dateStr} onClick={() => onSelectDay(dateStr)}
+                      className={`flex flex-col items-center justify-center rounded text-xs py-0.5 transition-colors ${isToday ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
+                      <span className="leading-none">{day}</span>
+                      {dayCitas.length > 0 && (
+                        <div className="flex gap-px mt-0.5 flex-wrap justify-center">
+                          {dayCitas.slice(0, 3).map((c, i) => (
+                            <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: c.artista_color || '#6366f1' }} />
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -138,6 +205,22 @@ export default function Citas() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [filtroEstado, setFiltroEstado] = useState('');
   const [diasFestivos, setDiasFestivos] = useState([]);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  // Solapamiento
+  const [modalSolapamiento, setModalSolapamiento] = useState(false);
+  const [conflictosSolapamiento, setConflictosSolapamiento] = useState([]);
+  const [pendingSavePayload, setPendingSavePayload] = useState(null);
+
+  // Citas de grupo
+  const [modalGrupo, setModalGrupo] = useState(false);
+  const [pasoGrupo, setPasoGrupo] = useState(1);
+  const [formGrupo, setFormGrupo] = useState({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' });
+  const [clientesGrupo, setClientesGrupo] = useState([]);
+  const [buscarGrupo, setBuscarGrupo] = useState('');
+  const [resultsBuscarGrupo, setResultsBuscarGrupo] = useState([]);
+  const [savingGrupo, setSavingGrupo] = useState(false);
+  const [resultadoGrupo, setResultadoGrupo] = useState(null);
 
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -218,28 +301,52 @@ export default function Citas() {
     setModal(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const doSaveCita = async (payload) => {
     setSaving(true);
     setError('');
     try {
-      const payload = {
-        ...form,
-        hora_inicio: form.hora_inicio + ':00',
-        hora_fin: form.hora_fin + ':00',
-        precio: form.precio ? Number(form.precio) : null,
-        importe_senal: form.importe_senal ? Number(form.importe_senal) : 0,
-        cliente_id: Number(form.cliente_id),
-        artista_id: Number(form.artista_id),
-        cabina_id: form.cabina_id ? Number(form.cabina_id) : null,
-      };
       if (editando) await updateCita(editando, payload);
       else await createCita(payload);
       setModal(false);
+      setModalSolapamiento(false);
       fetchAll();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al guardar');
     } finally { setSaving(false); }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...form,
+      hora_inicio: form.hora_inicio + ':00',
+      hora_fin: form.hora_fin + ':00',
+      precio: form.precio ? Number(form.precio) : null,
+      importe_senal: form.importe_senal ? Number(form.importe_senal) : 0,
+      cliente_id: Number(form.cliente_id),
+      artista_id: Number(form.artista_id),
+      cabina_id: form.cabina_id ? Number(form.cabina_id) : null,
+    };
+
+    if ((form.artista_id || form.cabina_id) && form.fecha && form.hora_inicio && form.hora_fin) {
+      try {
+        const chk = await verificarSolapamientoCita({
+          artista_id: form.artista_id || undefined,
+          cabina_id: form.cabina_id || undefined,
+          fecha: form.fecha,
+          hora_inicio: form.hora_inicio,
+          hora_fin: form.hora_fin,
+          excluir_id: editando || undefined,
+        });
+        if (chk.data.conflictos?.length > 0) {
+          setConflictosSolapamiento(chk.data.conflictos);
+          setPendingSavePayload(payload);
+          setModalSolapamiento(true);
+          return;
+        }
+      } catch { /* si falla el check, continuamos */ }
+    }
+    await doSaveCita(payload);
   };
 
   const handleEstado = async (id, estado) => {
@@ -367,19 +474,26 @@ export default function Citas() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Citas</h1>
-        <button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Nueva cita
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setModalGrupo(true); setPasoGrupo(1); setFormGrupo({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' }); setClientesGrupo([]); setResultadoGrupo(null); }}
+            className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Cita de grupo
+          </button>
+          <button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Nueva cita
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex gap-1 bg-gray-900 p-1 rounded-lg">
-          {['lista','calendario'].map((v) => (
+          {[['lista','Lista'],['calendario','Mes'],['año','Año']].map(([v, label]) => (
             <button key={v} onClick={() => setVista(v)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${vista === v ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}>
-              {v === 'lista' ? 'Lista' : 'Calendario'}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${vista === v ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}>
+              {label}
             </button>
           ))}
         </div>
@@ -399,6 +513,15 @@ export default function Citas() {
       {vista === 'calendario' && (
         <Calendar citas={citas} selectedDate={selectedDate} onSelectDate={setSelectedDate}
           currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos} />
+      )}
+
+      {vista === 'año' && (
+        <YearView
+          citas={citas}
+          year={currentYear}
+          onYearChange={setCurrentYear}
+          onSelectDay={(dateStr) => { setSelectedDate(dateStr); setVista('lista'); }}
+        />
       )}
 
       {/* List */}
@@ -720,6 +843,32 @@ export default function Citas() {
         </div>
       </Modal>
 
+      {/* Modal aviso solapamiento */}
+      <Modal isOpen={modalSolapamiento} onClose={() => setModalSolapamiento(false)} title="⚠ Aviso de solapamiento">
+        <div className="space-y-4">
+          <p className="text-gray-300 text-sm">Ya existe una cita en este horario para el artista o cabina seleccionados:</p>
+          <div className="space-y-2">
+            {conflictosSolapamiento.map(c => (
+              <div key={c.id} className="bg-gray-700/50 rounded-lg px-4 py-3">
+                <p className="text-white text-sm font-medium">{c.cliente_nombre}</p>
+                <p className="text-gray-400 text-xs">{c.artista_nombre} · {c.hora_inicio?.slice(0,5)} – {c.hora_fin?.slice(0,5)}{c.cabina_nombre ? ` · ${c.cabina_nombre}` : ''}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-400 text-sm">¿Deseas guardar la cita de todas formas?</p>
+          <div className="flex gap-3 pt-1">
+            <button onClick={() => setModalSolapamiento(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              Cancelar
+            </button>
+            <button onClick={() => doSaveCita(pendingSavePayload)} disabled={saving}
+              className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {saving ? 'Guardando...' : 'Guardar de todas formas'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Modal Material usado */}
       <Modal isOpen={modalMaterial} onClose={() => setModalMaterial(false)} title={`Material — ${citaMaterial?.cliente_nombre || ''}`}>
         <div className="space-y-4">
@@ -811,6 +960,211 @@ export default function Citas() {
           </form>
         </div>
       </Modal>
+
+      {/* Modal cita de grupo */}
+      {modalGrupo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setModalGrupo(false)} />
+          <div className="relative z-10 bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Cita de grupo</h2>
+                <p className="text-gray-500 text-xs mt-0.5">Paso {pasoGrupo} de 3</p>
+              </div>
+              <button onClick={() => setModalGrupo(false)} className="text-gray-400 hover:text-white">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-4 flex-1">
+              {/* Paso 1: datos base */}
+              {pasoGrupo === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Artista</label>
+                      <select value={formGrupo.artista_id} onChange={e => setFormGrupo(f => ({ ...f, artista_id: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Sin artista</option>
+                        {empleados.map(e => <option key={e.id} value={e.id}>{e.nombre} {e.apellidos}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Cabina</label>
+                      <select value={formGrupo.cabina_id} onChange={e => setFormGrupo(f => ({ ...f, cabina_id: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Sin cabina</option>
+                        {cabinas.filter(c => c.activo).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Fecha *</label>
+                    <input type="date" value={formGrupo.fecha} onChange={e => setFormGrupo(f => ({ ...f, fecha: e.target.value }))}
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Hora inicio *</label>
+                      <input type="time" value={formGrupo.hora_inicio} onChange={e => setFormGrupo(f => ({ ...f, hora_inicio: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Hora fin *</label>
+                      <input type="time" value={formGrupo.hora_fin} onChange={e => setFormGrupo(f => ({ ...f, hora_fin: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Descripción</label>
+                    <textarea value={formGrupo.descripcion} onChange={e => setFormGrupo(f => ({ ...f, descripcion: e.target.value }))} rows={2}
+                      placeholder="Diseño, descripción común del servicio..."
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500" />
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 2: clientes */}
+              {pasoGrupo === 2 && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" value={buscarGrupo}
+                      onChange={e => {
+                        setBuscarGrupo(e.target.value);
+                        const q = e.target.value.toLowerCase();
+                        setResultsBuscarGrupo(q.length >= 2 ? clientes.filter(c => `${c.nombre} ${c.apellidos} ${c.email}`.toLowerCase().includes(q)).slice(0, 8) : []);
+                      }}
+                      placeholder="Buscar cliente..."
+                      className="w-full bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                  </div>
+                  {resultsBuscarGrupo.length > 0 && (
+                    <div className="bg-gray-700 rounded-lg overflow-hidden">
+                      {resultsBuscarGrupo.map(c => (
+                        <button key={c.id} onClick={() => {
+                          if (!clientesGrupo.find(x => x.cliente_id === c.id)) {
+                            setClientesGrupo(prev => [...prev, { cliente_id: c.id, nombre: `${c.nombre} ${c.apellidos}`, precio: '' }]);
+                          }
+                          setBuscarGrupo(''); setResultsBuscarGrupo([]);
+                        }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-600 transition-colors text-left border-b border-gray-600 last:border-0">
+                          <div className="w-7 h-7 bg-indigo-700/50 rounded-full flex items-center justify-center text-indigo-300 text-xs font-bold flex-shrink-0">
+                            {c.nombre?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-white text-sm">{c.nombre} {c.apellidos}</p>
+                            {c.email && <p className="text-gray-400 text-xs">{c.email}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {clientesGrupo.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center py-4">Añade clientes usando el buscador</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-gray-400 text-xs font-medium">{clientesGrupo.length} cliente(s) seleccionado(s)</p>
+                      {clientesGrupo.map((cg, idx) => (
+                        <div key={cg.cliente_id} className="flex items-center gap-3 bg-gray-700/50 rounded-lg px-3 py-2.5">
+                          <p className="flex-1 text-white text-sm">{cg.nombre}</p>
+                          <input type="number" value={cg.precio} onChange={e => setClientesGrupo(prev => prev.map((x, i) => i === idx ? { ...x, precio: e.target.value } : x))}
+                            placeholder="Precio €" step="0.01" min="0"
+                            className="w-24 bg-gray-700 text-white rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                          <button onClick={() => setClientesGrupo(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-gray-500 hover:text-red-400 transition-colors">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Paso 3: resumen */}
+              {pasoGrupo === 3 && !resultadoGrupo && (
+                <div className="space-y-4">
+                  <p className="text-gray-400 text-sm">Se crearán las siguientes citas:</p>
+                  <div className="bg-gray-700/50 rounded-lg p-3 space-y-1 text-xs text-gray-300">
+                    <p><span className="text-gray-500">Fecha:</span> {formGrupo.fecha} · {formGrupo.hora_inicio} – {formGrupo.hora_fin}</p>
+                    {formGrupo.artista_id && <p><span className="text-gray-500">Artista:</span> {empleados.find(e => String(e.id) === String(formGrupo.artista_id))?.nombre}</p>}
+                    {formGrupo.cabina_id && <p><span className="text-gray-500">Cabina:</span> {cabinas.find(c => String(c.id) === String(formGrupo.cabina_id))?.nombre}</p>}
+                    {formGrupo.descripcion && <p><span className="text-gray-500">Desc:</span> {formGrupo.descripcion}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    {clientesGrupo.map(cg => (
+                      <div key={cg.cliente_id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2.5">
+                        <span className="text-white text-sm">{cg.nombre}</span>
+                        <span className="text-gray-300 text-sm">{cg.precio ? `${cg.precio}€` : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-indigo-400 text-sm font-medium text-center">{clientesGrupo.length} cita(s) a crear</p>
+                </div>
+              )}
+
+              {/* Resultado */}
+              {pasoGrupo === 3 && resultadoGrupo && (
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <p className="text-white font-semibold">¡Citas creadas!</p>
+                  <p className="text-gray-400 text-sm">{resultadoGrupo.length} citas creadas correctamente</p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
+              {pasoGrupo > 1 && !resultadoGrupo && (
+                <button onClick={() => setPasoGrupo(p => p - 1)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  Atrás
+                </button>
+              )}
+              {pasoGrupo < 3 && (
+                <button
+                  onClick={() => setPasoGrupo(p => p + 1)}
+                  disabled={pasoGrupo === 1 && (!formGrupo.fecha || !formGrupo.hora_inicio || !formGrupo.hora_fin) || pasoGrupo === 2 && clientesGrupo.length === 0}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                >
+                  Siguiente
+                </button>
+              )}
+              {pasoGrupo === 3 && !resultadoGrupo && (
+                <button onClick={async () => {
+                  setSavingGrupo(true);
+                  try {
+                    const res = await crearCitasGrupo({
+                      artista_id: formGrupo.artista_id || null,
+                      cabina_id: formGrupo.cabina_id || null,
+                      fecha: formGrupo.fecha,
+                      hora_inicio: formGrupo.hora_inicio,
+                      hora_fin: formGrupo.hora_fin,
+                      descripcion: formGrupo.descripcion || null,
+                      clientes: clientesGrupo.map(cg => ({ cliente_id: cg.cliente_id, precio: cg.precio || null })),
+                    });
+                    setResultadoGrupo(res.data);
+                    fetchAll();
+                  } catch (e) { console.error(e); }
+                  finally { setSavingGrupo(false); }
+                }} disabled={savingGrupo}
+                  className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  {savingGrupo ? 'Creando...' : 'Confirmar y crear'}
+                </button>
+              )}
+              {resultadoGrupo && (
+                <button onClick={() => setModalGrupo(false)}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
