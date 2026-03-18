@@ -2,6 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
 const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita } = require('../controllers/citaController');
+const { getMaterialCita, registrarMaterial, eliminarMaterial } = require('../controllers/citaMaterialController');
 const { auth } = require('../middleware/auth');
 
 const storage = multer.diskStorage({
@@ -23,5 +24,8 @@ router.patch('/:id/estado', actualizarEstado);
 router.patch('/:id/finalizar', finalizarCita);
 router.get('/:id/imagenes', getImagenesCita);
 router.post('/:id/imagenes', upload.single('imagen'), subirImagenCita);
+router.get('/:id/material', getMaterialCita);
+router.post('/:id/material', registrarMaterial);
+router.delete('/:cita_id/material/:material_id', eliminarMaterial);
 
 module.exports = router;

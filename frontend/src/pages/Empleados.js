@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado, getAusencias, crearAusencia, eliminarAusencia } from '../api';
+import {
+  getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado, getAusencias, crearAusencia, eliminarAusencia,
+  getTintasPorDefecto, addTintaDefectoArtista, removeTintaDefectoArtista,
+  getAgujasPorDefecto, addAgujaDefectoArtista, removeAgujaDefectoArtista,
+  getTintas, getAgujas,
+} from '../api';
 import Modal from '../components/Modal';
 
 const emptyForm = {
@@ -31,6 +36,16 @@ export default function Empleados() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const [modalMaterial, setModalMaterial] = useState(false);
+  const [empMaterial, setEmpMaterial] = useState(null);
+  const [matTintas, setMatTintas] = useState([]);
+  const [matAgujas, setMatAgujas] = useState([]);
+  const [allTintas, setAllTintas] = useState([]);
+  const [allAgujas, setAllAgujas] = useState([]);
+  const [loadingMat, setLoadingMat] = useState(false);
+  const [buscaTinta, setBuscaTinta] = useState('');
+  const [buscaAguja, setBuscaAguja] = useState('');
 
   const [modalAusencias, setModalAusencias] = useState(false);
   const [empAusencias, setEmpAusencias] = useState(null);
@@ -121,6 +136,54 @@ export default function Empleados() {
     } catch (e) { console.error(e); }
   };
 
+  const openMaterial = async (emp) => {
+    setEmpMaterial(emp);
+    setBuscaTinta(''); setBuscaAguja('');
+    setModalMaterial(true);
+    setLoadingMat(true);
+    try {
+      const [tDef, aDef, tAll, aAll] = await Promise.all([
+        getTintasPorDefecto(emp.id),
+        getAgujasPorDefecto(emp.id),
+        getTintas(),
+        getAgujas(),
+      ]);
+      setMatTintas(tDef.data); setMatAgujas(aDef.data);
+      setAllTintas(tAll.data); setAllAgujas(aAll.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingMat(false); }
+  };
+
+  const handleAddTintaDef = async (tinta_id) => {
+    try {
+      await addTintaDefectoArtista(empMaterial.id, tinta_id);
+      const res = await getTintasPorDefecto(empMaterial.id);
+      setMatTintas(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleRemoveTintaDef = async (tinta_id) => {
+    try {
+      await removeTintaDefectoArtista(empMaterial.id, tinta_id);
+      setMatTintas((t) => t.filter((x) => x.id !== tinta_id));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAddAgujasDef = async (aguja_id) => {
+    try {
+      await addAgujaDefectoArtista(empMaterial.id, aguja_id);
+      const res = await getAgujasPorDefecto(empMaterial.id);
+      setMatAgujas(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleRemoveAgujasDef = async (aguja_id) => {
+    try {
+      await removeAgujaDefectoArtista(empMaterial.id, aguja_id);
+      setMatAgujas((a) => a.filter((x) => x.id !== aguja_id));
+    } catch (e) { console.error(e); }
+  };
+
   const fmtDate = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '';
 
   return (
@@ -183,6 +246,7 @@ export default function Empleados() {
                       <div className="flex items-center gap-3 justify-end">
                         <button onClick={() => openEdit(e)} className="text-gray-400 hover:text-white text-sm transition-colors">Editar</button>
                         <button onClick={() => openAusencias(e)} className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors">Ausencias</button>
+                        <button onClick={() => openMaterial(e)} className="text-teal-400 hover:text-teal-300 text-sm transition-colors">Material</button>
                         {e.activo && (
                           <button onClick={() => handleDelete(e.id)} className="text-gray-400 hover:text-red-400 text-sm transition-colors">Desactivar</button>
                         )}
@@ -272,6 +336,97 @@ export default function Empleados() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal material por defecto */}
+      <Modal isOpen={modalMaterial} onClose={() => setModalMaterial(false)} title={`Material por defecto — ${empMaterial?.nombre || ''}`}>
+        <div className="space-y-5">
+          {loadingMat ? (
+            <div className="text-center py-4 text-gray-500 text-sm">Cargando...</div>
+          ) : (
+            <>
+              {/* Tintas por defecto */}
+              <div>
+                <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">Tintas por defecto</p>
+                {matTintas.length === 0 ? (
+                  <p className="text-gray-500 text-xs py-1">Sin tintas asignadas</p>
+                ) : (
+                  <div className="space-y-1.5 mb-3">
+                    {matTintas.map((t) => (
+                      <div key={t.id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full border border-gray-600 flex-shrink-0" style={{ backgroundColor: t.color || '#555' }} />
+                          <span className="text-white text-sm">{t.nombre}</span>
+                          {t.marca && <span className="text-gray-500 text-xs">({t.marca})</span>}
+                        </div>
+                        <button onClick={() => handleRemoveTintaDef(t.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <input placeholder="Buscar tinta para añadir..." value={buscaTinta} onChange={(e) => setBuscaTinta(e.target.value)}
+                    className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 mb-1.5" />
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {allTintas
+                      .filter((t) => !matTintas.some((m) => m.id === t.id))
+                      .filter((t) => !buscaTinta || t.nombre.toLowerCase().includes(buscaTinta.toLowerCase()) || (t.marca || '').toLowerCase().includes(buscaTinta.toLowerCase()))
+                      .map((t) => (
+                        <button key={t.id} onClick={() => handleAddTintaDef(t.id)}
+                          className="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors">
+                          <div className="w-3.5 h-3.5 rounded-full border border-gray-600 flex-shrink-0" style={{ backgroundColor: t.color || '#555' }} />
+                          <span className="text-gray-300 text-sm">{t.nombre}</span>
+                          {t.marca && <span className="text-gray-500 text-xs">({t.marca})</span>}
+                          <svg className="w-3.5 h-3.5 text-gray-600 ml-auto flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Agujas por defecto */}
+              <div className="border-t border-gray-700 pt-4">
+                <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">Agujas por defecto</p>
+                {matAgujas.length === 0 ? (
+                  <p className="text-gray-500 text-xs py-1">Sin agujas asignadas</p>
+                ) : (
+                  <div className="space-y-1.5 mb-3">
+                    {matAgujas.map((a) => (
+                      <div key={a.id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-sm">{a.marca} {a.modelo}</span>
+                          {a.tipo && <span className="text-xs bg-gray-700 text-gray-400 px-1.5 py-0.5 rounded">{a.tipo}</span>}
+                        </div>
+                        <button onClick={() => handleRemoveAgujasDef(a.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <input placeholder="Buscar aguja para añadir..." value={buscaAguja} onChange={(e) => setBuscaAguja(e.target.value)}
+                    className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 mb-1.5" />
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {allAgujas
+                      .filter((a) => !matAgujas.some((m) => m.id === a.id))
+                      .filter((a) => !buscaAguja || (`${a.marca} ${a.modelo} ${a.tipo}`).toLowerCase().includes(buscaAguja.toLowerCase()))
+                      .map((a) => (
+                        <button key={a.id} onClick={() => handleAddAgujasDef(a.id)}
+                          className="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors">
+                          <span className="text-gray-300 text-sm">{a.marca} {a.modelo}</span>
+                          {a.tipo && <span className="text-gray-500 text-xs">• {a.tipo}</span>}
+                          <svg className="w-3.5 h-3.5 text-gray-600 ml-auto flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </Modal>
 
       {/* Modal ausencias */}

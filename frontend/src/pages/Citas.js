@@ -4,6 +4,8 @@ import {
   createCita, updateCita, updateCitaEstado,
   finalizarCita, getImagenesCita, subirImagenCita, getImagenUrl,
   enviarComunicacion,
+  getMaterialCita, addMaterialCita, deleteMaterialCita,
+  getTintas, getAgujas,
 } from '../api';
 import Modal from '../components/Modal';
 
@@ -154,6 +156,15 @@ export default function Citas() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [enviandoEmail, setEnviandoEmail] = useState(null);
 
+  const [modalMaterial, setModalMaterial] = useState(false);
+  const [citaMaterial, setCitaMaterial] = useState(null);
+  const [material, setMaterial] = useState([]);
+  const [loadingMat, setLoadingMat] = useState(false);
+  const [tintas, setTintas] = useState([]);
+  const [agujasList, setAgujasList] = useState([]);
+  const [formMat, setFormMat] = useState({ tipo: 'tinta', tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+  const [savingMat, setSavingMat] = useState(false);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -278,6 +289,50 @@ export default function Citas() {
     finally { setUploadingImg(false); }
   };
 
+  const openMaterial = async (cita) => {
+    setCitaMaterial(cita);
+    setFormMat({ tipo: 'tinta', tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+    setModalMaterial(true);
+    setLoadingMat(true);
+    try {
+      const [matRes, tRes, aRes] = await Promise.all([
+        getMaterialCita(cita.id),
+        getTintas(),
+        getAgujas(),
+      ]);
+      setMaterial(matRes.data);
+      setTintas(tRes.data);
+      setAgujasList(aRes.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingMat(false); }
+  };
+
+  const handleAddMaterial = async (e) => {
+    e.preventDefault();
+    setSavingMat(true);
+    try {
+      const payload = {
+        tipo: formMat.tipo,
+        tinta_id: formMat.tipo === 'tinta' && formMat.tinta_id ? Number(formMat.tinta_id) : null,
+        aguja_id: formMat.tipo === 'aguja' && formMat.aguja_id ? Number(formMat.aguja_id) : null,
+        cantidad: formMat.cantidad ? Number(formMat.cantidad) : null,
+        notas: formMat.notas || null,
+      };
+      await addMaterialCita(citaMaterial.id, payload);
+      const res = await getMaterialCita(citaMaterial.id);
+      setMaterial(res.data);
+      setFormMat({ tipo: formMat.tipo, tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+    } catch (e) { console.error(e); }
+    finally { setSavingMat(false); }
+  };
+
+  const handleDeleteMaterial = async (mat_id) => {
+    try {
+      await deleteMaterialCita(citaMaterial.id, mat_id);
+      setMaterial((m) => m.filter((x) => x.id !== mat_id));
+    } catch (e) { console.error(e); }
+  };
+
   const handleEnviarRecordatorio = async (cita) => {
     setEnviandoEmail(cita.id);
     try {
@@ -391,6 +446,7 @@ export default function Citas() {
                     <div className="flex items-center gap-2 flex-wrap justify-end">
                       <button onClick={() => openEdit(cita)} className="text-gray-400 hover:text-white text-xs transition-colors">Editar</button>
                       <button onClick={() => openImagenes(cita)} className="text-purple-400 hover:text-purple-300 text-xs transition-colors">Imágenes</button>
+                      <button onClick={() => openMaterial(cita)} className="text-teal-400 hover:text-teal-300 text-xs transition-colors">Material</button>
                       {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
                         <button
                           onClick={() => handleEnviarRecordatorio(cita)}
@@ -650,6 +706,98 @@ export default function Citas() {
             <button type="submit" disabled={!uploadFile || uploadingImg}
               className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
               {uploadingImg ? 'Subiendo...' : 'Subir imagen'}
+            </button>
+          </form>
+        </div>
+      </Modal>
+
+      {/* Modal Material usado */}
+      <Modal isOpen={modalMaterial} onClose={() => setModalMaterial(false)} title={`Material — ${citaMaterial?.cliente_nombre || ''}`}>
+        <div className="space-y-4">
+          {/* Lista material */}
+          {loadingMat ? (
+            <div className="text-center py-4 text-gray-500 text-sm">Cargando...</div>
+          ) : material.length === 0 ? (
+            <p className="text-center text-gray-500 text-sm py-2">Sin material registrado</p>
+          ) : (
+            <div className="space-y-1.5">
+              {material.map((m) => (
+                <div key={m.id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2.5 gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${m.tipo === 'tinta' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-teal-500/20 text-teal-400'}`}>
+                      {m.tipo}
+                    </span>
+                    {m.tipo === 'tinta' ? (
+                      <div className="flex items-center gap-2 min-w-0">
+                        {m.tinta_color && <div className="w-4 h-4 rounded-full flex-shrink-0 border border-gray-600" style={{ backgroundColor: m.tinta_color }} />}
+                        <span className="text-white text-sm truncate">{m.tinta_nombre} {m.tinta_marca && <span className="text-gray-500 text-xs">({m.tinta_marca})</span>}</span>
+                      </div>
+                    ) : (
+                      <span className="text-white text-sm truncate">{m.aguja_marca} {m.aguja_modelo} {m.aguja_tipo && <span className="text-gray-500 text-xs">• {m.aguja_tipo}</span>}</span>
+                    )}
+                    {m.cantidad && <span className="text-gray-400 text-xs flex-shrink-0">× {m.cantidad}</span>}
+                  </div>
+                  <button onClick={() => handleDeleteMaterial(m.id)}
+                    className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Formulario añadir */}
+          <form onSubmit={handleAddMaterial} className="border-t border-gray-700 pt-4 space-y-3">
+            <p className="text-sm text-gray-400 font-medium">Añadir material</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Tipo</label>
+                <select value={formMat.tipo} onChange={(e) => setFormMat({ ...formMat, tipo: e.target.value, tinta_id: '', aguja_id: '' })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="tinta">Tinta</option>
+                  <option value="aguja">Aguja</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Cantidad</label>
+                <input type="number" step="0.001" min="0" value={formMat.cantidad}
+                  onChange={(e) => setFormMat({ ...formMat, cantidad: e.target.value })}
+                  placeholder="ml / uds"
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+              </div>
+            </div>
+            {formMat.tipo === 'tinta' ? (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Tinta *</label>
+                <select required value={formMat.tinta_id} onChange={(e) => setFormMat({ ...formMat, tinta_id: e.target.value })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Seleccionar tinta</option>
+                  {tintas.map((t) => (
+                    <option key={t.id} value={t.id}>{t.nombre}{t.marca ? ` (${t.marca})` : ''}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Aguja *</label>
+                <select required value={formMat.aguja_id} onChange={(e) => setFormMat({ ...formMat, aguja_id: e.target.value })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Seleccionar aguja</option>
+                  {agujasList.map((a) => (
+                    <option key={a.id} value={a.id}>{a.marca} {a.modelo}{a.tipo ? ` • ${a.tipo}` : ''}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Notas</label>
+              <input value={formMat.notas} onChange={(e) => setFormMat({ ...formMat, notas: e.target.value })}
+                placeholder="Zona, observaciones..."
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+            </div>
+            <button type="submit" disabled={savingMat}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {savingMat ? 'Añadiendo...' : 'Añadir material'}
             </button>
           </form>
         </div>

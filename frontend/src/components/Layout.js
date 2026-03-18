@@ -105,6 +105,29 @@ const navItems = [
   },
 ];
 
+const materialItems = [
+  {
+    to: '/tintas',
+    label: 'Tintas',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      </svg>
+    ),
+  },
+  {
+    to: '/agujas',
+    label: 'Agujas',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+      </svg>
+    ),
+  },
+];
+
 const contabilidadItems = [
   {
     to: '/contabilidad/recuento-diario',
@@ -207,6 +230,17 @@ export default function Layout({ children }) {
             {item.label}
           </NavLink>
         ))}
+        {/* Material group */}
+        <div className="pt-3">
+          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Material</p>
+          {materialItems.map((item) => (
+            <NavLink key={item.to} to={item.to} className={linkClass}>
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+
         {/* Contabilidad group */}
         <div className="pt-3">
           <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Contabilidad</p>

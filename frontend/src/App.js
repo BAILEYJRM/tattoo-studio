@@ -15,6 +15,8 @@ import Cabinas from './pages/Cabinas';
 import EventosCalendario from './pages/EventosCalendario';
 import { RecuentoDiario, LiquidacionArtista, LiquidacionEstudio, Recibos } from './pages/contabilidad';
 import Comunicaciones from './pages/Comunicaciones';
+import Tintas from './pages/Tintas';
+import Agujas from './pages/Agujas';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -150,6 +152,22 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Recibos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tintas"
+            element={
+              <PrivateRoute>
+                <Tintas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/agujas"
+            element={
+              <PrivateRoute>
+                <Agujas />
               </PrivateRoute>
             }
           />

@@ -151,6 +151,31 @@ export const createRecibo = (data) => api.post('/recibos', data);
 export const getFacturas = (params) => api.get('/facturas', { params });
 export const crearFactura = (data) => api.post('/facturas', data);
 
+// Tintas
+export const getTintas = (params) => api.get('/tintas', { params });
+export const getTintasCaducidad = (dias = 30) => api.get('/tintas/caducidad-proxima', { params: { dias } });
+export const createTinta = (data) => api.post('/tintas', data);
+export const updateTinta = (id, data) => api.put(`/tintas/${id}`, data);
+export const deleteTinta = (id) => api.delete(`/tintas/${id}`);
+export const getTintasPorDefecto = (empleado_id) => api.get(`/tintas/artista/${empleado_id}/defecto`);
+export const addTintaDefectoArtista = (empleado_id, tinta_id) => api.post(`/tintas/artista/${empleado_id}/defecto`, { tinta_id });
+export const removeTintaDefectoArtista = (empleado_id, tinta_id) => api.delete(`/tintas/artista/${empleado_id}/defecto/${tinta_id}`);
+
+// Agujas
+export const getAgujas = (params) => api.get('/agujas', { params });
+export const getAgujasCaducidad = (dias = 30) => api.get('/agujas/caducidad-proxima', { params: { dias } });
+export const createAguja = (data) => api.post('/agujas', data);
+export const updateAguja = (id, data) => api.put(`/agujas/${id}`, data);
+export const deleteAguja = (id) => api.delete(`/agujas/${id}`);
+export const getAgujasPorDefecto = (empleado_id) => api.get(`/agujas/artista/${empleado_id}/defecto`);
+export const addAgujaDefectoArtista = (empleado_id, aguja_id) => api.post(`/agujas/artista/${empleado_id}/defecto`, { aguja_id });
+export const removeAgujaDefectoArtista = (empleado_id, aguja_id) => api.delete(`/agujas/artista/${empleado_id}/defecto/${aguja_id}`);
+
+// Material de cita
+export const getMaterialCita = (cita_id) => api.get(`/citas/${cita_id}/material`);
+export const addMaterialCita = (cita_id, data) => api.post(`/citas/${cita_id}/material`, data);
+export const deleteMaterialCita = (cita_id, material_id) => api.delete(`/citas/${cita_id}/material/${material_id}`);
+
 // Comunicaciones
 export const getComunicaciones = (params) => api.get('/comunicaciones', { params });
 export const getPlantillasComunicacion = () => api.get('/comunicaciones/plantillas');

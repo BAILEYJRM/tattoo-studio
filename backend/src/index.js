@@ -53,6 +53,8 @@ app.use('/api/recibos', require('./routes/recibos'));
 app.use('/api/facturas', require('./routes/facturas'));
 app.use('/api/contabilidad', require('./routes/contabilidad'));
 app.use('/api/comunicaciones', require('./routes/comunicaciones'));
+app.use('/api/tintas', require('./routes/tintas'));
+app.use('/api/agujas', require('./routes/agujas'));
 
 // Cron jobs
 require('./services/cronService');
