@@ -3,6 +3,7 @@ import {
   getCitas, getClientes, getEmpleados, getCabinas,
   createCita, updateCita, updateCitaEstado,
   finalizarCita, getImagenesCita, subirImagenCita, getImagenUrl,
+  enviarComunicacion,
 } from '../api';
 import Modal from '../components/Modal';
 
@@ -151,6 +152,7 @@ export default function Citas() {
   const [uploadTipo, setUploadTipo] = useState('referencia');
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [enviandoEmail, setEnviandoEmail] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -276,6 +278,14 @@ export default function Citas() {
     finally { setUploadingImg(false); }
   };
 
+  const handleEnviarRecordatorio = async (cita) => {
+    setEnviandoEmail(cita.id);
+    try {
+      await enviarComunicacion({ tipo: 'recordatorio_cita', cita_id: cita.id });
+    } catch (e) { console.error(e); }
+    finally { setEnviandoEmail(null); }
+  };
+
   const handleMonthChange = (dir) => {
     setCurrentMonth((m) => { const n = new Date(m); n.setMonth(n.getMonth() + dir); return n; });
   };
@@ -381,6 +391,15 @@ export default function Citas() {
                     <div className="flex items-center gap-2 flex-wrap justify-end">
                       <button onClick={() => openEdit(cita)} className="text-gray-400 hover:text-white text-xs transition-colors">Editar</button>
                       <button onClick={() => openImagenes(cita)} className="text-purple-400 hover:text-purple-300 text-xs transition-colors">Imágenes</button>
+                      {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
+                        <button
+                          onClick={() => handleEnviarRecordatorio(cita)}
+                          disabled={enviandoEmail === cita.id}
+                          className="text-indigo-400 hover:text-indigo-300 text-xs transition-colors disabled:opacity-50"
+                        >
+                          {enviandoEmail === cita.id ? 'Enviando...' : '✉ Recordatorio'}
+                        </button>
+                      )}
                       {cita.estado === 'pendiente' && (
                         <button onClick={() => handleEstado(cita.id, 'confirmada')} className="text-blue-400 hover:text-blue-300 text-xs transition-colors">Confirmar</button>
                       )}

@@ -14,6 +14,7 @@ import Consentimientos from './pages/Consentimientos';
 import Cabinas from './pages/Cabinas';
 import EventosCalendario from './pages/EventosCalendario';
 import { RecuentoDiario, LiquidacionArtista, LiquidacionEstudio, Recibos } from './pages/contabilidad';
+import Comunicaciones from './pages/Comunicaciones';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -149,6 +150,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Recibos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/comunicaciones"
+            element={
+              <PrivateRoute>
+                <Comunicaciones />
               </PrivateRoute>
             }
           />

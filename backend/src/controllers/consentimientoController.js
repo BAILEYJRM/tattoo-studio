@@ -100,4 +100,17 @@ const regenerarPdf = async (req, res) => {
   }
 };
 
-module.exports = { getConsentimientos, getConsentimiento, crearConsentimiento, descargarPdf, regenerarPdf };
+const enviarEmailConsentimiento = async (req, res) => {
+  try {
+    const { enviarConsentimientoFirmado } = require('../services/emailService');
+    const c = await Consentimiento.buscarPorId(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Consentimiento no encontrado' });
+    const ok = await enviarConsentimientoFirmado(req.params.id);
+    if (ok) res.json({ ok: true, mensaje: 'Email enviado' });
+    else res.status(422).json({ ok: false, mensaje: 'No se pudo enviar (cliente sin email o plantilla inactiva)' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { getConsentimientos, getConsentimiento, crearConsentimiento, descargarPdf, regenerarPdf, enviarEmailConsentimiento };

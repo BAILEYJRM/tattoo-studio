@@ -150,3 +150,11 @@ export const createRecibo = (data) => api.post('/recibos', data);
 // Facturas
 export const getFacturas = (params) => api.get('/facturas', { params });
 export const crearFactura = (data) => api.post('/facturas', data);
+
+// Comunicaciones
+export const getComunicaciones = (params) => api.get('/comunicaciones', { params });
+export const getPlantillasComunicacion = () => api.get('/comunicaciones/plantillas');
+export const updatePlantillaComunicacion = (id, data) => api.put(`/comunicaciones/plantillas/${id}`, data);
+export const enviarComunicacion = (data) => api.post('/comunicaciones/enviar', data);
+export const getEstadisticasComunicaciones = () => api.get('/comunicaciones/estadisticas');
+export const enviarEmailConsentimiento = (id) => api.post(`/consentimientos/${id}/enviar-email`);
