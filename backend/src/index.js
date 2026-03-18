@@ -1,4 +1,4 @@
- const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
@@ -31,6 +31,9 @@ app.get('/api/db-health', async (req, res) => {
 
 // Rutas
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/clientes', require('./routes/clientes'));
+app.use('/api/empleados', require('./routes/empleados'));
+app.use('/api/citas', require('./routes/citas'));
 
 // Puerto
 const PORT = process.env.PORT || 3000;
