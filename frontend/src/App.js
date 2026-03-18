@@ -11,6 +11,7 @@ import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
 import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
+import Cabinas from './pages/Cabinas';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -98,6 +99,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Consentimientos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/cabinas"
+            element={
+              <PrivateRoute>
+                <Cabinas />
               </PrivateRoute>
             }
           />

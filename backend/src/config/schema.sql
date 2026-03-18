@@ -96,6 +96,43 @@ CREATE TABLE IF NOT EXISTS venta_lineas (
   subtotal DECIMAL(10,2) NOT NULL
 );
 
+-- Cabinas
+CREATE TABLE IF NOT EXISTS cabinas (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion TEXT,
+  estado VARCHAR(20) NOT NULL DEFAULT 'disponible',
+  activo BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Limpiezas de cabinas
+CREATE TABLE IF NOT EXISTS limpiezas (
+  id SERIAL PRIMARY KEY,
+  cabina_id INTEGER REFERENCES cabinas(id),
+  empleado_id INTEGER REFERENCES empleados(id),
+  tipo VARCHAR(50) NOT NULL,
+  fecha DATE NOT NULL,
+  hora_inicio TIME NOT NULL,
+  hora_fin TIME,
+  observaciones TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Incidencias de cabinas
+CREATE TABLE IF NOT EXISTS incidencias (
+  id SERIAL PRIMARY KEY,
+  cabina_id INTEGER REFERENCES cabinas(id),
+  empleado_id INTEGER REFERENCES empleados(id),
+  titulo VARCHAR(200) NOT NULL,
+  descripcion TEXT,
+  foto_path VARCHAR(500),
+  estado VARCHAR(20) NOT NULL DEFAULT 'abierta',
+  fecha DATE NOT NULL,
+  resuelta_en TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Plantillas de consentimiento
 CREATE TABLE IF NOT EXISTS plantillas_consentimiento (
   id SERIAL PRIMARY KEY,

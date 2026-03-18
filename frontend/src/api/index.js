@@ -95,3 +95,24 @@ export const regenerarPdfConsentimiento = (id) =>
   api.post(`/consentimientos/${id}/regenerar-pdf`);
 export const getPdfUrl = (pdfPath) =>
   `${api.defaults.baseURL.replace('/api', '')}/${pdfPath}`;
+
+// Cabinas
+export const getCabinas = () => api.get('/cabinas');
+export const crearCabina = (data) => api.post('/cabinas', data);
+export const actualizarCabina = (id, data) => api.put(`/cabinas/${id}`, data);
+export const cambiarEstadoCabina = (id, estado) => api.patch(`/cabinas/${id}/estado`, { estado });
+
+// Limpiezas
+export const getLimpiezas = (params) => api.get('/limpiezas', { params });
+export const getResumenLimpiezas = (fecha) => api.get('/limpiezas/resumen', { params: { fecha } });
+export const crearLimpieza = (data) => api.post('/limpiezas', data);
+export const eliminarLimpieza = (id) => api.delete(`/limpiezas/${id}`);
+
+// Incidencias
+export const getIncidencias = (params) => api.get('/incidencias', { params });
+export const crearIncidencia = (formData) => api.post('/incidencias', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
+export const resolverIncidencia = (id) => api.patch(`/incidencias/${id}/resolver`);
+export const getImagenUrl = (fotoPath) =>
+  `${api.defaults.baseURL.replace('/api', '')}/${fotoPath}`;
