@@ -49,6 +49,11 @@ export const createCita = (data) => api.post('/citas', data);
 export const updateCita = (id, data) => api.put(`/citas/${id}`, data);
 export const updateCitaEstado = (id, estado) =>
   api.patch(`/citas/${id}/estado`, { estado });
+export const finalizarCita = (id, data) => api.patch(`/citas/${id}/finalizar`, data);
+export const getImagenesCita = (id) => api.get(`/citas/${id}/imagenes`);
+export const subirImagenCita = (id, formData) => api.post(`/citas/${id}/imagenes`, formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 
 // Productos
 export const getProductos = () => api.get('/productos');
@@ -116,3 +121,15 @@ export const crearIncidencia = (formData) => api.post('/incidencias', formData, 
 export const resolverIncidencia = (id) => api.patch(`/incidencias/${id}/resolver`);
 export const getImagenUrl = (fotoPath) =>
   `${api.defaults.baseURL.replace('/api', '')}/${fotoPath}`;
+
+// Ausencias de empleados
+export const getAusencias = (empleadoId) => api.get(`/empleados/${empleadoId}/ausencias`);
+export const crearAusencia = (empleadoId, data) => api.post(`/empleados/${empleadoId}/ausencias`, data);
+export const eliminarAusencia = (id) => api.delete(`/ausencias/${id}`);
+export const getAusenciasRango = (params) => api.get('/ausencias', { params });
+
+// Eventos de calendario
+export const getEventos = (params) => api.get('/eventos-calendario', { params });
+export const crearEvento = (data) => api.post('/eventos-calendario', data);
+export const updateEvento = (id, data) => api.put(`/eventos-calendario/${id}`, data);
+export const eliminarEvento = (id) => api.delete(`/eventos-calendario/${id}`);

@@ -1,4 +1,4 @@
- -- Empleados
+-- Empleados
 CREATE TABLE IF NOT EXISTS empleados (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -8,6 +8,38 @@ CREATE TABLE IF NOT EXISTS empleados (
   telefono VARCHAR(20),
   rol VARCHAR(20) NOT NULL DEFAULT 'artista',
   activo BOOLEAN DEFAULT true,
+  nombre_artistico VARCHAR(100),
+  comision_porcentaje DECIMAL(5,2) DEFAULT 0,
+  color_calendario VARCHAR(7) DEFAULT '#6366f1',
+  estilo_principal VARCHAR(100),
+  instagram VARCHAR(100),
+  puede_crear_citas BOOLEAN DEFAULT true,
+  puede_ver_companeros BOOLEAN DEFAULT true,
+  notificar_nueva_cita BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Ausencias de empleados
+CREATE TABLE IF NOT EXISTS ausencias_empleados (
+  id SERIAL PRIMARY KEY,
+  empleado_id INTEGER REFERENCES empleados(id) ON DELETE CASCADE,
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NOT NULL,
+  hora_inicio TIME,
+  hora_fin TIME,
+  motivo VARCHAR(100),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Eventos de calendario
+CREATE TABLE IF NOT EXISTS eventos_calendario (
+  id SERIAL PRIMARY KEY,
+  empleado_id INTEGER REFERENCES empleados(id),
+  titulo VARCHAR(200) NOT NULL,
+  descripcion TEXT,
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NOT NULL,
+  tipo VARCHAR(30) DEFAULT 'otro',
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -20,6 +52,22 @@ CREATE TABLE IF NOT EXISTS clientes (
   telefono VARCHAR(20),
   fecha_nacimiento DATE,
   notas TEXT,
+  conflictivo BOOLEAN DEFAULT false,
+  flexible BOOLEAN DEFAULT false,
+  habla_ingles BOOLEAN DEFAULT false,
+  es_cliente_estudio BOOLEAN DEFAULT false,
+  no_shows INTEGER DEFAULT 0,
+  tutor_legal_nombre VARCHAR(200),
+  tutor_legal_dni VARCHAR(20),
+  tutor_legal_telefono VARCHAR(20),
+  dni_foto_delantera VARCHAR(255),
+  dni_foto_trasera VARCHAR(255),
+  info_medica TEXT,
+  acepta_comunicaciones BOOLEAN DEFAULT true,
+  acepta_redes BOOLEAN DEFAULT false,
+  sexo VARCHAR(10),
+  foto_perfil VARCHAR(255),
+  instagram VARCHAR(100),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -28,12 +76,28 @@ CREATE TABLE IF NOT EXISTS citas (
   id SERIAL PRIMARY KEY,
   cliente_id INTEGER REFERENCES clientes(id),
   artista_id INTEGER REFERENCES empleados(id),
+  cabina_id INTEGER REFERENCES cabinas(id),
   fecha DATE NOT NULL,
   hora_inicio TIME NOT NULL,
   hora_fin TIME NOT NULL,
   descripcion TEXT,
   estado VARCHAR(20) DEFAULT 'pendiente',
   precio DECIMAL(10,2),
+  importe_senal DECIMAL(10,2) DEFAULT 0,
+  senal_cobrada BOOLEAN DEFAULT false,
+  forma_pago VARCHAR(20),
+  no_presentado BOOLEAN DEFAULT false,
+  comision_artista DECIMAL(5,2),
+  notas_internas TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Imágenes de citas
+CREATE TABLE IF NOT EXISTS cita_imagenes (
+  id SERIAL PRIMARY KEY,
+  cita_id INTEGER REFERENCES citas(id) ON DELETE CASCADE,
+  tipo VARCHAR(20) DEFAULT 'referencia',
+  imagen_path VARCHAR(255),
   created_at TIMESTAMP DEFAULT NOW()
 );
 

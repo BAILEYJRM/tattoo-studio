@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Servir archivos estáticos (PDFs de consentimientos, fotos de incidencias)
+// Servir archivos estáticos (PDFs, fotos de incidencias, imágenes de citas)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Ruta de prueba
@@ -47,6 +47,8 @@ app.use('/api/consentimientos', require('./routes/consentimientos'));
 app.use('/api/cabinas', require('./routes/cabinas'));
 app.use('/api/limpiezas', require('./routes/limpiezas'));
 app.use('/api/incidencias', require('./routes/incidencias'));
+app.use('/api/ausencias', require('./routes/ausencias'));
+app.use('/api/eventos-calendario', require('./routes/eventosCalendario'));
 
 // Puerto
 const PORT = process.env.PORT || 3000;

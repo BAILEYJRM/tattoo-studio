@@ -12,6 +12,7 @@ import Ventas from './pages/Ventas';
 import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
 import Cabinas from './pages/Cabinas';
+import EventosCalendario from './pages/EventosCalendario';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -99,6 +100,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Consentimientos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/eventos-calendario"
+            element={
+              <PrivateRoute>
+                <EventosCalendario />
               </PrivateRoute>
             }
           />

@@ -30,10 +30,23 @@ const crearEmpleado = async (req, res) => {
 
 const actualizarEmpleado = async (req, res) => {
   try {
+    const {
+      nombre, apellidos, email, telefono, rol,
+      nombre_artistico, comision_porcentaje, color_calendario, estilo_principal, instagram,
+      puede_crear_citas, puede_ver_companeros, notificar_nueva_cita,
+    } = req.body;
     const result = await require('../config/database').query(
-      `UPDATE empleados SET nombre=$1, apellidos=$2, email=$3, telefono=$4, rol=$5
-       WHERE id=$6 RETURNING id, nombre, apellidos, email, telefono, rol`,
-      [req.body.nombre, req.body.apellidos, req.body.email, req.body.telefono, req.body.rol, req.params.id]
+      `UPDATE empleados SET
+        nombre=$1, apellidos=$2, email=$3, telefono=$4, rol=$5,
+        nombre_artistico=$6, comision_porcentaje=$7, color_calendario=$8,
+        estilo_principal=$9, instagram=$10,
+        puede_crear_citas=$11, puede_ver_companeros=$12, notificar_nueva_cita=$13
+       WHERE id=$14 RETURNING *`,
+      [nombre, apellidos, email, telefono, rol,
+       nombre_artistico, comision_porcentaje, color_calendario,
+       estilo_principal, instagram,
+       puede_crear_citas ?? true, puede_ver_companeros ?? true, notificar_nueva_cita ?? true,
+       req.params.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Empleado no encontrado' });
     res.json(result.rows[0]);

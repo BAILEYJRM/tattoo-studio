@@ -1,7 +1,17 @@
- 
 const router = require('express').Router();
-const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado } = require('../controllers/citaController');
+const multer = require('multer');
+const path = require('path');
+const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita } = require('../controllers/citaController');
 const { auth } = require('../middleware/auth');
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '../../uploads/citas'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `cita-${req.params.id}-${Date.now()}${ext}`);
+  },
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.use(auth);
 
@@ -10,5 +20,8 @@ router.get('/:id', getCita);
 router.post('/', crearCita);
 router.put('/:id', actualizarCita);
 router.patch('/:id/estado', actualizarEstado);
+router.patch('/:id/finalizar', finalizarCita);
+router.get('/:id/imagenes', getImagenesCita);
+router.post('/:id/imagenes', upload.single('imagen'), subirImagenCita);
 
 module.exports = router;
