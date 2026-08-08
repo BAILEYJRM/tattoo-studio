@@ -1,0 +1,1170 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  getCitas, getClientes, getEmpleados, getCabinas,
+  createCita, updateCita, updateCitaEstado,
+  finalizarCita, getImagenesCita, subirImagenCita, getImagenUrl,
+  enviarComunicacion,
+  getMaterialCita, addMaterialCita, deleteMaterialCita,
+  getTintas, getAgujas,
+  getDiasFestivos,
+  verificarSolapamientoCita, crearCitasGrupo,
+} from '../api';
+import Modal from '../components/Modal';
+
+const ESTADOS = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+const ESTADO_CONFIG = {
+  pendiente: { label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', dot: 'bg-yellow-400' },
+  confirmada: { label: 'Confirmada', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-400' },
+  completada: { label: 'Completada', color: 'bg-green-500/10 text-green-400 border-green-500/20', dot: 'bg-green-400' },
+  cancelada: { label: 'Cancelada', color: 'bg-red-500/10 text-red-400 border-red-500/20', dot: 'bg-red-400' },
+};
+const FORMAS_PAGO = ['efectivo', 'tarjeta', 'bizum', 'transferencia'];
+
+function EstadoBadge({ estado }) {
+  const cfg = ESTADO_CONFIG[estado] || ESTADO_CONFIG.pendiente;
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.color}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function Toggle({ label, checked, onChange }) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer">
+      <div
+        onClick={onChange}
+        className={`relative w-9 h-5 rounded-full transition-colors ${checked ? 'bg-indigo-600' : 'bg-gray-600'}`}
+      >
+        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-4' : ''}`} />
+      </div>
+      <span className="text-sm text-gray-300">{label}</span>
+    </label>
+  );
+}
+
+function YearView({ citas, year, onYearChange, onSelectDay }) {
+  const citasByDate = {};
+  citas.forEach(c => {
+    const key = c.fecha?.split('T')[0];
+    if (!citasByDate[key]) citasByDate[key] = [];
+    citasByDate[key].push(c);
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAY_NAMES = ['D','L','M','X','J','V','S'];
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-5">
+      <div className="flex items-center justify-between mb-5">
+        <button onClick={() => onYearChange(year - 1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <span className="text-white font-semibold">{year}</span>
+        <button onClick={() => onYearChange(year + 1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 12 }, (_, month) => {
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const cells = [];
+          for (let i = 0; i < firstDay; i++) cells.push(null);
+          for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+          return (
+            <div key={month} className="bg-gray-800 rounded-lg p-3">
+              <p className="text-white text-xs font-semibold mb-2 text-center">{MONTH_NAMES[month]}</p>
+              <div className="grid grid-cols-7 mb-1">
+                {DAY_NAMES.map(d => <div key={d} className="text-center text-gray-600 text-xs">{d}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-px">
+                {cells.map((day, idx) => {
+                  if (!day) return <div key={`e-${idx}`} />;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const dayCitas = citasByDate[dateStr] || [];
+                  const isToday = dateStr === today;
+                  return (
+                    <button key={dateStr} onClick={() => onSelectDay(dateStr)}
+                      className={`flex flex-col items-center justify-center rounded text-xs py-0.5 transition-colors ${isToday ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
+                      <span className="leading-none">{day}</span>
+                      {dayCitas.length > 0 && (
+                        <div className="flex gap-px mt-0.5 flex-wrap justify-center">
+                          {dayCitas.slice(0, 3).map((c, i) => (
+                            <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: c.artista_color || '#6366f1' }} />
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [] }) {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const citasByDate = {};
+  citas.forEach((c) => {
+    const key = c.fecha?.split('T')[0];
+    if (!citasByDate[key]) citasByDate[key] = [];
+    citasByDate[key].push(c);
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => onMonthChange(-1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <span className="text-white font-semibold text-sm">{monthNames[month]} {year}</span>
+        <button onClick={() => onMonthChange(1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <div className="grid grid-cols-7 mb-1">
+        {dayNames.map((d) => <div key={d} className="text-center text-xs text-gray-500 font-medium py-1">{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((day, idx) => {
+          if (!day) return <div key={`e-${idx}`} />;
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const daysCitas = citasByDate[dateStr] || [];
+          const isToday = dateStr === today;
+          const isSelected = dateStr === selectedDate;
+          const isFestivo = diasFestivos.includes(dateStr);
+          return (
+            <button
+              key={dateStr}
+              onClick={() => onSelectDate(isSelected ? null : dateStr)}
+              className={`relative aspect-square flex flex-col items-center justify-start pt-1 rounded-lg text-xs transition-colors ${
+                isSelected ? 'bg-indigo-600 text-white' : isFestivo ? 'bg-red-500/15 text-red-400 font-semibold' : isToday ? 'bg-indigo-600/20 text-indigo-400 font-bold' : 'text-gray-300 hover:bg-gray-800'
+              }`}
+            >
+              <span>{day}</span>
+              {daysCitas.length > 0 && (
+                <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                  {daysCitas.slice(0, 3).map((c, i) => (
+                    <span
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : (c.artista_color || '#6366f1') }}
+                    />
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const emptyForm = {
+  cliente_id: '', artista_id: '', cabina_id: '',
+  fecha: '', hora_inicio: '', hora_fin: '',
+  descripcion: '', precio: '', estado: 'pendiente',
+  importe_senal: '', senal_cobrada: false,
+  forma_pago: '', notas_internas: '',
+};
+
+const emptyFinalizar = {
+  normal: true, no_presentado: false,
+  forma_pago: 'efectivo', precio_final: '', comision_artista: '',
+};
+
+export default function Citas() {
+  const [citas, setCitas] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [cabinas, setCabinas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [vista, setVista] = useState('lista');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [diasFestivos, setDiasFestivos] = useState([]);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  // Solapamiento
+  const [modalSolapamiento, setModalSolapamiento] = useState(false);
+  const [conflictosSolapamiento, setConflictosSolapamiento] = useState([]);
+  const [pendingSavePayload, setPendingSavePayload] = useState(null);
+
+  // Citas de grupo
+  const [modalGrupo, setModalGrupo] = useState(false);
+  const [pasoGrupo, setPasoGrupo] = useState(1);
+  const [formGrupo, setFormGrupo] = useState({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' });
+  const [clientesGrupo, setClientesGrupo] = useState([]);
+  const [buscarGrupo, setBuscarGrupo] = useState('');
+  const [resultsBuscarGrupo, setResultsBuscarGrupo] = useState([]);
+  const [savingGrupo, setSavingGrupo] = useState(false);
+  const [resultadoGrupo, setResultadoGrupo] = useState(null);
+
+  const [modal, setModal] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const [modalFinalizar, setModalFinalizar] = useState(false);
+  const [citaFinalizar, setCitaFinalizar] = useState(null);
+  const [formFinalizar, setFormFinalizar] = useState(emptyFinalizar);
+  const [savingFinalizar, setSavingFinalizar] = useState(false);
+
+  const [modalImagenes, setModalImagenes] = useState(false);
+  const [citaImagenes, setCitaImagenes] = useState(null);
+  const [imagenes, setImagenes] = useState([]);
+  const [loadingImagenes, setLoadingImagenes] = useState(false);
+  const [uploadTipo, setUploadTipo] = useState('referencia');
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
+  const [enviandoEmail, setEnviandoEmail] = useState(null);
+
+  const [modalMaterial, setModalMaterial] = useState(false);
+  const [citaMaterial, setCitaMaterial] = useState(null);
+  const [material, setMaterial] = useState([]);
+  const [loadingMat, setLoadingMat] = useState(false);
+  const [tintas, setTintas] = useState([]);
+  const [agujasList, setAgujasList] = useState([]);
+  const [formMat, setFormMat] = useState({ tipo: 'tinta', tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+  const [savingMat, setSavingMat] = useState(false);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [citasRes, clientesRes, empleadosRes, cabinasRes] = await Promise.all([
+        getCitas(), getClientes(), getEmpleados(), getCabinas(),
+      ]);
+      setCitas(citasRes.data);
+      setClientes(clientesRes.data);
+      setEmpleados(empleadosRes.data);
+      setCabinas(cabinasRes.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => {
+    getDiasFestivos().then(res => {
+      setDiasFestivos(res.data.map(f => f.fecha?.split('T')[0]));
+    }).catch(() => {});
+  }, []);
+
+  const openNew = () => {
+    setEditando(null);
+    setForm({ ...emptyForm, fecha: selectedDate || '' });
+    setError('');
+    setModal(true);
+  };
+
+  const openEdit = (cita) => {
+    setEditando(cita.id);
+    setForm({
+      cliente_id: cita.cliente_id || '',
+      artista_id: cita.artista_id || '',
+      cabina_id: cita.cabina_id || '',
+      fecha: cita.fecha?.split('T')[0] || '',
+      hora_inicio: cita.hora_inicio?.slice(0, 5) || '',
+      hora_fin: cita.hora_fin?.slice(0, 5) || '',
+      descripcion: cita.descripcion || '',
+      precio: cita.precio || '',
+      estado: cita.estado || 'pendiente',
+      importe_senal: cita.importe_senal || '',
+      senal_cobrada: cita.senal_cobrada || false,
+      forma_pago: cita.forma_pago || '',
+      notas_internas: cita.notas_internas || '',
+    });
+    setError('');
+    setModal(true);
+  };
+
+  const doSaveCita = async (payload) => {
+    setSaving(true);
+    setError('');
+    try {
+      if (editando) await updateCita(editando, payload);
+      else await createCita(payload);
+      setModal(false);
+      setModalSolapamiento(false);
+      fetchAll();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al guardar');
+    } finally { setSaving(false); }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...form,
+      hora_inicio: form.hora_inicio + ':00',
+      hora_fin: form.hora_fin + ':00',
+      precio: form.precio ? Number(form.precio) : null,
+      importe_senal: form.importe_senal ? Number(form.importe_senal) : 0,
+      cliente_id: Number(form.cliente_id),
+      artista_id: Number(form.artista_id),
+      cabina_id: form.cabina_id ? Number(form.cabina_id) : null,
+    };
+
+    if ((form.artista_id || form.cabina_id) && form.fecha && form.hora_inicio && form.hora_fin) {
+      try {
+        const chk = await verificarSolapamientoCita({
+          artista_id: form.artista_id || undefined,
+          cabina_id: form.cabina_id || undefined,
+          fecha: form.fecha,
+          hora_inicio: form.hora_inicio,
+          hora_fin: form.hora_fin,
+          excluir_id: editando || undefined,
+        });
+        if (chk.data.conflictos?.length > 0) {
+          setConflictosSolapamiento(chk.data.conflictos);
+          setPendingSavePayload(payload);
+          setModalSolapamiento(true);
+          return;
+        }
+      } catch { /* si falla el check, continuamos */ }
+    }
+    await doSaveCita(payload);
+  };
+
+  const handleEstado = async (id, estado) => {
+    try { await updateCitaEstado(id, estado); fetchAll(); }
+    catch (e) { console.error(e); }
+  };
+
+  const openFinalizar = (cita) => {
+    setCitaFinalizar(cita);
+    setFormFinalizar({ ...emptyFinalizar, precio_final: cita.precio || '' });
+    setModalFinalizar(true);
+  };
+
+  const handleFinalizar = async (e) => {
+    e.preventDefault();
+    setSavingFinalizar(true);
+    try {
+      await finalizarCita(citaFinalizar.id, {
+        forma_pago: formFinalizar.forma_pago,
+        precio_final: formFinalizar.precio_final ? Number(formFinalizar.precio_final) : null,
+        comision_artista: formFinalizar.comision_artista ? Number(formFinalizar.comision_artista) : null,
+        no_presentado: formFinalizar.no_presentado,
+      });
+      setModalFinalizar(false);
+      fetchAll();
+    } catch (e) { console.error(e); }
+    finally { setSavingFinalizar(false); }
+  };
+
+  const openImagenes = async (cita) => {
+    setCitaImagenes(cita);
+    setModalImagenes(true);
+    setUploadFile(null);
+    setUploadTipo('referencia');
+    setLoadingImagenes(true);
+    try {
+      const res = await getImagenesCita(cita.id);
+      setImagenes(res.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingImagenes(false); }
+  };
+
+  const handleSubirImagen = async (e) => {
+    e.preventDefault();
+    if (!uploadFile) return;
+    setUploadingImg(true);
+    try {
+      const fd = new FormData();
+      fd.append('imagen', uploadFile);
+      fd.append('tipo', uploadTipo);
+      await subirImagenCita(citaImagenes.id, fd);
+      const res = await getImagenesCita(citaImagenes.id);
+      setImagenes(res.data);
+      setUploadFile(null);
+    } catch (e) { console.error(e); }
+    finally { setUploadingImg(false); }
+  };
+
+  const openMaterial = async (cita) => {
+    setCitaMaterial(cita);
+    setFormMat({ tipo: 'tinta', tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+    setModalMaterial(true);
+    setLoadingMat(true);
+    try {
+      const [matRes, tRes, aRes] = await Promise.all([
+        getMaterialCita(cita.id),
+        getTintas(),
+        getAgujas(),
+      ]);
+      setMaterial(matRes.data);
+      setTintas(tRes.data);
+      setAgujasList(aRes.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingMat(false); }
+  };
+
+  const handleAddMaterial = async (e) => {
+    e.preventDefault();
+    setSavingMat(true);
+    try {
+      const payload = {
+        tipo: formMat.tipo,
+        tinta_id: formMat.tipo === 'tinta' && formMat.tinta_id ? Number(formMat.tinta_id) : null,
+        aguja_id: formMat.tipo === 'aguja' && formMat.aguja_id ? Number(formMat.aguja_id) : null,
+        cantidad: formMat.cantidad ? Number(formMat.cantidad) : null,
+        notas: formMat.notas || null,
+      };
+      await addMaterialCita(citaMaterial.id, payload);
+      const res = await getMaterialCita(citaMaterial.id);
+      setMaterial(res.data);
+      setFormMat({ tipo: formMat.tipo, tinta_id: '', aguja_id: '', cantidad: '', notas: '' });
+    } catch (e) { console.error(e); }
+    finally { setSavingMat(false); }
+  };
+
+  const handleDeleteMaterial = async (mat_id) => {
+    try {
+      await deleteMaterialCita(citaMaterial.id, mat_id);
+      setMaterial((m) => m.filter((x) => x.id !== mat_id));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleEnviarRecordatorio = async (cita) => {
+    setEnviandoEmail(cita.id);
+    try {
+      await enviarComunicacion({ tipo: 'recordatorio_cita', cita_id: cita.id });
+    } catch (e) { console.error(e); }
+    finally { setEnviandoEmail(null); }
+  };
+
+  const handleMonthChange = (dir) => {
+    setCurrentMonth((m) => { const n = new Date(m); n.setMonth(n.getMonth() + dir); return n; });
+  };
+
+  const citasFiltradas = citas.filter((c) => {
+    if (filtroEstado && c.estado !== filtroEstado) return false;
+    if (selectedDate && c.fecha?.split('T')[0] !== selectedDate) return false;
+    return true;
+  });
+
+  const TIPOS_IMG = ['referencia', 'proceso', 'resultado'];
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white">Citas</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setModalGrupo(true); setPasoGrupo(1); setFormGrupo({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' }); setClientesGrupo([]); setResultadoGrupo(null); }}
+            className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Cita de grupo
+          </button>
+          <button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Nueva cita
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex gap-1 bg-gray-900 p-1 rounded-lg">
+          {[['lista','Lista'],['calendario','Mes'],['año','Año']].map(([v, label]) => (
+            <button key={v} onClick={() => setVista(v)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${vista === v ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
+          className="bg-gray-900 text-gray-300 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="">Todos los estados</option>
+          {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_CONFIG[e].label}</option>)}
+        </select>
+        {selectedDate && (
+          <button onClick={() => setSelectedDate(null)} className="flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+          </button>
+        )}
+      </div>
+
+      {vista === 'calendario' && (
+        <Calendar citas={citas} selectedDate={selectedDate} onSelectDate={setSelectedDate}
+          currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos} />
+      )}
+
+      {vista === 'año' && (
+        <YearView
+          citas={citas}
+          year={currentYear}
+          onYearChange={setCurrentYear}
+          onSelectDay={(dateStr) => { setSelectedDate(dateStr); setVista('lista'); }}
+        />
+      )}
+
+      {/* List */}
+      <div className="bg-gray-900 rounded-xl overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-gray-500 text-sm">Cargando...</div>
+        ) : citasFiltradas.length === 0 ? (
+          <div className="p-8 text-center text-gray-500 text-sm">
+            {selectedDate || filtroEstado ? 'No hay citas con esos filtros' : 'No hay citas registradas'}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {citasFiltradas.map((cita) => (
+              <div key={cita.id} className="px-5 py-4 hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-start gap-4">
+                  {/* Artista color bar + date */}
+                  <div className="flex items-stretch gap-2 min-w-[60px]">
+                    <div className="w-1 rounded-full flex-shrink-0" style={{ backgroundColor: cita.artista_color || '#6366f1' }} />
+                    <div className="text-center bg-gray-800 rounded-lg px-2 py-2 flex-1">
+                      <p className="text-indigo-400 text-xs font-medium">
+                        {new Date(cita.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase()}
+                      </p>
+                      <p className="text-white text-sm font-bold mt-0.5">{cita.hora_inicio?.slice(0, 5)}</p>
+                      <p className="text-gray-500 text-xs">{cita.hora_fin?.slice(0, 5)}</p>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-white font-medium text-sm">{cita.cliente_nombre}</p>
+                      <EstadoBadge estado={cita.estado} />
+                      {cita.cliente_conflictivo && (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">⚠ Conflictivo</span>
+                      )}
+                      {cita.cabina_nombre && (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 border border-gray-600">{cita.cabina_nombre}</span>
+                      )}
+                      {Number(cita.importe_senal) > 0 && (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cita.senal_cobrada ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'}`}>
+                          Señal {cita.senal_cobrada ? '✓' : '⏳'} {Number(cita.importe_senal).toFixed(0)}€
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-400 text-xs mt-0.5">Artista: {cita.artista_nombre}</p>
+                    {cita.descripcion && <p className="text-gray-500 text-xs mt-1 line-clamp-1">{cita.descripcion}</p>}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col items-end gap-2">
+                    {cita.precio && (
+                      <span className="text-white font-semibold text-sm">{Number(cita.precio).toFixed(2)}€</span>
+                    )}
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      <button onClick={() => openEdit(cita)} className="text-gray-400 hover:text-white text-xs transition-colors">Editar</button>
+                      <button onClick={() => openImagenes(cita)} className="text-purple-400 hover:text-purple-300 text-xs transition-colors">Imágenes</button>
+                      <button onClick={() => openMaterial(cita)} className="text-teal-400 hover:text-teal-300 text-xs transition-colors">Material</button>
+                      {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
+                        <button
+                          onClick={() => handleEnviarRecordatorio(cita)}
+                          disabled={enviandoEmail === cita.id}
+                          className="text-indigo-400 hover:text-indigo-300 text-xs transition-colors disabled:opacity-50"
+                        >
+                          {enviandoEmail === cita.id ? 'Enviando...' : '✉ Recordatorio'}
+                        </button>
+                      )}
+                      {cita.estado === 'pendiente' && (
+                        <button onClick={() => handleEstado(cita.id, 'confirmada')} className="text-blue-400 hover:text-blue-300 text-xs transition-colors">Confirmar</button>
+                      )}
+                      {(cita.estado === 'pendiente' || cita.estado === 'confirmada') && (
+                        <>
+                          <button onClick={() => openFinalizar(cita)} className="text-green-400 hover:text-green-300 text-xs transition-colors font-medium">Finalizar</button>
+                          <button onClick={() => handleEstado(cita.id, 'cancelada')} className="text-red-400 hover:text-red-300 text-xs transition-colors">Cancelar</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal crear/editar */}
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editando ? 'Editar cita' : 'Nueva cita'}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">{error}</div>}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Cliente *</label>
+              <select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Seleccionar cliente</option>
+                {clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre} {c.apellidos}{c.conflictivo ? ' ⚠' : ''}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Artista *</label>
+              <select value={form.artista_id} onChange={(e) => setForm({ ...form, artista_id: e.target.value })} required
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Seleccionar artista</option>
+                {empleados.map((e) => <option key={e.id} value={e.id}>{e.nombre} {e.apellidos}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Cabina</label>
+            <select value={form.cabina_id} onChange={(e) => setForm({ ...form, cabina_id: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Sin cabina asignada</option>
+              {cabinas.filter(c => c.activo).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Fecha *</label>
+            <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Hora inicio *</label>
+              <input type="time" value={form.hora_inicio} onChange={(e) => setForm({ ...form, hora_inicio: e.target.value })} required
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Hora fin *</label>
+              <input type="time" value={form.hora_fin} onChange={(e) => setForm({ ...form, hora_fin: e.target.value })} required
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Descripción</label>
+            <textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} rows={2}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500"
+              placeholder="Diseño, zona del tatuaje..." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Precio</label>
+              <input type="number" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })}
+                step="0.01" min="0" placeholder="0.00"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Señal (€)</label>
+              <input type="number" value={form.importe_senal} onChange={(e) => setForm({ ...form, importe_senal: e.target.value })}
+                step="0.01" min="0" placeholder="0.00"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Forma de pago</label>
+              <select value={form.forma_pago} onChange={(e) => setForm({ ...form, forma_pago: e.target.value })}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Sin especificar</option>
+                {FORMAS_PAGO.map((f) => <option key={f} value={f} className="capitalize">{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
+              </select>
+            </div>
+            {editando && (
+              <div>
+                <label className="block text-sm text-gray-400 mb-1.5">Estado</label>
+                <select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_CONFIG[e].label}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <Toggle label="Señal cobrada" checked={form.senal_cobrada} onChange={() => setForm({ ...form, senal_cobrada: !form.senal_cobrada })} />
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Notas internas</label>
+            <textarea value={form.notas_internas} onChange={(e) => setForm({ ...form, notas_internas: e.target.value })} rows={2}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500"
+              placeholder="Visibles solo para el equipo..." />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setModal(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {saving ? 'Guardando...' : editando ? 'Actualizar' : 'Crear'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal finalizar */}
+      <Modal isOpen={modalFinalizar} onClose={() => setModalFinalizar(false)} title="Finalizar cita">
+        {citaFinalizar && (
+          <form onSubmit={handleFinalizar} className="space-y-4">
+            <div className="bg-gray-700/50 rounded-lg px-4 py-3">
+              <p className="text-white text-sm font-medium">{citaFinalizar.cliente_nombre}</p>
+              <p className="text-gray-400 text-xs">{new Date(citaFinalizar.fecha + 'T00:00:00').toLocaleDateString('es-ES')} · {citaFinalizar.hora_inicio?.slice(0,5)} - {citaFinalizar.hora_fin?.slice(0,5)}</p>
+            </div>
+
+            <div className="space-y-3">
+              <Toggle
+                label="La cita transcurrió con normalidad"
+                checked={formFinalizar.normal}
+                onChange={() => setFormFinalizar((f) => ({ ...f, normal: !f.normal, no_presentado: f.normal ? false : f.no_presentado }))}
+              />
+              <Toggle
+                label="Cliente no se presentó (no-show)"
+                checked={formFinalizar.no_presentado}
+                onChange={() => setFormFinalizar((f) => ({ ...f, no_presentado: !f.no_presentado, normal: f.no_presentado ? true : false }))}
+              />
+            </div>
+
+            {!formFinalizar.no_presentado && (
+              <>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1.5">Forma de pago *</label>
+                  <select value={formFinalizar.forma_pago} onChange={(e) => setFormFinalizar({ ...formFinalizar, forma_pago: e.target.value })} required
+                    className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                    {FORMAS_PAGO.map((f) => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Precio final (€)</label>
+                    <input type="number" value={formFinalizar.precio_final}
+                      onChange={(e) => setFormFinalizar({ ...formFinalizar, precio_final: e.target.value })}
+                      step="0.01" min="0" placeholder="0.00"
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Comisión artista (%)</label>
+                    <input type="number" value={formFinalizar.comision_artista}
+                      onChange={(e) => setFormFinalizar({ ...formFinalizar, comision_artista: e.target.value })}
+                      step="0.01" min="0" max="100" placeholder="0"
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setModalFinalizar(false)}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                Cancelar
+              </button>
+              <button type="submit" disabled={savingFinalizar}
+                className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                {savingFinalizar ? 'Guardando...' : 'Finalizar cita'}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Modal imágenes */}
+      <Modal isOpen={modalImagenes} onClose={() => setModalImagenes(false)} title={`Imágenes — ${citaImagenes?.cliente_nombre || ''}`}>
+        <div className="space-y-5">
+          {loadingImagenes ? (
+            <div className="text-center py-6 text-gray-500 text-sm">Cargando...</div>
+          ) : (
+            TIPOS_IMG.map((tipo) => {
+              const imgs = imagenes.filter((i) => i.tipo === tipo);
+              if (imgs.length === 0) return null;
+              return (
+                <div key={tipo}>
+                  <p className="text-xs text-gray-500 uppercase font-medium mb-2">{tipo}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {imgs.map((img) => (
+                      <a key={img.id} href={getImagenUrl(img.imagen_path)} target="_blank" rel="noreferrer">
+                        <img src={getImagenUrl(img.imagen_path)} alt={tipo}
+                          className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+          {!loadingImagenes && imagenes.length === 0 && (
+            <p className="text-center text-gray-500 text-sm py-4">No hay imágenes todavía</p>
+          )}
+
+          <form onSubmit={handleSubirImagen} className="border-t border-gray-700 pt-4 space-y-3">
+            <p className="text-sm text-gray-400 font-medium">Subir imagen</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Tipo</label>
+                <select value={uploadTipo} onChange={(e) => setUploadTipo(e.target.value)}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  {TIPOS_IMG.map((t) => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Archivo</label>
+                <input type="file" accept="image/*" capture="environment"
+                  onChange={(e) => setUploadFile(e.target.files[0])}
+                  className="w-full text-gray-300 text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-gray-600 file:text-white hover:file:bg-gray-500" />
+              </div>
+            </div>
+            {uploadFile && (
+              <img src={URL.createObjectURL(uploadFile)} alt="preview"
+                className="w-full h-32 object-cover rounded-lg" />
+            )}
+            <button type="submit" disabled={!uploadFile || uploadingImg}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {uploadingImg ? 'Subiendo...' : 'Subir imagen'}
+            </button>
+          </form>
+        </div>
+      </Modal>
+
+      {/* Modal aviso solapamiento */}
+      <Modal isOpen={modalSolapamiento} onClose={() => setModalSolapamiento(false)} title="⚠ Aviso de solapamiento">
+        <div className="space-y-4">
+          <p className="text-gray-300 text-sm">Ya existe una cita en este horario para el artista o cabina seleccionados:</p>
+          <div className="space-y-2">
+            {conflictosSolapamiento.map(c => (
+              <div key={c.id} className="bg-gray-700/50 rounded-lg px-4 py-3">
+                <p className="text-white text-sm font-medium">{c.cliente_nombre}</p>
+                <p className="text-gray-400 text-xs">{c.artista_nombre} · {c.hora_inicio?.slice(0,5)} – {c.hora_fin?.slice(0,5)}{c.cabina_nombre ? ` · ${c.cabina_nombre}` : ''}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-400 text-sm">¿Deseas guardar la cita de todas formas?</p>
+          <div className="flex gap-3 pt-1">
+            <button onClick={() => setModalSolapamiento(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              Cancelar
+            </button>
+            <button onClick={() => doSaveCita(pendingSavePayload)} disabled={saving}
+              className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {saving ? 'Guardando...' : 'Guardar de todas formas'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal Material usado */}
+      <Modal isOpen={modalMaterial} onClose={() => setModalMaterial(false)} title={`Material — ${citaMaterial?.cliente_nombre || ''}`}>
+        <div className="space-y-4">
+          {/* Lista material */}
+          {loadingMat ? (
+            <div className="text-center py-4 text-gray-500 text-sm">Cargando...</div>
+          ) : material.length === 0 ? (
+            <p className="text-center text-gray-500 text-sm py-2">Sin material registrado</p>
+          ) : (
+            <div className="space-y-1.5">
+              {material.map((m) => (
+                <div key={m.id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2.5 gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${m.tipo === 'tinta' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-teal-500/20 text-teal-400'}`}>
+                      {m.tipo}
+                    </span>
+                    {m.tipo === 'tinta' ? (
+                      <div className="flex items-center gap-2 min-w-0">
+                        {m.tinta_color && <div className="w-4 h-4 rounded-full flex-shrink-0 border border-gray-600" style={{ backgroundColor: m.tinta_color }} />}
+                        <span className="text-white text-sm truncate">{m.tinta_nombre} {m.tinta_marca && <span className="text-gray-500 text-xs">({m.tinta_marca})</span>}</span>
+                      </div>
+                    ) : (
+                      <span className="text-white text-sm truncate">{m.aguja_marca} {m.aguja_modelo} {m.aguja_tipo && <span className="text-gray-500 text-xs">• {m.aguja_tipo}</span>}</span>
+                    )}
+                    {m.cantidad && <span className="text-gray-400 text-xs flex-shrink-0">× {m.cantidad}</span>}
+                  </div>
+                  <button onClick={() => handleDeleteMaterial(m.id)}
+                    className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Formulario añadir */}
+          <form onSubmit={handleAddMaterial} className="border-t border-gray-700 pt-4 space-y-3">
+            <p className="text-sm text-gray-400 font-medium">Añadir material</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Tipo</label>
+                <select value={formMat.tipo} onChange={(e) => setFormMat({ ...formMat, tipo: e.target.value, tinta_id: '', aguja_id: '' })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="tinta">Tinta</option>
+                  <option value="aguja">Aguja</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Cantidad</label>
+                <input type="number" step="0.001" min="0" value={formMat.cantidad}
+                  onChange={(e) => setFormMat({ ...formMat, cantidad: e.target.value })}
+                  placeholder="ml / uds"
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+              </div>
+            </div>
+            {formMat.tipo === 'tinta' ? (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Tinta *</label>
+                <select required value={formMat.tinta_id} onChange={(e) => setFormMat({ ...formMat, tinta_id: e.target.value })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Seleccionar tinta</option>
+                  {tintas.map((t) => (
+                    <option key={t.id} value={t.id}>{t.nombre}{t.marca ? ` (${t.marca})` : ''}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Aguja *</label>
+                <select required value={formMat.aguja_id} onChange={(e) => setFormMat({ ...formMat, aguja_id: e.target.value })}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">Seleccionar aguja</option>
+                  {agujasList.map((a) => (
+                    <option key={a.id} value={a.id}>{a.marca} {a.modelo}{a.tipo ? ` • ${a.tipo}` : ''}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Notas</label>
+              <input value={formMat.notas} onChange={(e) => setFormMat({ ...formMat, notas: e.target.value })}
+                placeholder="Zona, observaciones..."
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+            </div>
+            <button type="submit" disabled={savingMat}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {savingMat ? 'Añadiendo...' : 'Añadir material'}
+            </button>
+          </form>
+        </div>
+      </Modal>
+
+      {/* Modal cita de grupo */}
+      {modalGrupo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setModalGrupo(false)} />
+          <div className="relative z-10 bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Cita de grupo</h2>
+                <p className="text-gray-500 text-xs mt-0.5">Paso {pasoGrupo} de 3</p>
+              </div>
+              <button onClick={() => setModalGrupo(false)} className="text-gray-400 hover:text-white">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-4 flex-1">
+              {/* Paso 1: datos base */}
+              {pasoGrupo === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Artista</label>
+                      <select value={formGrupo.artista_id} onChange={e => setFormGrupo(f => ({ ...f, artista_id: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Sin artista</option>
+                        {empleados.map(e => <option key={e.id} value={e.id}>{e.nombre} {e.apellidos}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Cabina</label>
+                      <select value={formGrupo.cabina_id} onChange={e => setFormGrupo(f => ({ ...f, cabina_id: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Sin cabina</option>
+                        {cabinas.filter(c => c.activo).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Fecha *</label>
+                    <input type="date" value={formGrupo.fecha} onChange={e => setFormGrupo(f => ({ ...f, fecha: e.target.value }))}
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Hora inicio *</label>
+                      <input type="time" value={formGrupo.hora_inicio} onChange={e => setFormGrupo(f => ({ ...f, hora_inicio: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1.5">Hora fin *</label>
+                      <input type="time" value={formGrupo.hora_fin} onChange={e => setFormGrupo(f => ({ ...f, hora_fin: e.target.value }))}
+                        className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Descripción</label>
+                    <textarea value={formGrupo.descripcion} onChange={e => setFormGrupo(f => ({ ...f, descripcion: e.target.value }))} rows={2}
+                      placeholder="Diseño, descripción común del servicio..."
+                      className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500" />
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 2: clientes */}
+              {pasoGrupo === 2 && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" value={buscarGrupo}
+                      onChange={e => {
+                        setBuscarGrupo(e.target.value);
+                        const q = e.target.value.toLowerCase();
+                        setResultsBuscarGrupo(q.length >= 2 ? clientes.filter(c => `${c.nombre} ${c.apellidos} ${c.email}`.toLowerCase().includes(q)).slice(0, 8) : []);
+                      }}
+                      placeholder="Buscar cliente..."
+                      className="w-full bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                  </div>
+                  {resultsBuscarGrupo.length > 0 && (
+                    <div className="bg-gray-700 rounded-lg overflow-hidden">
+                      {resultsBuscarGrupo.map(c => (
+                        <button key={c.id} onClick={() => {
+                          if (!clientesGrupo.find(x => x.cliente_id === c.id)) {
+                            setClientesGrupo(prev => [...prev, { cliente_id: c.id, nombre: `${c.nombre} ${c.apellidos}`, precio: '' }]);
+                          }
+                          setBuscarGrupo(''); setResultsBuscarGrupo([]);
+                        }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-600 transition-colors text-left border-b border-gray-600 last:border-0">
+                          <div className="w-7 h-7 bg-indigo-700/50 rounded-full flex items-center justify-center text-indigo-300 text-xs font-bold flex-shrink-0">
+                            {c.nombre?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-white text-sm">{c.nombre} {c.apellidos}</p>
+                            {c.email && <p className="text-gray-400 text-xs">{c.email}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {clientesGrupo.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center py-4">Añade clientes usando el buscador</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-gray-400 text-xs font-medium">{clientesGrupo.length} cliente(s) seleccionado(s)</p>
+                      {clientesGrupo.map((cg, idx) => (
+                        <div key={cg.cliente_id} className="flex items-center gap-3 bg-gray-700/50 rounded-lg px-3 py-2.5">
+                          <p className="flex-1 text-white text-sm">{cg.nombre}</p>
+                          <input type="number" value={cg.precio} onChange={e => setClientesGrupo(prev => prev.map((x, i) => i === idx ? { ...x, precio: e.target.value } : x))}
+                            placeholder="Precio €" step="0.01" min="0"
+                            className="w-24 bg-gray-700 text-white rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                          <button onClick={() => setClientesGrupo(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-gray-500 hover:text-red-400 transition-colors">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Paso 3: resumen */}
+              {pasoGrupo === 3 && !resultadoGrupo && (
+                <div className="space-y-4">
+                  <p className="text-gray-400 text-sm">Se crearán las siguientes citas:</p>
+                  <div className="bg-gray-700/50 rounded-lg p-3 space-y-1 text-xs text-gray-300">
+                    <p><span className="text-gray-500">Fecha:</span> {formGrupo.fecha} · {formGrupo.hora_inicio} – {formGrupo.hora_fin}</p>
+                    {formGrupo.artista_id && <p><span className="text-gray-500">Artista:</span> {empleados.find(e => String(e.id) === String(formGrupo.artista_id))?.nombre}</p>}
+                    {formGrupo.cabina_id && <p><span className="text-gray-500">Cabina:</span> {cabinas.find(c => String(c.id) === String(formGrupo.cabina_id))?.nombre}</p>}
+                    {formGrupo.descripcion && <p><span className="text-gray-500">Desc:</span> {formGrupo.descripcion}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    {clientesGrupo.map(cg => (
+                      <div key={cg.cliente_id} className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2.5">
+                        <span className="text-white text-sm">{cg.nombre}</span>
+                        <span className="text-gray-300 text-sm">{cg.precio ? `${cg.precio}€` : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-indigo-400 text-sm font-medium text-center">{clientesGrupo.length} cita(s) a crear</p>
+                </div>
+              )}
+
+              {/* Resultado */}
+              {pasoGrupo === 3 && resultadoGrupo && (
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <p className="text-white font-semibold">¡Citas creadas!</p>
+                  <p className="text-gray-400 text-sm">{resultadoGrupo.length} citas creadas correctamente</p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
+              {pasoGrupo > 1 && !resultadoGrupo && (
+                <button onClick={() => setPasoGrupo(p => p - 1)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  Atrás
+                </button>
+              )}
+              {pasoGrupo < 3 && (
+                <button
+                  onClick={() => setPasoGrupo(p => p + 1)}
+                  disabled={pasoGrupo === 1 && (!formGrupo.fecha || !formGrupo.hora_inicio || !formGrupo.hora_fin) || pasoGrupo === 2 && clientesGrupo.length === 0}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                >
+                  Siguiente
+                </button>
+              )}
+              {pasoGrupo === 3 && !resultadoGrupo && (
+                <button onClick={async () => {
+                  setSavingGrupo(true);
+                  try {
+                    const res = await crearCitasGrupo({
+                      artista_id: formGrupo.artista_id || null,
+                      cabina_id: formGrupo.cabina_id || null,
+                      fecha: formGrupo.fecha,
+                      hora_inicio: formGrupo.hora_inicio,
+                      hora_fin: formGrupo.hora_fin,
+                      descripcion: formGrupo.descripcion || null,
+                      clientes: clientesGrupo.map(cg => ({ cliente_id: cg.cliente_id, precio: cg.precio || null })),
+                    });
+                    setResultadoGrupo(res.data);
+                    fetchAll();
+                  } catch (e) { console.error(e); }
+                  finally { setSavingGrupo(false); }
+                }} disabled={savingGrupo}
+                  className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  {savingGrupo ? 'Creando...' : 'Confirmar y crear'}
+                </button>
+              )}
+              {resultadoGrupo && (
+                <button onClick={() => setModalGrupo(false)}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
