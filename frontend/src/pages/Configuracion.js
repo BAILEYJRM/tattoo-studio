@@ -518,15 +518,27 @@ export default function Configuracion() {
                 </div>
               </Field>
 
-              <Field label="Color de Fondo (Panel)" hint="Color de fondo de la aplicación">
+              <Field label="Color de Fondo Principal" hint="Color de fondo de la aplicación">
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={c('theme_bg_color') || '#111827'}
+                    value={c('theme_bg_color') || '#171717'}
                     onChange={e => setC('theme_bg_color', e.target.value)}
                     className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
                   />
-                  <Input value={c('theme_bg_color') || '#111827'} onChange={v => setC('theme_bg_color', v)} placeholder="#111827" />
+                  <Input value={c('theme_bg_color') || '#171717'} onChange={v => setC('theme_bg_color', v)} placeholder="#171717" />
+                </div>
+              </Field>
+
+              <Field label="Color de Fondo Secundario" hint="Color de los paneles y tarjetas">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={c('theme_surface_color') || '#262626'}
+                    onChange={e => setC('theme_surface_color', e.target.value)}
+                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                  />
+                  <Input value={c('theme_surface_color') || '#262626'} onChange={v => setC('theme_surface_color', v)} placeholder="#262626" />
                 </div>
               </Field>
 

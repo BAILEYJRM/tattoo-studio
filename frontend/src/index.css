@@ -5,7 +5,8 @@
 @layer base {
   :root {
     --color-primary: #4f46e5;
-    --color-bg: #111827;
+    --color-bg: #171717;
+    --color-surface: #262626;
     --font-main: 'Inter', sans-serif;
     --font-base-size: 14px;
   }

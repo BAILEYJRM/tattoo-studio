@@ -25,6 +25,9 @@ export function ThemeProvider({ children }) {
     if (config.theme_bg_color) {
       root.style.setProperty('--color-bg', config.theme_bg_color);
     }
+    if (config.theme_surface_color) {
+      root.style.setProperty('--color-surface', config.theme_surface_color);
+    }
     if (config.theme_font_family) {
       root.style.setProperty('--font-main', config.theme_font_family);
     }
