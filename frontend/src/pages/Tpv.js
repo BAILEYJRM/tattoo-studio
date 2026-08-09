@@ -358,24 +358,24 @@ export default function Tpv({ onVentaCreada }) {
 
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {articulosTpvFiltrados.map(art => (
                 <button 
                   key={art.id}
                   onClick={() => agregarAlCarrito(art)}
-                  className={`bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:border-indigo-500 transition-colors group aspect-square relative overflow-hidden`}
+                  className={`bg-gray-800 border border-gray-700 rounded-lg p-2.5 flex items-center gap-3 text-left hover:border-indigo-500 transition-colors group relative overflow-hidden h-16 shadow-sm`}
                 >
                   {art.producto_id && (
-                    <div className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                    <div className={`absolute top-0 right-0 px-1.5 py-0.5 text-[9px] font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
                       Stock: {art.stock_actual}
                     </div>
                   )}
                   {art.opciones && art.opciones.length > 0 && (
-                     <div className="absolute top-0 left-0 px-1.5 py-0.5 text-[10px] font-bold bg-indigo-600/30 text-indigo-300 rounded-br-lg" title="Tiene opciones extra">
+                     <div className="absolute bottom-0 right-0 px-1.5 py-0.5 text-[9px] font-bold bg-indigo-600/30 text-indigo-300 rounded-tl-lg" title="Tiene opciones extra">
                        + Extras
                      </div>
                   )}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-transform group-hover:scale-110 
+                  <div className={`w-10 h-10 shrink-0 rounded-md flex items-center justify-center transition-transform group-hover:scale-105 
                     ${art.color === 'gray' ? 'bg-gray-700 text-gray-400' : ''}
                     ${art.color === 'indigo' ? 'bg-indigo-900/50 text-indigo-400' : ''}
                     ${art.color === 'emerald' ? 'bg-emerald-900/50 text-emerald-400' : ''}
@@ -395,8 +395,10 @@ export default function Tpv({ onVentaCreada }) {
                       {!['cube', 'sparkles', 'beaker', 'star', 'heart', 'lightning-bolt', 'scissors', 'color-swatch'].includes(art.icono) && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />}
                     </svg>
                   </div>
-                  <span className="text-gray-300 text-[11px] leading-tight font-medium line-clamp-2 mb-1">{art.nombre}</span>
-                  <span className="text-white text-xs font-bold">{Number(art.precio_base || 0).toFixed(2)} €</span>
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="text-gray-300 text-[11px] leading-tight font-medium truncate mb-0.5" title={art.nombre}>{art.nombre}</div>
+                    <div className="text-white text-xs font-bold">{Number(art.precio_base || 0).toFixed(2)} €</div>
+                  </div>
                 </button>
               ))}
             </div>
