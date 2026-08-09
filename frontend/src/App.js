@@ -10,6 +10,7 @@ import Empleados from './pages/Empleados';
 import Piercing from './pages/Piercing';
 import Materiales from './pages/Materiales';
 import Ventas from './pages/Ventas';
+import Ingresos from './pages/Ingresos';
 import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
 import Cabinas from './pages/Cabinas';
@@ -108,6 +109,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Ventas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/ingresos"
+            element={
+              <PrivateRoute>
+                <Ingresos />
               </PrivateRoute>
             }
           />
