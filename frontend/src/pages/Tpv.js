@@ -447,7 +447,7 @@ export default function Tpv({ onVentaCreada }) {
         </div>
 
         {/* PANEL DERECHO: TICKET */}
-        <div className="w-full md:w-[450px] bg-gray-900 flex flex-col shadow-2xl z-10 border-l border-gray-800">
+        <div className="w-full md:w-[320px] lg:w-[350px] 2xl:w-[400px] shrink-0 bg-gray-900 flex flex-col shadow-2xl z-10 border-l border-gray-800">
           <div className="p-4 border-b border-gray-800 bg-gray-800/50">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
