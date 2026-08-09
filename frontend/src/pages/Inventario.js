@@ -5,6 +5,7 @@ import {
   getMovimientos, registrarMovimiento,
 } from '../api';
 import BulkSelectionBar from '../components/BulkSelectionBar';
+import DetalleProducto from '../components/DetalleProducto';
 
 const CATEGORIAS = [
   { value: '', label: 'Todas las categorías' },
@@ -19,9 +20,10 @@ const CATEGORIAS = [
 const CATEGORIA_LABELS = Object.fromEntries(CATEGORIAS.slice(1).map((c) => [c.value, c.label]));
 
 const FORM_VACIO = {
-  sku: '', nombre: '', descripcion: '', categoria: 'otros', codigo_barras: '',
+  sku: '', nombre: '', descripcionExtra: '', categoria: 'otros', codigo_barras: '',
   precio_compra: '', precio_venta: '', stock_actual: 0, stock_minimo: 0,
   lote: '', fecha_caducidad: '', proveedor: '',
+  color: '', material: '', medidas: '', formato: '', unidades: ''
 };
 
 const MOV_VACIO = { tipo: 'entrada', cantidad: 1, motivo: 'compra', notas: '' };
@@ -56,6 +58,7 @@ export default function Inventario() {
   const [movimientos, setMovimientos] = useState([]);
   const [form, setForm] = useState(FORM_VACIO);
   const [movForm, setMovForm] = useState(MOV_VACIO);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const qrRef = useRef(null);
   const scannerRef = useRef(null);
@@ -71,9 +74,15 @@ export default function Inventario() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { cargarProductos(); }, [cargarProductos]);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      cargarProductos();
+      return;
+    }
+
     const t = setTimeout(() => {
       if (busqueda.trim().length >= 2) {
         buscarProductos(busqueda).then((res) => setProductos(res.data)).catch(console.error);
@@ -161,14 +170,36 @@ export default function Inventario() {
 
   const abrirEditar = (p) => {
     setEditando(p);
+    let color = '', material = '', medidas = '', formato = '', unidades = '', descripcionExtra = '';
+    if (p.descripcion) {
+      const extra = [];
+      p.descripcion.split('\n').forEach(line => {
+        const match = line.match(/^([^:]+):\s*(.+)$/);
+        if (match) {
+          const key = match[1].trim().toLowerCase();
+          const val = match[2].trim();
+          if (key === 'color') color = val;
+          else if (key === 'material') material = val;
+          else if (key === 'medidas') medidas = val;
+          else if (key === 'formato') formato = val;
+          else if (key === 'unidades') unidades = val;
+          else extra.push(line);
+        } else if (line.trim()) {
+          extra.push(line);
+        }
+      });
+      descripcionExtra = extra.join('\n');
+    }
+
     setForm({
-      sku: p.sku || '', nombre: p.nombre || '', descripcion: p.descripcion || '',
+      sku: p.sku || '', nombre: p.nombre || '', descripcionExtra,
       categoria: p.categoria || 'otros', codigo_barras: p.codigo_barras || '',
       precio_compra: p.precio_compra || '', precio_venta: p.precio_venta || '',
       stock_actual: p.stock_actual || 0, stock_minimo: p.stock_minimo || 0,
       lote: p.lote || '',
       fecha_caducidad: p.fecha_caducidad ? p.fecha_caducidad.split('T')[0] : '',
       proveedor: p.proveedor || '',
+      color, material, medidas, formato, unidades
     });
     setError('');
     setModalProducto(true);
@@ -188,10 +219,20 @@ export default function Inventario() {
     setSaving(true);
     setError('');
     try {
+      const descLines = [];
+      if (form.color) descLines.push(`Color: ${form.color}`);
+      if (form.material) descLines.push(`Material: ${form.material}`);
+      if (form.medidas) descLines.push(`Medidas: ${form.medidas}`);
+      if (form.formato) descLines.push(`Formato: ${form.formato}`);
+      if (form.unidades) descLines.push(`Unidades: ${form.unidades}`);
+      if (form.descripcionExtra) descLines.push(form.descripcionExtra);
+      
+      const payload = { ...form, descripcion: descLines.join('\n') };
+
       if (editando) {
-        await updateProducto(editando.id, form);
+        await updateProducto(editando.id, payload);
       } else {
-        await createProducto(form);
+        await createProducto(payload);
       }
       setModalProducto(false);
       cargarProductos();
@@ -311,8 +352,8 @@ export default function Inventario() {
                         onChange={() => toggleSelect(p.id)}
                         className="rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500" />
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="text-white font-medium">{p.nombre}</p>
+                    <td className="px-4 py-3 cursor-pointer" onClick={() => abrirMovimiento(p)}>
+                      <p className="text-white font-medium hover:text-indigo-400 transition-colors">{p.nombre}</p>
                       {p.proveedor && <p className="text-gray-500 text-xs">{p.proveedor}</p>}
                     </td>
                     <td className="px-4 py-3 text-gray-400 hidden sm:table-cell font-mono text-xs">{p.sku}</td>
@@ -333,10 +374,10 @@ export default function Inventario() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 justify-end">
                         <button
-                          onClick={() => abrirMovimiento(p)} title="Gestionar Stock"
+                          onClick={() => abrirMovimiento(p)} title="Ver Detalles"
                           className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                         </button>
                         <button
                           onClick={() => abrirEditar(p)} title="Editar"
@@ -382,9 +423,38 @@ export default function Inventario() {
             <input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })}
               className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Color</label>
+              <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Material</label>
+              <input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Medidas</label>
+              <input value={form.medidas} onChange={(e) => setForm({ ...form, medidas: e.target.value })}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Formato</label>
+              <input value={form.formato} onChange={(e) => setForm({ ...form, formato: e.target.value })}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Unidades</label>
+              <input value={form.unidades} onChange={(e) => setForm({ ...form, unidades: e.target.value })}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
           <div>
-            <label className="block text-gray-400 text-xs mb-1">Descripción</label>
-            <textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+            <label className="block text-gray-400 text-xs mb-1">Descripción adicional</label>
+            <textarea value={form.descripcionExtra} onChange={(e) => setForm({ ...form, descripcionExtra: e.target.value })}
               rows={2}
               className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
           </div>
@@ -456,79 +526,20 @@ export default function Inventario() {
         </form>
       </Modal>
 
-      {/* Modal Movimiento */}
-      <Modal isOpen={modalMovimiento} onClose={() => setModalMovimiento(false)}
-        title={`Stock: ${productoSeleccionado?.nombre}`}>
-        <div className="space-y-5">
-          {error && <p className="text-red-400 text-sm bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
-          <form onSubmit={handleSubmitMovimiento} className="space-y-3 bg-gray-800 rounded-lg p-4">
-            <p className="text-white text-sm font-medium">Registrar movimiento</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-gray-400 text-xs mb-1">Tipo</label>
-                <select value={movForm.tipo}
-                  onChange={(e) => setMovForm({ ...movForm, tipo: e.target.value, motivo: MOTIVOS[e.target.value][0] })}
-                  className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500">
-                  <option value="entrada">Entrada</option>
-                  <option value="salida">Salida</option>
-                  <option value="ajuste">Ajuste</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1">Cantidad</label>
-                <input type="number" min="1" required value={movForm.cantidad}
-                  onChange={(e) => setMovForm({ ...movForm, cantidad: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-gray-400 text-xs mb-1">Motivo</label>
-              <select value={movForm.motivo}
-                onChange={(e) => setMovForm({ ...movForm, motivo: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500">
-                {(MOTIVOS[movForm.tipo] || []).map((m) => (
-                  <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-gray-400 text-xs mb-1">Notas</label>
-              <input value={movForm.notas} onChange={(e) => setMovForm({ ...movForm, notas: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
-            </div>
-            <button type="submit" disabled={saving}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors">
-              {saving ? 'Registrando…' : 'Registrar'}
-            </button>
-          </form>
-
-          {/* Historial */}
-          <div>
-            <p className="text-gray-400 text-xs font-medium mb-2">Historial reciente</p>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {movimientos.length === 0 ? (
-                <p className="text-gray-600 text-xs text-center py-4">Sin movimientos</p>
-              ) : (
-                movimientos.slice(0, 20).map((m) => (
-                  <div key={m.id} className="flex items-center gap-3 bg-gray-800 rounded-lg px-3 py-2">
-                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                      m.tipo === 'entrada' ? 'bg-green-500/15 text-green-400'
-                      : m.tipo === 'salida' ? 'bg-red-500/15 text-red-400'
-                      : 'bg-yellow-500/15 text-yellow-400'
-                    }`}>
-                      {m.tipo === 'entrada' ? '+' : m.tipo === 'salida' ? '-' : '~'}{m.cantidad}
-                    </span>
-                    <span className="text-gray-400 text-xs flex-1">{m.motivo?.replace(/_/g, ' ')}</span>
-                    <span className="text-gray-600 text-xs">
-                      {new Date(m.created_at).toLocaleDateString('es-ES')}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </Modal>
+      {/* Modal Detalle Producto */}
+      {modalMovimiento && productoSeleccionado && (
+        <DetalleProducto
+          producto={productoSeleccionado}
+          movimientos={movimientos}
+          onClose={() => setModalMovimiento(false)}
+          onEdit={(p) => { setModalMovimiento(false); abrirEditar(p); }}
+          setMovForm={setMovForm}
+          movForm={movForm}
+          error={error}
+          saving={saving}
+          handleSubmitMovimiento={handleSubmitMovimiento}
+        />
+      )}
 
       {/* Modal QR Scanner */}
       <Modal isOpen={modalQR} onClose={() => setModalQR(false)} title="Escanear código de barras">
@@ -539,7 +550,7 @@ export default function Inventario() {
             className="w-full bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors">
             Cancelar
           </button>
-        </form>
+        </div>
       </Modal>
 
       <BulkSelectionBar

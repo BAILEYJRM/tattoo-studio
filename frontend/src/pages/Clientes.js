@@ -62,7 +62,7 @@ function HistorialCliente({ clienteId, onClose, onEdit, navigate }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-800 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -87,31 +87,32 @@ function HistorialCliente({ clienteId, onClose, onEdit, navigate }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-800 overflow-y-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
-        <button onClick={onClose} className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-700 transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="flex-1">
-          <h1 className="text-white font-semibold">{cliente?.nombre} {cliente?.apellidos}</h1>
-          <div className="flex items-center gap-2 flex-wrap mt-0.5">
-            {cliente?.email && <span className="text-gray-400 text-xs">{cliente.email}</span>}
-            {cliente?.telefono && <span className="text-gray-400 text-xs">· {cliente.telefono}</span>}
-            {cliente?.conflictivo && <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">⚠ Conflictivo</span>}
-            {Number(cliente?.no_shows) > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">{cliente.no_shows} no-shows</span>}
+    <div className="fixed inset-0 z-50 bg-black/60 flex justify-center p-4 sm:p-6 overflow-y-auto" onClick={onClose}>
+      <div className="bg-gray-800 w-full max-w-5xl max-h-full rounded-2xl shadow-2xl flex flex-col my-auto relative overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-700 px-5 py-4 flex items-center gap-4">
+          <button onClick={onClose} className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-700 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div className="flex-1">
+            <h1 className="text-white font-semibold text-lg">{cliente?.nombre} {cliente?.apellidos}</h1>
+            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+              {cliente?.email && <span className="text-gray-400 text-xs">{cliente.email}</span>}
+              {cliente?.telefono && <span className="text-gray-400 text-xs">· {cliente.telefono}</span>}
+              {cliente?.conflictivo && <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">⚠ Conflictivo</span>}
+              {Number(cliente?.no_shows) > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">{cliente.no_shows} no-shows</span>}
+            </div>
           </div>
+          <button onClick={() => onEdit(cliente)} className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors shadow-sm">
+            Editar
+          </button>
         </div>
-        <button onClick={() => onEdit(cliente)} className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
-          Editar
-        </button>
-      </div>
 
-      <div className="max-w-5xl mx-auto p-4">
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-1 bg-gray-900 p-1 rounded-xl mb-5">
+        <div className="flex-1 overflow-y-auto p-5">
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-1 bg-gray-900 p-1 rounded-xl mb-5">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${tab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
@@ -329,10 +330,11 @@ function HistorialCliente({ clienteId, onClose, onEdit, navigate }) {
           )
         )}
       </div>
+      </div>
 
       {/* Lightbox */}
       {fotoAmpliada && (
-        <div className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center" onClick={() => setFotoAmpliada(null)}>
+        <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center" onClick={() => setFotoAmpliada(null)}>
           <img src={getImagenUrl(fotoAmpliada.imagen_path)} alt={fotoAmpliada.tipo}
             className="max-w-full max-h-full object-contain rounded-lg p-4" />
         </div>
@@ -477,9 +479,8 @@ export default function Clientes() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchClientes(); }, [fetchClientes]);
   useEffect(() => {
-    const t = setTimeout(() => fetchClientes(buscar), 400);
+    const t = setTimeout(() => fetchClientes(buscar), !buscar ? 0 : 400);
     return () => clearTimeout(t);
   }, [buscar, fetchClientes]);
 
@@ -563,21 +564,7 @@ export default function Clientes() {
   };
 
   // Mostrar historial si hay un cliente seleccionado
-  if (clienteDetalleId) {
-    return (
-      <>
-        <HistorialCliente
-          clienteId={clienteDetalleId}
-          onClose={() => setClienteDetalleId(null)}
-          onEdit={openEdit}
-          navigate={navigate}
-        />
-        <Modal isOpen={modal} onClose={() => setModal(false)} title={editando ? 'Editar cliente' : 'Nuevo cliente'}>
-          <FormCliente form={form} setF={setF} saving={saving} error={error} onSubmit={handleSubmit} onClose={() => setModal(false)} editando={editando} />
-        </Modal>
-      </>
-    );
-  }
+  // Se renderiza más abajo encima de la vista principal
 
   return (
     <div className="space-y-5">
@@ -705,6 +692,15 @@ export default function Clientes() {
       <Modal isOpen={modal} onClose={() => setModal(false)} title={editando ? 'Editar cliente' : 'Nuevo cliente'}>
         <FormCliente form={form} setF={setF} saving={saving} error={error} onSubmit={handleSubmit} onClose={() => setModal(false)} editando={editando} />
       </Modal>
+
+      {clienteDetalleId && (
+        <HistorialCliente
+          clienteId={clienteDetalleId}
+          onClose={() => setClienteDetalleId(null)}
+          onEdit={openEdit}
+          navigate={navigate}
+        />
+      )}
 
       <BulkSelectionBar
         selectedCount={selectedIds.length}

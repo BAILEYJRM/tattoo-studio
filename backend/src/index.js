@@ -15,6 +15,16 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    if (res.statusCode >= 400) {
+      console.log(`[HTTP ${res.statusCode}] ${req.method} ${req.url} - ${Date.now() - start}ms`);
+    }
+  });
+  next();
+});
+
 // Servir archivos estáticos (PDFs, fotos de incidencias, imágenes de citas)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

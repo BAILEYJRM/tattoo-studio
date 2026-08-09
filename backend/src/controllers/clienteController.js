@@ -9,6 +9,7 @@ const getClientes = async (req, res) => {
       : await Cliente.buscarTodos();
     res.json(clientes);
   } catch (err) {
+    console.error('ERROR in getClientes:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -49,7 +50,7 @@ const getHistorialCliente = async (req, res) => {
       pool.query('SELECT * FROM clientes WHERE id = $1', [id]),
       pool.query(
         `SELECT c.*,
-                e.nombre || ' ' || e.apellidos AS artista_nombre, e.color AS artista_color,
+                e.nombre || ' ' || e.apellidos AS artista_nombre, e.color_calendario AS artista_color,
                 cab.nombre AS cabina_nombre
          FROM citas c
          LEFT JOIN empleados e ON e.id = c.artista_id
