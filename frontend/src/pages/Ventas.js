@@ -265,6 +265,9 @@ export default function Ventas() {
         </div>
       </div>
 
+      {/* Fin Mitad Izquierda */}
+      </div>
+
       {/* Mitad Derecha: TPV */}
       <div className="flex-1">
         <Tpv onVentaCreada={() => { 
