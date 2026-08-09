@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
   getConfiguracion, updateConfiguracion, uploadLogo, getImagenUrl,
   getDiasFestivos, addDiaFestivo, deleteDiaFestivo,
 } from '../api';
+import { ThemeContext } from '../context/ThemeContext';
 
 const TABS = [
   { id: 'estudio', label: 'Información del estudio' },
@@ -96,6 +97,8 @@ export default function Configuracion() {
   const bool = (clave) => config[clave] === 'true';
   const setC = (clave, valor) => setConfig(prev => ({ ...prev, [clave]: String(valor) }));
 
+  const { updateTheme } = useContext(ThemeContext);
+
   const save = async (claves) => {
     setSaving(true);
     setMsg('');
@@ -104,6 +107,7 @@ export default function Configuracion() {
       claves.forEach(k => { partial[k] = config[k] ?? ''; });
       const res = await updateConfiguracion(partial);
       setConfig(res.data);
+      updateTheme(res.data);
       setMsg('Guardado correctamente');
       setTimeout(() => setMsg(''), 3000);
     } catch {

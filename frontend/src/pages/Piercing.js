@@ -20,7 +20,7 @@ const CATEGORIAS = [
 const CATEGORIA_LABELS = Object.fromEntries(CATEGORIAS.slice(1).map((c) => [c.value, c.label]));
 
 const FORM_VACIO = {
-  sku: '', nombre: '', descripcionExtra: '', categoria: 'otros', codigo_barras: '',
+  sku: '', nombre: '', descripcionExtra: '', categoria: 'piercings_joyeria', codigo_barras: '',
   precio_compra: '', precio_venta: '', stock_actual: 0, stock_minimo: 0,
   lote: '', fecha_caducidad: '', proveedor: '',
   color: '', material: '', medidas: '', formato: '', unidades: ''
@@ -49,7 +49,6 @@ export default function Piercing() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
-  const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [modalProducto, setModalProducto] = useState(false);
   const [modalMovimiento, setModalMovimiento] = useState(false);
   const [modalQR, setModalQR] = useState(false);
@@ -65,6 +64,7 @@ export default function Piercing() {
   
   // Selección en masa
   const [selectedIds, setSelectedIds] = useState([]);
+  const wasSearching = useRef(false);
 
   const cargarProductos = useCallback(() => {
     setLoading(true);
@@ -74,23 +74,30 @@ export default function Piercing() {
       .finally(() => setLoading(false));
   }, []);
 
-  const isFirstRender = useRef(true);
-
+  // Initial load
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      cargarProductos();
-      return;
-    }
+    cargarProductos();
+  }, [cargarProductos]);
 
-    const t = setTimeout(() => {
-      if (busqueda.trim().length >= 2) {
-        buscarProductos(busqueda).then((res) => setProductos(res.data)).catch(console.error);
-      } else if (busqueda.trim() === '') {
+  // Search debounce
+  useEffect(() => {
+    if (busqueda.trim().length >= 2) {
+      wasSearching.current = true;
+      const t = setTimeout(() => {
+        setLoading(true);
+        buscarProductos(busqueda)
+          .then((res) => setProductos(res.data))
+          .catch(console.error)
+          .finally(() => setLoading(false));
+      }, 400);
+      return () => clearTimeout(t);
+    } else if (busqueda.trim() === '' && wasSearching.current) {
+      wasSearching.current = false;
+      const t = setTimeout(() => {
         cargarProductos();
-      }
-    }, 400);
-    return () => clearTimeout(t);
+      }, 400);
+      return () => clearTimeout(t);
+    }
   }, [busqueda, cargarProductos]);
 
   // QR Scanner
@@ -124,7 +131,7 @@ export default function Piercing() {
   }, [modalQR]);
 
   const productosFiltrados = productos.filter((p) =>
-    !categoriaFiltro || p.categoria === categoriaFiltro
+    p.categoria === 'piercings_joyeria'
   );
 
   const abrirCrear = () => {
@@ -263,7 +270,7 @@ export default function Piercing() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Inventario</h1>
+        <h1 className="text-2xl font-bold text-white">Piercing</h1>
         <button
           onClick={abrirCrear}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -296,15 +303,6 @@ export default function Piercing() {
           </svg>
           Escanear
         </button>
-        <select
-          value={categoriaFiltro}
-          onChange={(e) => setCategoriaFiltro(e.target.value)}
-          className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500"
-        >
-          {CATEGORIAS.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
       </div>
 
       {/* Tabla */}
@@ -458,7 +456,7 @@ export default function Piercing() {
               rows={2}
               className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500" />
           </div>
-          <div>
+          <div className="hidden">
             <label className="block text-gray-400 text-xs mb-1">Categoría *</label>
             <select required value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}
               className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500">

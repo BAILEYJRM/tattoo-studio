@@ -9,9 +9,6 @@ import DetalleProducto from '../components/DetalleProducto';
 
 const CATEGORIAS = [
   { value: '', label: 'Todas las categorías' },
-  { value: 'tintas_pigmentos', label: 'Tintas y pigmentos' },
-  { value: 'agujas_cartuchos', label: 'Agujas y cartuchos' },
-  { value: 'piercings_joyeria', label: 'Piercings y joyería' },
   { value: 'cremas_cuidado', label: 'Cremas y cuidado' },
   { value: 'higiene', label: 'Higiene' },
   { value: 'otros', label: 'Otros' },
@@ -65,6 +62,7 @@ export default function Materiales() {
   
   // Selección en masa
   const [selectedIds, setSelectedIds] = useState([]);
+  const wasSearching = useRef(false);
 
   const cargarProductos = useCallback(() => {
     setLoading(true);
@@ -74,23 +72,30 @@ export default function Materiales() {
       .finally(() => setLoading(false));
   }, []);
 
-  const isFirstRender = useRef(true);
-
+  // Initial load
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      cargarProductos();
-      return;
-    }
+    cargarProductos();
+  }, [cargarProductos]);
 
-    const t = setTimeout(() => {
-      if (busqueda.trim().length >= 2) {
-        buscarProductos(busqueda).then((res) => setProductos(res.data)).catch(console.error);
-      } else if (busqueda.trim() === '') {
+  // Search debounce
+  useEffect(() => {
+    if (busqueda.trim().length >= 2) {
+      wasSearching.current = true;
+      const t = setTimeout(() => {
+        setLoading(true);
+        buscarProductos(busqueda)
+          .then((res) => setProductos(res.data))
+          .catch(console.error)
+          .finally(() => setLoading(false));
+      }, 400);
+      return () => clearTimeout(t);
+    } else if (busqueda.trim() === '' && wasSearching.current) {
+      wasSearching.current = false;
+      const t = setTimeout(() => {
         cargarProductos();
-      }
-    }, 400);
-    return () => clearTimeout(t);
+      }, 400);
+      return () => clearTimeout(t);
+    }
   }, [busqueda, cargarProductos]);
 
   // QR Scanner
@@ -124,7 +129,10 @@ export default function Materiales() {
   }, [modalQR]);
 
   const productosFiltrados = productos.filter((p) =>
-    !categoriaFiltro || p.categoria === categoriaFiltro
+    (!categoriaFiltro || p.categoria === categoriaFiltro) && 
+    p.categoria !== 'piercings_joyeria' && 
+    p.categoria !== 'tintas_pigmentos' && 
+    p.categoria !== 'agujas_cartuchos'
   );
 
   const abrirCrear = () => {
@@ -263,7 +271,7 @@ export default function Materiales() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Inventario</h1>
+        <h1 className="text-2xl font-bold text-white">Materiales</h1>
         <button
           onClick={abrirCrear}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"

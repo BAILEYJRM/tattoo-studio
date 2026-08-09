@@ -24,7 +24,40 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Tattoo Studio</title>
+    <script>
+      (function() {
+        function getContrast(hex) {
+          if (!hex) return '#ffffff';
+          var h = hex.charAt(0) === '#' ? hex.substring(1, 7) : hex;
+          var r = parseInt(h.substring(0, 2), 16);
+          var g = parseInt(h.substring(2, 4), 16);
+          var b = parseInt(h.substring(4, 6), 16);
+          var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+          return (yiq >= 128) ? '#111827' : '#ffffff';
+        }
+        try {
+          var configStr = localStorage.getItem('app-theme');
+          if (configStr) {
+            var config = JSON.parse(configStr);
+            var root = document.documentElement;
+            if (config.theme_primary_color) {
+              root.style.setProperty('--color-primary', config.theme_primary_color);
+              root.style.setProperty('--color-primary-content', getContrast(config.theme_primary_color));
+            }
+            if (config.theme_bg_color) {
+              root.style.setProperty('--color-bg', config.theme_bg_color);
+            }
+            if (config.theme_font_family) {
+              root.style.setProperty('--font-main', config.theme_font_family);
+            }
+            if (config.theme_font_size) {
+              root.style.setProperty('--font-base-size', config.theme_font_size);
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

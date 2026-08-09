@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { getVentas, createVenta, updateVenta, getResumenDia, getClientes, buscarProductos } from '../api';
 
@@ -22,6 +23,7 @@ function EstadoBadge({ estado }) {
 }
 
 export default function Ventas() {
+  const navigate = useNavigate();
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resumenDia, setResumenDia] = useState(null);
@@ -166,10 +168,10 @@ export default function Ventas() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-white">Ventas</h1>
         <button
-          onClick={abrirCrear}
+          onClick={() => navigate('/ventas/tpv')}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          + Nueva venta
+          + Nueva venta (TPV)
         </button>
       </div>
 

@@ -6,30 +6,54 @@ export const ThemeContext = createContext();
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(null);
 
-  useEffect(() => {
+  const getContrast = (hex) => {
+    if (!hex) return '#ffffff';
+    let h = hex.charAt(0) === '#' ? hex.substring(1, 7) : hex;
+    let r = parseInt(h.substring(0, 2), 16);
+    let g = parseInt(h.substring(2, 4), 16);
+    let b = parseInt(h.substring(4, 6), 16);
+    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#111827' : '#ffffff';
+  };
+
+  const applyTheme = (config) => {
+    const root = document.documentElement;
+    if (config.theme_primary_color) {
+      root.style.setProperty('--color-primary', config.theme_primary_color);
+      root.style.setProperty('--color-primary-content', getContrast(config.theme_primary_color));
+    }
+    if (config.theme_bg_color) {
+      root.style.setProperty('--color-bg', config.theme_bg_color);
+    }
+    if (config.theme_font_family) {
+      root.style.setProperty('--font-main', config.theme_font_family);
+    }
+    if (config.theme_font_size) {
+      root.style.setProperty('--font-base-size', config.theme_font_size);
+    }
+  };
+
+  const loadTheme = () => {
     getConfiguracionPublica().then(res => {
       const config = res.data;
       setTheme(config);
-
-      const root = document.documentElement;
-      
-      if (config.theme_primary_color) {
-        root.style.setProperty('--color-primary', config.theme_primary_color);
-      }
-      if (config.theme_bg_color) {
-        root.style.setProperty('--color-bg', config.theme_bg_color);
-      }
-      if (config.theme_font_family) {
-        root.style.setProperty('--font-main', config.theme_font_family);
-      }
-      if (config.theme_font_size) {
-        root.style.setProperty('--font-base-size', config.theme_font_size);
-      }
+      localStorage.setItem('app-theme', JSON.stringify(config));
+      applyTheme(config);
     }).catch(err => console.error('Error loading theme:', err));
+  };
+
+  useEffect(() => {
+    loadTheme();
   }, []);
 
+  const updateTheme = (newConfig) => {
+    setTheme(newConfig);
+    localStorage.setItem('app-theme', JSON.stringify(newConfig));
+    applyTheme(newConfig);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme }}>
+    <ThemeContext.Provider value={{ theme, updateTheme }}>
       {children}
     </ThemeContext.Provider>
   );
