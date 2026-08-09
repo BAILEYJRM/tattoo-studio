@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { getVentas, createVenta, updateVenta, getResumenDia, getClientes, buscarProductos } from '../api';
+import Tpv from './Tpv';
 
 const METODOS_PAGO = ['efectivo', 'tarjeta', 'bizum'];
 const ESTADOS = ['pagado', 'pendiente'];
@@ -167,12 +168,6 @@ export default function Ventas() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-white">Ventas</h1>
-        <button
-          onClick={() => navigate('/ventas/tpv')}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          + Nueva venta (TPV)
-        </button>
       </div>
 
       {/* Resumen del día */}
@@ -266,6 +261,14 @@ export default function Ventas() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="mt-8 border-t border-gray-800 pt-8">
+        <h2 className="text-xl font-bold text-white mb-4">Punto de Venta</h2>
+        <Tpv onVentaCreada={() => { 
+          cargarVentas(); 
+          getResumenDia(hoy).then((res) => setResumenDia(res.data)).catch(() => {}); 
+        }} />
       </div>
 
       {/* Modal */}

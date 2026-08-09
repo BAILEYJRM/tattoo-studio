@@ -104,14 +104,6 @@ export default function App() {
             }
           />
           <Route
-            path="/ventas/tpv"
-            element={
-              <PrivateRoute>
-                <Tpv />
-              </PrivateRoute>
-            }
-          />
-          <Route
             path="/ventas"
             element={
               <PrivateRoute>

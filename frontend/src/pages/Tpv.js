@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getClientes, buscarProductos, createVenta } from '../api';
 
 const CATEGORIAS_TPV = [
@@ -12,8 +11,7 @@ const CATEGORIAS_TPV = [
 const METODOS_PAGO = ['efectivo', 'tarjeta', 'bizum'];
 const METODO_LABEL = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', bizum: 'Bizum' };
 
-export default function Tpv() {
-  const navigate = useNavigate();
+export default function Tpv({ onVentaCreada }) {
   const [productos, setProductos] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
@@ -114,7 +112,7 @@ export default function Tpv() {
         notas,
         lineas
       });
-      navigate('/ventas');
+      if (onVentaCreada) onVentaCreada();
     } catch (err) {
       alert('Error al crear la venta');
       console.error(err);
@@ -123,18 +121,11 @@ export default function Tpv() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] -m-6 bg-gray-950">
+    <div className="flex flex-col md:flex-row h-[600px] bg-gray-950 rounded-xl overflow-hidden shadow-xl border border-gray-800">
       {/* PANEL IZQUIERDO: CATÁLOGO */}
       <div className="flex-1 flex flex-col p-6 border-r border-gray-800 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/ventas')} className="text-gray-400 hover:text-white transition-colors">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold text-white">TPV</h1>
-          </div>
+          <h2 className="text-xl font-bold text-white">Catálogo TPV</h2>
           <div className="w-64 relative">
             <input 
               type="text" 
