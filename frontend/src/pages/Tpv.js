@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getClientes, buscarProductos, createVenta, createCliente, getArticulosTpv } from '../api';
 import TicketImprimible from '../components/TicketImprimible';
+import FacturaImprimible from '../components/FacturaImprimible';
 import Modal from '../components/Modal';
 import ModalCrearArticuloTpv from '../components/ModalCrearArticuloTpv';
 
@@ -31,6 +32,7 @@ export default function Tpv({ onVentaCreada }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [ultimaVenta, setUltimaVenta] = useState(null);
+  const [formatoImpresion, setFormatoImpresion] = useState(null);
   const [showModalCliente, setShowModalCliente] = useState(false);
   const [nuevoClienteForm, setNuevoClienteForm] = useState({ nombre: '', apellidos: '', telefono: '', email: '' });
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -116,9 +118,16 @@ export default function Tpv({ onVentaCreada }) {
   };
 
   const agregarAlCarrito = (articulo) => {
-    if (articulo.producto_id && Number(articulo.stock_actual) <= 0) {
-      if (!window.confirm(`El producto base de "${articulo.nombre}" no tiene stock (Stock: ${articulo.stock_actual}). ¿Deseas añadirlo de todos modos?`)) {
+    if (articulo.producto_id) {
+      const stock = Number(articulo.stock_actual);
+      if (stock <= 0) {
+        alert(`No puedes añadir "${articulo.nombre}" porque el stock es ${stock} (Agotado).`);
         return;
+      }
+      if (stock <= 5) {
+        if (!window.confirm(`El producto "${articulo.nombre}" tiene stock bajo (Quedan ${stock}). ¿Deseas añadirlo de todos modos?`)) {
+          return;
+        }
       }
     }
     
@@ -168,21 +177,24 @@ export default function Tpv({ onVentaCreada }) {
   let totalDescuentosValor = 0; // Solo para mostrar info
   
   const lineasCalculadas = lineas.map(l => {
-    const pu = Number(l.precio_unitario) || 0;
+    const puConIva = Number(l.precio_unitario) || 0;
     const qty = Number(l.cantidad) || 0;
     const desc = Number(l.descuento_porcentaje) || 0;
-    const imp = Number(l.impuesto_porcentaje) || 0;
+    const imp = 21; // IVA fijo del 21% a todo
     
-    const baseLine = pu * qty;
+    const baseLine = puConIva * qty;
     const descValue = baseLine * (desc / 100);
-    const subtotalLine = baseLine - descValue; // Base tras descuento
-    const taxValue = subtotalLine * (imp / 100);
+    const totalLineaFinal = baseLine - descValue; // Lo que paga el cliente finalmente
     
-    totalSubtotal += subtotalLine;
+    // Desglosar la base imponible (sin IVA) a partir del total final
+    const baseImponible = totalLineaFinal / (1 + imp / 100);
+    const taxValue = totalLineaFinal - baseImponible;
+    
+    totalSubtotal += baseImponible;
     totalImpuestos += taxValue;
     totalDescuentosValor += descValue;
     
-    return { ...l, subtotal: subtotalLine + taxValue };
+    return { ...l, impuesto_porcentaje: imp, subtotal: totalLineaFinal };
   });
 
   const total = totalSubtotal + totalImpuestos;
@@ -262,8 +274,38 @@ export default function Tpv({ onVentaCreada }) {
         </Modal>
       )}
 
-      {ultimaVenta && (
-        <TicketImprimible venta={ultimaVenta} onClose={() => setUltimaVenta(null)} />
+      <Modal isOpen={!!ultimaVenta && !formatoImpresion} onClose={() => setUltimaVenta(null)} title="Venta Completada">
+        <div className="text-center p-6 space-y-6">
+          <div className="text-emerald-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-white">¡Cobro realizado con éxito!</h3>
+          <p className="text-gray-400">La venta se ha guardado correctamente. ¿Deseas imprimir comprobante?</p>
+          
+          <div className="flex justify-center gap-4 pt-4">
+            <button onClick={() => setFormatoImpresion('ticket')} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center gap-2">
+               Ticket (80mm)
+            </button>
+            <button onClick={() => setFormatoImpresion('factura')} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center gap-2">
+               Factura (A4)
+            </button>
+          </div>
+          
+          <div className="mt-8">
+            <button onClick={() => setUltimaVenta(null)} className="text-gray-500 hover:text-white underline text-sm">
+              Cerrar y nueva venta
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {formatoImpresion === 'ticket' && ultimaVenta && (
+        <TicketImprimible venta={ultimaVenta} onClose={() => { setFormatoImpresion(null); setUltimaVenta(null); }} />
+      )}
+      {formatoImpresion === 'factura' && ultimaVenta && (
+        <FacturaImprimible venta={ultimaVenta} onClose={() => { setFormatoImpresion(null); setUltimaVenta(null); }} />
       )}
       
       <div className="flex flex-col md:flex-row h-[750px] bg-gray-950 rounded-xl overflow-hidden shadow-xl border border-gray-800">
@@ -466,14 +508,11 @@ export default function Tpv({ onVentaCreada }) {
                     <div className="flex flex-col">
                       <span className="text-[10px] text-gray-500 mb-1">% IVA</span>
                       <select 
-                        value={linea.impuesto_porcentaje}
-                        onChange={(e) => actualizarLinea(idx, 'impuesto_porcentaje', e.target.value)}
-                        className="bg-gray-900 rounded border border-gray-700 text-white text-xs py-1 px-1 focus:outline-none focus:border-indigo-500"
+                        value="21"
+                        disabled
+                        className="bg-gray-900 rounded border border-gray-700 text-gray-400 text-xs py-1 px-1 focus:outline-none appearance-none opacity-80 cursor-not-allowed"
                       >
-                        <option value="0">0%</option>
-                        <option value="4">4%</option>
-                        <option value="10">10%</option>
-                        <option value="21">21%</option>
+                        <option value="21">21% (Inc)</option>
                       </select>
                     </div>
 
