@@ -358,24 +358,24 @@ export default function Tpv({ onVentaCreada }) {
 
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {articulosTpvFiltrados.map(art => (
                 <button 
                   key={art.id}
                   onClick={() => agregarAlCarrito(art)}
-                  className={`bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 transition-colors group aspect-square relative overflow-hidden`}
+                  className={`bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:border-indigo-500 transition-colors group aspect-square relative overflow-hidden`}
                 >
                   {art.producto_id && (
-                    <div className={`absolute top-0 right-0 px-2 py-1 text-xs font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                    <div className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
                       Stock: {art.stock_actual}
                     </div>
                   )}
                   {art.opciones && art.opciones.length > 0 && (
-                     <div className="absolute top-0 left-0 px-2 py-1 text-xs font-bold bg-indigo-600/30 text-indigo-300 rounded-br-lg" title="Tiene opciones extra">
+                     <div className="absolute top-0 left-0 px-1.5 py-0.5 text-[10px] font-bold bg-indigo-600/30 text-indigo-300 rounded-br-lg" title="Tiene opciones extra">
                        + Extras
                      </div>
                   )}
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110 
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-transform group-hover:scale-110 
                     ${art.color === 'gray' ? 'bg-gray-700 text-gray-400' : ''}
                     ${art.color === 'indigo' ? 'bg-indigo-900/50 text-indigo-400' : ''}
                     ${art.color === 'emerald' ? 'bg-emerald-900/50 text-emerald-400' : ''}
@@ -383,7 +383,7 @@ export default function Tpv({ onVentaCreada }) {
                     ${art.color === 'amber' ? 'bg-amber-900/50 text-amber-400' : ''}
                     ${art.color === 'cyan' ? 'bg-cyan-900/50 text-cyan-400' : ''}
                   `}>
-                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       {art.icono === 'cube' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />}
                       {art.icono === 'sparkles' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />}
                       {art.icono === 'beaker' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
@@ -395,8 +395,8 @@ export default function Tpv({ onVentaCreada }) {
                       {!['cube', 'sparkles', 'beaker', 'star', 'heart', 'lightning-bolt', 'scissors', 'color-swatch'].includes(art.icono) && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />}
                     </svg>
                   </div>
-                  <span className="text-gray-300 text-sm font-medium line-clamp-2 mb-1">{art.nombre}</span>
-                  <span className="text-white font-bold">{Number(art.precio_base || 0).toFixed(2)} €</span>
+                  <span className="text-gray-300 text-[11px] leading-tight font-medium line-clamp-2 mb-1">{art.nombre}</span>
+                  <span className="text-white text-xs font-bold">{Number(art.precio_base || 0).toFixed(2)} €</span>
                 </button>
               ))}
             </div>
