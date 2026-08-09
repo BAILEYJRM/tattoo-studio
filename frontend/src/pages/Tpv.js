@@ -326,7 +326,7 @@ export default function Tpv({ onVentaCreada }) {
         <FacturaImprimible venta={ultimaVenta} onClose={() => { setFormatoImpresion(null); setUltimaVenta(null); }} />
       )}
       
-      <div className="flex flex-col md:flex-row h-[750px] bg-gray-950 rounded-xl overflow-hidden shadow-xl border border-gray-800">
+      <div className="flex flex-col md:flex-row h-full min-h-[750px] bg-gray-950 rounded-xl overflow-hidden shadow-xl border border-gray-800">
         {/* PANEL IZQUIERDO: CATÁLOGO */}
         <div className="flex-1 flex flex-col p-6 border-r border-gray-800 overflow-hidden">
           <div className="flex items-center justify-between mb-6">
@@ -376,12 +376,12 @@ export default function Tpv({ onVentaCreada }) {
 
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
               {articulosTpvFiltrados.map(art => (
                 <div key={art.id} className="relative group aspect-square">
                   <button 
                     onClick={() => agregarAlCarrito(art)}
-                    className={`w-full h-full rounded-xl border-2 border-transparent hover:border-white/20 flex flex-col items-center justify-center gap-2 p-2 transition-all shadow-md overflow-hidden relative
+                    className={`w-full h-full rounded-xl border-2 border-transparent hover:border-white/20 flex flex-col items-center justify-center gap-1.5 p-1.5 transition-all shadow-md overflow-hidden relative
                       ${art.color === 'gray' ? 'bg-gray-700 text-gray-200' : ''}
                       ${art.color === 'indigo' ? 'bg-indigo-600 text-white' : ''}
                       ${art.color === 'emerald' ? 'bg-emerald-500 text-white' : ''}
@@ -400,8 +400,8 @@ export default function Tpv({ onVentaCreada }) {
                          + Extras
                        </div>
                     )}
-                    <div className="w-10 h-10 shrink-0 opacity-90 transition-transform group-hover:scale-110 flex items-center justify-center">
-                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-8 h-8 shrink-0 opacity-90 transition-transform group-hover:scale-110 flex items-center justify-center">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         {art.icono === 'cube' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />}
                         {art.icono === 'sparkles' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />}
                         {art.icono === 'beaker' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
@@ -414,8 +414,8 @@ export default function Tpv({ onVentaCreada }) {
                       </svg>
                     </div>
                     <div className="w-full text-center">
-                      <div className="text-[12px] leading-tight font-bold line-clamp-2 px-1 break-words mb-0.5" title={art.nombre}>{art.nombre}</div>
-                      <div className="text-[11px] opacity-80 font-medium">{Number(art.precio_base || 0).toFixed(2)} €</div>
+                      <div className="text-[11px] leading-tight font-bold line-clamp-2 px-0.5 break-words mb-0.5" title={art.nombre}>{art.nombre}</div>
+                      <div className="text-[10px] opacity-80 font-medium">{Number(art.precio_base || 0).toFixed(2)} €</div>
                     </div>
                   </button>
 

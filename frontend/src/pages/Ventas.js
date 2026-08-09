@@ -165,9 +165,9 @@ export default function Ventas() {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6">
+    <div className="flex flex-col xl:flex-row gap-6 xl:h-[calc(100vh-6rem)]">
       {/* Mitad Izquierda: Historial de Ventas */}
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 space-y-6 flex flex-col min-h-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-white">Ventas</h1>
       </div>
@@ -211,8 +211,8 @@ export default function Ventas() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-gray-900 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-gray-900 rounded-xl overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="overflow-auto custom-scrollbar">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800">
