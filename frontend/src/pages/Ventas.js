@@ -165,14 +165,16 @@ export default function Ventas() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="flex flex-col xl:flex-row gap-6">
+      {/* Mitad Izquierda: Historial de Ventas */}
+      <div className="flex-1 space-y-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-white">Ventas</h1>
       </div>
 
       {/* Resumen del día */}
       {resumenDia && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { label: 'Total hoy', value: `${Number(resumenDia.total || 0).toFixed(2)} €`, color: 'text-green-400' },
             { label: 'Efectivo', value: `${Number(resumenDia.efectivo || 0).toFixed(2)} €`, color: 'text-gray-300' },
@@ -263,8 +265,8 @@ export default function Ventas() {
         </div>
       </div>
 
-      <div className="mt-8 border-t border-gray-800 pt-8">
-        <h2 className="text-xl font-bold text-white mb-4">Punto de Venta</h2>
+      {/* Mitad Derecha: TPV */}
+      <div className="flex-1">
         <Tpv onVentaCreada={() => { 
           cargarVentas(); 
           getResumenDia(hoy).then((res) => setResumenDia(res.data)).catch(() => {}); 

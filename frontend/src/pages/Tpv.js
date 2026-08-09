@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getClientes, buscarProductos, createVenta, createCliente, getArticulosTpv } from '../api';
+import { getClientes, buscarProductos, createVenta, createCliente, getArticulosTpv, deleteArticuloTpv } from '../api';
 import TicketImprimible from '../components/TicketImprimible';
 import FacturaImprimible from '../components/FacturaImprimible';
 import Modal from '../components/Modal';
@@ -90,6 +90,24 @@ export default function Tpv({ onVentaCreada }) {
   });
 
   const [modalArticulo, setModalArticulo] = useState(false);
+  const [articuloEdit, setArticuloEdit] = useState(null);
+
+  const handleEliminarArticuloTpv = async (e, id) => {
+    e.stopPropagation(); // Evitar añadir al carrito
+    if (!window.confirm('¿Seguro que deseas eliminar este artículo del TPV?')) return;
+    try {
+      await deleteArticuloTpv(id);
+      cargarArticulosTpv();
+    } catch (err) {
+      alert('Error al eliminar: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleEditarArticuloTpv = (e, art) => {
+    e.stopPropagation(); // Evitar añadir al carrito
+    setArticuloEdit(art);
+    setModalArticulo(true);
+  };
   const [opcionesArticuloActivo, setOpcionesArticuloActivo] = useState(null); // Para modal de opciones
   const [extrasSeleccionados, setExtrasSeleccionados] = useState({});
 
@@ -327,7 +345,7 @@ export default function Tpv({ onVentaCreada }) {
                 </svg>
               </div>
               <button 
-                onClick={() => setModalArticulo(true)}
+                onClick={() => { setArticuloEdit(null); setModalArticulo(true); }}
                 className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition"
               >
                 + Nuevo Artículo
@@ -358,48 +376,63 @@ export default function Tpv({ onVentaCreada }) {
 
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
               {articulosTpvFiltrados.map(art => (
-                <button 
-                  key={art.id}
-                  onClick={() => agregarAlCarrito(art)}
-                  className={`bg-gray-800 border border-gray-700 rounded-lg p-2.5 flex items-center gap-3 text-left hover:border-indigo-500 transition-colors group relative overflow-hidden h-16 shadow-sm`}
-                >
-                  {art.producto_id && (
-                    <div className={`absolute top-0 right-0 px-1.5 py-0.5 text-[9px] font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
-                      Stock: {art.stock_actual}
+                <div key={art.id} className="relative group aspect-square">
+                  <button 
+                    onClick={() => agregarAlCarrito(art)}
+                    className={`w-full h-full rounded-xl border-2 border-transparent hover:border-white/20 flex flex-col items-center justify-center gap-2 p-2 transition-all shadow-md overflow-hidden relative
+                      ${art.color === 'gray' ? 'bg-gray-700 text-gray-200' : ''}
+                      ${art.color === 'indigo' ? 'bg-indigo-600 text-white' : ''}
+                      ${art.color === 'emerald' ? 'bg-emerald-500 text-white' : ''}
+                      ${art.color === 'rose' ? 'bg-rose-500 text-white' : ''}
+                      ${art.color === 'amber' ? 'bg-amber-500 text-white' : ''}
+                      ${art.color === 'cyan' ? 'bg-cyan-500 text-white' : ''}
+                    `}
+                  >
+                    {art.producto_id && (
+                      <div className={`absolute top-0 right-0 px-1.5 py-0.5 text-[9px] font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-black/30 text-white'}`}>
+                        Stock: {art.stock_actual}
+                      </div>
+                    )}
+                    {art.opciones && art.opciones.length > 0 && (
+                       <div className="absolute bottom-0 right-0 px-1.5 py-0.5 text-[9px] font-bold bg-black/30 text-white rounded-tl-lg" title="Tiene opciones extra">
+                         + Extras
+                       </div>
+                    )}
+                    <div className="w-10 h-10 shrink-0 opacity-90 transition-transform group-hover:scale-110 flex items-center justify-center">
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        {art.icono === 'cube' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />}
+                        {art.icono === 'sparkles' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />}
+                        {art.icono === 'beaker' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
+                        {art.icono === 'star' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />}
+                        {art.icono === 'heart' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />}
+                        {art.icono === 'lightning-bolt' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />}
+                        {art.icono === 'scissors' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />}
+                        {art.icono === 'color-swatch' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />}
+                        {!['cube', 'sparkles', 'beaker', 'star', 'heart', 'lightning-bolt', 'scissors', 'color-swatch'].includes(art.icono) && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />}
+                      </svg>
                     </div>
-                  )}
-                  {art.opciones && art.opciones.length > 0 && (
-                     <div className="absolute bottom-0 right-0 px-1.5 py-0.5 text-[9px] font-bold bg-indigo-600/30 text-indigo-300 rounded-tl-lg" title="Tiene opciones extra">
-                       + Extras
-                     </div>
-                  )}
-                  <div className={`w-10 h-10 shrink-0 rounded-md flex items-center justify-center transition-transform group-hover:scale-105 
-                    ${art.color === 'gray' ? 'bg-gray-700 text-gray-400' : ''}
-                    ${art.color === 'indigo' ? 'bg-indigo-900/50 text-indigo-400' : ''}
-                    ${art.color === 'emerald' ? 'bg-emerald-900/50 text-emerald-400' : ''}
-                    ${art.color === 'rose' ? 'bg-rose-900/50 text-rose-400' : ''}
-                    ${art.color === 'amber' ? 'bg-amber-900/50 text-amber-400' : ''}
-                    ${art.color === 'cyan' ? 'bg-cyan-900/50 text-cyan-400' : ''}
-                  `}>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      {art.icono === 'cube' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />}
-                      {art.icono === 'sparkles' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />}
-                      {art.icono === 'beaker' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
-                      {art.icono === 'star' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />}
-                      {art.icono === 'heart' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />}
-                      {art.icono === 'lightning-bolt' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />}
-                      {art.icono === 'scissors' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />}
-                      {art.icono === 'color-swatch' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />}
-                      {!['cube', 'sparkles', 'beaker', 'star', 'heart', 'lightning-bolt', 'scissors', 'color-swatch'].includes(art.icono) && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />}
-                    </svg>
+                    <div className="w-full text-center">
+                      <div className="text-[12px] leading-tight font-bold line-clamp-2 px-1 break-words mb-0.5" title={art.nombre}>{art.nombre}</div>
+                      <div className="text-[11px] opacity-80 font-medium">{Number(art.precio_base || 0).toFixed(2)} €</div>
+                    </div>
+                  </button>
+
+                  {/* Acciones de edición (solo visibles al pasar el ratón en escritorio, en móvil siempre visibles o con otro control) */}
+                  <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => handleEditarArticuloTpv(e, art)} className="bg-black/50 hover:bg-black p-1.5 rounded text-white shadow-sm" title="Editar">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button onClick={(e) => handleEliminarArticuloTpv(e, art.id)} className="bg-black/50 hover:bg-red-600 p-1.5 rounded text-white shadow-sm" title="Eliminar">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="flex-1 min-w-0 pr-4">
-                    <div className="text-gray-300 text-[11px] leading-tight font-medium truncate mb-0.5" title={art.nombre}>{art.nombre}</div>
-                    <div className="text-white text-xs font-bold">{Number(art.precio_base || 0).toFixed(2)} €</div>
-                  </div>
-                </button>
+                </div>
               ))}
             </div>
             {articulosTpvFiltrados.length === 0 && (
@@ -608,6 +641,13 @@ export default function Tpv({ onVentaCreada }) {
           </div>
         </form>
       </Modal>
+
+      <ModalCrearArticuloTpv 
+        isOpen={modalArticulo} 
+        onClose={() => setModalArticulo(false)} 
+        onSave={() => { setModalArticulo(false); cargarArticulosTpv(); }} 
+        articuloEdicion={articuloEdit} 
+      />
     </>
   );
 }
