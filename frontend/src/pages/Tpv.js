@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getClientes, buscarProductos, createVenta } from '../api';
+import { getClientes, buscarProductos, createVenta, createCliente } from '../api';
 import TicketImprimible from '../components/TicketImprimible';
+import Modal from '../components/Modal';
 
 const CATEGORIAS_TPV = [
   { id: 'todos', label: 'Todos' },
@@ -28,6 +29,9 @@ export default function Tpv({ onVentaCreada }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [ultimaVenta, setUltimaVenta] = useState(null);
+  const [showModalCliente, setShowModalCliente] = useState(false);
+  const [nuevoClienteForm, setNuevoClienteForm] = useState({ nombre: '', apellidos: '', telefono: '', email: '' });
+  const [dropdownVisible, setDropdownVisible] = useState(false);
   
   useEffect(() => {
     cargarProductos();
@@ -43,13 +47,27 @@ export default function Tpv({ onVentaCreada }) {
   };
 
   useEffect(() => {
-    if (clienteBusqueda.length > 2 && !clienteSeleccionado) {
+    if (dropdownVisible) {
       const delay = setTimeout(() => {
         getClientes(clienteBusqueda).then(res => setClienteOpciones(res.data)).catch(console.error);
       }, 300);
       return () => clearTimeout(delay);
     }
-  }, [clienteBusqueda, clienteSeleccionado]);
+  }, [clienteBusqueda, dropdownVisible]);
+
+  const handleCreateCliente = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await createCliente(nuevoClienteForm);
+      setClienteSeleccionado(res.data);
+      setShowModalCliente(false);
+      setNuevoClienteForm({ nombre: '', apellidos: '', telefono: '', email: '' });
+      setClienteBusqueda('');
+      setDropdownVisible(false);
+    } catch (err) {
+      alert('Error al crear el cliente: ' + (err.response?.data?.error || err.message));
+    }
+  };
 
   const productosFiltrados = productos.filter(p => {
     const matchCat = categoriaSeleccionada === 'todos' || 
@@ -274,20 +292,25 @@ export default function Tpv({ onVentaCreada }) {
                 type="text" 
                 placeholder="Asociar cliente (opcional)..." 
                 value={clienteSeleccionado ? `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellidos}` : clienteBusqueda}
-                onChange={(e) => { setClienteBusqueda(e.target.value); setClienteSeleccionado(null); }}
+                onChange={(e) => { setClienteBusqueda(e.target.value); setClienteSeleccionado(null); setDropdownVisible(true); }}
+                onFocus={() => setDropdownVisible(true)}
+                onBlur={() => setTimeout(() => setDropdownVisible(false), 200)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
               />
               {clienteSeleccionado && (
                 <button onClick={() => setClienteSeleccionado(null)} className="absolute right-2 top-2 text-gray-400 hover:text-white">✕</button>
               )}
-              {clienteOpciones.length > 0 && !clienteSeleccionado && (
+              {dropdownVisible && !clienteSeleccionado && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-48 overflow-y-auto">
                   {clienteOpciones.map(c => (
-                    <button key={c.id} onClick={() => { setClienteSeleccionado(c); setClienteOpciones([]); setClienteBusqueda(''); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 border-b border-gray-700/50 last:border-0">
+                    <button key={c.id} onClick={() => { setClienteSeleccionado(c); setClienteOpciones([]); setClienteBusqueda(''); setDropdownVisible(false); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 border-b border-gray-700/50 last:border-0">
                       <div className="font-medium text-white">{c.nombre} {c.apellidos}</div>
                       <div className="text-xs text-gray-500">{c.telefono || c.email}</div>
                     </button>
                   ))}
+                  <button onMouseDown={(e) => { e.preventDefault(); setShowModalCliente(true); setDropdownVisible(false); }} className="w-full text-left px-3 py-2 text-sm text-indigo-400 hover:bg-gray-700 font-medium">
+                    + Crear nuevo cliente
+                  </button>
                 </div>
               )}
             </div>
@@ -424,6 +447,31 @@ export default function Tpv({ onVentaCreada }) {
           </div>
         </div>
       </div>
+
+      <Modal isOpen={showModalCliente} onClose={() => setShowModalCliente(false)} title="Nuevo Cliente" maxWidth="max-w-md">
+        <form onSubmit={handleCreateCliente} className="space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Nombre *</label>
+            <input required value={nuevoClienteForm.nombre} onChange={e => setNuevoClienteForm({...nuevoClienteForm, nombre: e.target.value})} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Apellidos *</label>
+            <input required value={nuevoClienteForm.apellidos} onChange={e => setNuevoClienteForm({...nuevoClienteForm, apellidos: e.target.value})} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Teléfono</label>
+            <input value={nuevoClienteForm.telefono} onChange={e => setNuevoClienteForm({...nuevoClienteForm, telefono: e.target.value})} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Email</label>
+            <input type="email" value={nuevoClienteForm.email} onChange={e => setNuevoClienteForm({...nuevoClienteForm, email: e.target.value})} className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setShowModalCliente(false)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">Cancelar</button>
+            <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">Crear</button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
