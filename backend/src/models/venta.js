@@ -5,21 +5,21 @@ const Venta = {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const { cliente_id, cita_id, fecha, subtotal, total, metodo_pago, estado, notas, empleado_id } = datos;
+      const { cliente_id, cita_id, fecha, subtotal, total, impuestos, descuentos, metodo_pago, estado, notas, empleado_id } = datos;
       const ventaRes = await client.query(
-        `INSERT INTO ventas (cliente_id, cita_id, fecha, subtotal, total, metodo_pago, estado, notas, empleado_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-        [cliente_id || null, cita_id || null, fecha, subtotal, total,
+        `INSERT INTO ventas (cliente_id, cita_id, fecha, subtotal, total, impuestos, descuentos, metodo_pago, estado, notas, empleado_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+        [cliente_id || null, cita_id || null, fecha, subtotal, total, impuestos || 0, descuentos || 0,
           metodo_pago || 'efectivo', estado || 'pagado', notas, empleado_id]
       );
       const venta = ventaRes.rows[0];
 
       for (const linea of lineas) {
-        const { tipo, producto_id, descripcion, cantidad, precio_unitario, subtotal: lineaSub } = linea;
+        const { tipo, producto_id, descripcion, cantidad, precio_unitario, impuesto_porcentaje, descuento_porcentaje, subtotal: lineaSub } = linea;
         await client.query(
-          `INSERT INTO venta_lineas (venta_id, tipo, producto_id, descripcion, cantidad, precio_unitario, subtotal)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [venta.id, tipo, producto_id || null, descripcion, cantidad, precio_unitario, lineaSub]
+          `INSERT INTO venta_lineas (venta_id, tipo, producto_id, descripcion, cantidad, precio_unitario, impuesto_porcentaje, descuento_porcentaje, subtotal)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+          [venta.id, tipo, producto_id || null, descripcion, cantidad, precio_unitario, impuesto_porcentaje || 21, descuento_porcentaje || 0, lineaSub]
         );
         if (tipo === 'producto' && producto_id) {
           await client.query(
