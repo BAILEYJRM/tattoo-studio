@@ -218,3 +218,10 @@ export const updatePlantillaComunicacion = (id, data) => api.put(`/comunicacione
 export const enviarComunicacion = (data) => api.post('/comunicaciones/enviar', data);
 export const getEstadisticasComunicaciones = () => api.get('/comunicaciones/estadisticas');
 export const enviarEmailConsentimiento = (id) => api.post(`/consentimientos/${id}/enviar-email`);
+
+// Articulos TPV
+export const getArticulosTpv = () => api.get('/articulos-tpv');
+export const getArticuloTpv = (id) => api.get(`/articulos-tpv/${id}`);
+export const createArticuloTpv = (data) => api.post('/articulos-tpv', data);
+export const updateArticuloTpv = (id, data) => api.put(`/articulos-tpv/${id}`, data);
+export const deleteArticuloTpv = (id) => api.delete(`/articulos-tpv/${id}`);

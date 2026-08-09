@@ -67,6 +67,7 @@ app.use('/api/tintas', require('./routes/tintas'));
 app.use('/api/agujas', require('./routes/agujas'));
 app.use('/api/estadisticas', require('./routes/estadisticas'));
 app.use('/api/configuracion', require('./routes/configuracion'));
+app.use('/api/articulos-tpv', require('./routes/articulosTpv'));
 
 // Cron jobs
 require('./services/cronService');

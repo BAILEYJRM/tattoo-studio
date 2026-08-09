@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getClientes, buscarProductos, createVenta, createCliente } from '../api';
+import { getClientes, buscarProductos, createVenta, createCliente, getArticulosTpv } from '../api';
 import TicketImprimible from '../components/TicketImprimible';
 import Modal from '../components/Modal';
+import ModalCrearArticuloTpv from '../components/ModalCrearArticuloTpv';
 
 const CATEGORIAS_TPV = [
   { id: 'todos', label: 'Todos' },
@@ -15,6 +16,7 @@ const METODO_LABEL = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', bizum: 'Bizum' 
 
 export default function Tpv({ onVentaCreada }) {
   const [productos, setProductos] = useState([]);
+  const [articulosTpv, setArticulosTpv] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   
@@ -35,12 +37,22 @@ export default function Tpv({ onVentaCreada }) {
   
   useEffect(() => {
     cargarProductos();
+    cargarArticulosTpv();
   }, [ultimaVenta]); // recargar productos cuando se cierra el ticket (por stock)
 
   const cargarProductos = async () => {
     try {
       const res = await buscarProductos('');
       setProductos(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const cargarArticulosTpv = async () => {
+    try {
+      const res = await getArticulosTpv();
+      setArticulosTpv(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -69,38 +81,63 @@ export default function Tpv({ onVentaCreada }) {
     }
   };
 
-  const productosFiltrados = productos.filter(p => {
-    const matchCat = categoriaSeleccionada === 'todos' || 
-                    (categoriaSeleccionada === 'servicios' && p.categoria === 'servicio') ||
-                    p.categoria === categoriaSeleccionada;
-    const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-                          (p.sku && p.sku.toLowerCase().includes(busqueda.toLowerCase()));
+  const articulosTpvFiltrados = articulosTpv.filter(p => {
+    const matchCat = categoriaSeleccionada === 'todos' || p.categoria === categoriaSeleccionada;
+    const matchBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
     return matchCat && matchBusqueda;
   });
 
-  const agregarAlCarrito = (prod) => {
-    if (prod.categoria !== 'servicio' && Number(prod.stock_actual) <= 0) {
-      if (!window.confirm(`El producto "${prod.nombre}" no tiene stock (Stock: ${prod.stock_actual}). ¿Deseas añadirlo de todos modos?`)) {
-        return;
-      }
-    }
+  const [modalArticulo, setModalArticulo] = useState(false);
+  const [opcionesArticuloActivo, setOpcionesArticuloActivo] = useState(null); // Para modal de opciones
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState({});
 
-    const existenteIdx = lineas.findIndex(l => l.producto_id === prod.id && l.precio_unitario == prod.precio_venta);
+  const agregarAlCarritoBase = (articulo, extras = []) => {
+    const extrasCost = extras.reduce((sum, ext) => sum + Number(ext.coste), 0);
+    const precioFinal = Number(articulo.precio_base) + extrasCost;
+    let descExtras = extras.length > 0 ? ` (+ ${extras.map(e => e.nombre).join(', ')})` : '';
+
+    const existenteIdx = lineas.findIndex(l => l.articulo_tpv_id === articulo.id && l.precio_unitario == precioFinal && l.descripcion === articulo.nombre + descExtras);
     if (existenteIdx >= 0) {
       const nuevas = [...lineas];
       nuevas[existenteIdx].cantidad += 1;
       setLineas(nuevas);
     } else {
       setLineas([...lineas, {
-        tipo: prod.categoria === 'servicio' ? 'servicio' : 'producto',
-        producto_id: prod.id,
-        descripcion: prod.nombre,
+        tipo: articulo.producto_id ? 'producto' : 'servicio',
+        producto_id: articulo.producto_id,
+        articulo_tpv_id: articulo.id,
+        descripcion: articulo.nombre + descExtras,
         cantidad: 1,
-        precio_unitario: prod.precio_venta || 0,
+        precio_unitario: precioFinal,
         impuesto_porcentaje: 21,
         descuento_porcentaje: 0
       }]);
     }
+  };
+
+  const agregarAlCarrito = (articulo) => {
+    if (articulo.producto_id && Number(articulo.stock_actual) <= 0) {
+      if (!window.confirm(`El producto base de "${articulo.nombre}" no tiene stock (Stock: ${articulo.stock_actual}). ¿Deseas añadirlo de todos modos?`)) {
+        return;
+      }
+    }
+    
+    // Si tiene opciones, mostrar el modal de opciones
+    if (articulo.opciones && articulo.opciones.length > 0) {
+      setOpcionesArticuloActivo(articulo);
+      setExtrasSeleccionados({});
+      return;
+    }
+
+    agregarAlCarritoBase(articulo, []);
+  };
+
+  const confirmarExtras = () => {
+    if (!opcionesArticuloActivo) return;
+    const extrasToAdd = opcionesArticuloActivo.opciones.filter((opt, idx) => extrasSeleccionados[idx]);
+    agregarAlCarritoBase(opcionesArticuloActivo, extrasToAdd);
+    setOpcionesArticuloActivo(null);
+    setExtrasSeleccionados({});
   };
 
   const agregarServicioCustom = () => {
@@ -195,6 +232,36 @@ export default function Tpv({ onVentaCreada }) {
 
   return (
     <>
+      <ModalCrearArticuloTpv 
+        isOpen={modalArticulo} 
+        onClose={() => setModalArticulo(false)} 
+        onSave={cargarArticulosTpv} 
+      />
+
+      {opcionesArticuloActivo && (
+        <Modal isOpen={true} onClose={() => setOpcionesArticuloActivo(null)} title={`Opciones para ${opcionesArticuloActivo.nombre}`} size="sm">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-300">Selecciona los extras a aplicar:</p>
+            {opcionesArticuloActivo.opciones.map((opt, idx) => (
+              <label key={idx} className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition">
+                <input 
+                  type="checkbox" 
+                  checked={!!extrasSeleccionados[idx]}
+                  onChange={(e) => setExtrasSeleccionados({...extrasSeleccionados, [idx]: e.target.checked})}
+                  className="w-5 h-5 text-indigo-500 rounded focus:ring-indigo-500 bg-gray-900 border-gray-700"
+                />
+                <span className="text-white flex-1">{opt.nombre}</span>
+                <span className="text-gray-400 font-bold">+{Number(opt.coste).toFixed(2)}€</span>
+              </label>
+            ))}
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <button type="button" onClick={() => setOpcionesArticuloActivo(null)} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700">Cancelar</button>
+              <button type="button" onClick={confirmarExtras} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Añadir al ticket</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {ultimaVenta && (
         <TicketImprimible venta={ultimaVenta} onClose={() => setUltimaVenta(null)} />
       )}
@@ -204,17 +271,25 @@ export default function Tpv({ onVentaCreada }) {
         <div className="flex-1 flex flex-col p-6 border-r border-gray-800 overflow-hidden">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white">Catálogo TPV</h2>
-            <div className="w-64 relative">
-              <input 
-                type="text" 
-                placeholder="Buscar o escanear código..." 
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <svg className="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <div className="flex items-center gap-4">
+              <div className="w-64 relative">
+                <input 
+                  type="text" 
+                  placeholder="Buscar artículo..." 
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                <svg className="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <button 
+                onClick={() => setModalArticulo(true)}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition"
+              >
+                + Nuevo Artículo
+              </button>
             </div>
           </div>
 
@@ -242,28 +317,48 @@ export default function Tpv({ onVentaCreada }) {
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {productosFiltrados.map(prod => (
+              {articulosTpvFiltrados.map(art => (
                 <button 
-                  key={prod.id}
-                  onClick={() => agregarAlCarrito(prod)}
-                  className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 transition-colors group aspect-square relative overflow-hidden"
+                  key={art.id}
+                  onClick={() => agregarAlCarrito(art)}
+                  className={`bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:border-indigo-500 transition-colors group aspect-square relative overflow-hidden`}
                 >
-                  {prod.categoria !== 'servicio' && (
-                    <div className={`absolute top-0 right-0 px-2 py-1 text-xs font-bold rounded-bl-lg ${Number(prod.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
-                      Stock: {prod.stock_actual}
+                  {art.producto_id && (
+                    <div className={`absolute top-0 right-0 px-2 py-1 text-xs font-bold rounded-bl-lg ${Number(art.stock_actual) <= 0 ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                      Stock: {art.stock_actual}
                     </div>
                   )}
-                  <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-3 group-hover:bg-indigo-600/20 transition-colors">
-                    <svg className="w-6 h-6 text-gray-400 group-hover:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  {art.opciones && art.opciones.length > 0 && (
+                     <div className="absolute top-0 left-0 px-2 py-1 text-xs font-bold bg-indigo-600/30 text-indigo-300 rounded-br-lg" title="Tiene opciones extra">
+                       + Extras
+                     </div>
+                  )}
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110 
+                    ${art.color === 'gray' ? 'bg-gray-700 text-gray-400' : ''}
+                    ${art.color === 'indigo' ? 'bg-indigo-900/50 text-indigo-400' : ''}
+                    ${art.color === 'emerald' ? 'bg-emerald-900/50 text-emerald-400' : ''}
+                    ${art.color === 'rose' ? 'bg-rose-900/50 text-rose-400' : ''}
+                    ${art.color === 'amber' ? 'bg-amber-900/50 text-amber-400' : ''}
+                    ${art.color === 'cyan' ? 'bg-cyan-900/50 text-cyan-400' : ''}
+                  `}>
+                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {art.icono === 'cube' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />}
+                      {art.icono === 'sparkles' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />}
+                      {art.icono === 'beaker' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />}
+                      {art.icono === 'star' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />}
+                      {art.icono === 'heart' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />}
+                      {art.icono === 'lightning-bolt' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />}
+                      {art.icono === 'scissors' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />}
+                      {art.icono === 'color-swatch' && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />}
+                      {!['cube', 'sparkles', 'beaker', 'star', 'heart', 'lightning-bolt', 'scissors', 'color-swatch'].includes(art.icono) && <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />}
                     </svg>
                   </div>
-                  <span className="text-gray-300 text-sm font-medium line-clamp-2 mb-1">{prod.nombre}</span>
-                  <span className="text-white font-bold">{Number(prod.precio_venta || 0).toFixed(2)} €</span>
+                  <span className="text-gray-300 text-sm font-medium line-clamp-2 mb-1">{art.nombre}</span>
+                  <span className="text-white font-bold">{Number(art.precio_base || 0).toFixed(2)} €</span>
                 </button>
               ))}
             </div>
-            {productosFiltrados.length === 0 && (
+            {articulosTpvFiltrados.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <svg className="w-12 h-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
