@@ -2,25 +2,29 @@ const pool = require('../config/database');
 
 const Cliente = {
   async crear({
-    nombre, apellidos, email, telefono, fecha_nacimiento, notas,
-    conflictivo, flexible, habla_ingles, es_cliente_estudio,
+    nombre, apellidos, segundo_apellido, email, telefono, fecha_nacimiento, notas,
+    dni, pais, provincia, localidad, direccion, codigo_postal,
+    conflictivo, flexible, habla_ingles, es_cliente_estudio, cliente_pruebas,
     tutor_legal_nombre, tutor_legal_dni, tutor_legal_telefono,
-    info_medica, acepta_comunicaciones, acepta_redes,
-    sexo, instagram,
+    info_medica, acepta_comunicaciones, acepta_notificaciones_sistema, acepta_redes, como_nos_conocio,
+    sexo, instagram, facebook, tiktok, twitter
   }) {
     const result = await pool.query(
       `INSERT INTO clientes
-        (nombre, apellidos, email, telefono, fecha_nacimiento, notas,
-         conflictivo, flexible, habla_ingles, es_cliente_estudio,
+        (nombre, apellidos, segundo_apellido, email, telefono, fecha_nacimiento, notas,
+         dni, pais, provincia, localidad, direccion, codigo_postal,
+         conflictivo, flexible, habla_ingles, es_cliente_estudio, cliente_pruebas,
          tutor_legal_nombre, tutor_legal_dni, tutor_legal_telefono,
-         info_medica, acepta_comunicaciones, acepta_redes, sexo, instagram)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+         info_medica, acepta_comunicaciones, acepta_notificaciones_sistema, acepta_redes, como_nos_conocio, 
+         sexo, instagram, facebook, tiktok, twitter)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)
        RETURNING *`,
-      [nombre, apellidos, email, telefono, fecha_nacimiento, notas,
-       conflictivo ?? false, flexible ?? false, habla_ingles ?? false, es_cliente_estudio ?? false,
+      [nombre, apellidos, segundo_apellido, email, telefono, fecha_nacimiento, notas,
+       dni, pais, provincia, localidad, direccion, codigo_postal,
+       conflictivo ?? false, flexible ?? false, habla_ingles ?? false, es_cliente_estudio ?? false, cliente_pruebas ?? false,
        tutor_legal_nombre, tutor_legal_dni, tutor_legal_telefono,
-       info_medica, acepta_comunicaciones ?? true, acepta_redes ?? false,
-       sexo, instagram]
+       info_medica, acepta_comunicaciones ?? true, acepta_notificaciones_sistema ?? true, acepta_redes ?? false, como_nos_conocio,
+       sexo, instagram, facebook, tiktok, twitter]
     );
     return result.rows[0];
   },
@@ -36,25 +40,28 @@ const Cliente = {
   },
 
   async actualizar(id, {
-    nombre, apellidos, email, telefono, fecha_nacimiento, notas,
-    conflictivo, flexible, habla_ingles, es_cliente_estudio,
+    nombre, apellidos, segundo_apellido, email, telefono, fecha_nacimiento, notas,
+    dni, pais, provincia, localidad, direccion, codigo_postal,
+    conflictivo, flexible, habla_ingles, es_cliente_estudio, cliente_pruebas,
     tutor_legal_nombre, tutor_legal_dni, tutor_legal_telefono,
-    info_medica, acepta_comunicaciones, acepta_redes,
-    sexo, instagram,
+    info_medica, acepta_comunicaciones, acepta_notificaciones_sistema, acepta_redes, como_nos_conocio,
+    sexo, instagram, facebook, tiktok, twitter
   }) {
     const result = await pool.query(
       `UPDATE clientes SET
-        nombre=$1, apellidos=$2, email=$3, telefono=$4, fecha_nacimiento=$5, notas=$6,
-        conflictivo=$7, flexible=$8, habla_ingles=$9, es_cliente_estudio=$10,
-        tutor_legal_nombre=$11, tutor_legal_dni=$12, tutor_legal_telefono=$13,
-        info_medica=$14, acepta_comunicaciones=$15, acepta_redes=$16,
-        sexo=$17, instagram=$18
-       WHERE id=$19 RETURNING *`,
-      [nombre, apellidos, email, telefono, fecha_nacimiento, notas,
-       conflictivo, flexible, habla_ingles, es_cliente_estudio,
+        nombre=$1, apellidos=$2, segundo_apellido=$3, email=$4, telefono=$5, fecha_nacimiento=$6, notas=$7,
+        dni=$8, pais=$9, provincia=$10, localidad=$11, direccion=$12, codigo_postal=$13,
+        conflictivo=$14, flexible=$15, habla_ingles=$16, es_cliente_estudio=$17, cliente_pruebas=$18,
+        tutor_legal_nombre=$19, tutor_legal_dni=$20, tutor_legal_telefono=$21,
+        info_medica=$22, acepta_comunicaciones=$23, acepta_notificaciones_sistema=$24, acepta_redes=$25, como_nos_conocio=$26,
+        sexo=$27, instagram=$28, facebook=$29, tiktok=$30, twitter=$31
+       WHERE id=$32 RETURNING *`,
+      [nombre, apellidos, segundo_apellido, email, telefono, fecha_nacimiento, notas,
+       dni, pais, provincia, localidad, direccion, codigo_postal,
+       conflictivo, flexible, habla_ingles, es_cliente_estudio, cliente_pruebas,
        tutor_legal_nombre, tutor_legal_dni, tutor_legal_telefono,
-       info_medica, acepta_comunicaciones, acepta_redes,
-       sexo, instagram, id]
+       info_medica, acepta_comunicaciones, acepta_notificaciones_sistema, acepta_redes, como_nos_conocio,
+       sexo, instagram, facebook, tiktok, twitter, id]
     );
     return result.rows[0];
   },

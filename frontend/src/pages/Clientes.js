@@ -12,10 +12,13 @@ const ESTADO_CONFIG = {
 };
 
 const emptyForm = {
-  nombre: '', apellidos: '', email: '', telefono: '',
-  fecha_nacimiento: '', notas: '', sexo: '', instagram: '',
+  nombre: '', apellidos: '', segundo_apellido: '', email: '', telefono: '', dni: '',
+  pais: '', provincia: '', localidad: '', direccion: '', codigo_postal: '',
+  fecha_nacimiento: '', notas: '', sexo: '',
   conflictivo: false, flexible: false, habla_ingles: false,
-  es_cliente_estudio: false, acepta_comunicaciones: true, acepta_redes: false,
+  es_cliente_estudio: false, acepta_comunicaciones: true, acepta_notificaciones_sistema: true,
+  acepta_redes: false, cliente_pruebas: false, como_nos_conocio: '',
+  instagram: '', facebook: '', tiktok: '', twitter: '',
   info_medica: '',
   tutor_legal_nombre: '', tutor_legal_dni: '', tutor_legal_telefono: '',
 };
@@ -124,14 +127,20 @@ function HistorialCliente({ clienteId, onClose, onEdit, navigate }) {
         {/* ── Datos ── */}
         {tab === 'datos' && cliente && (
           <div className="bg-gray-900 rounded-xl p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               {[
-                ['Nombre', `${cliente.nombre} ${cliente.apellidos}`],
+                ['Nombre', `${cliente.nombre} ${cliente.apellidos} ${cliente.segundo_apellido || ''}`.trim()],
+                ['DNI/Pasaporte', cliente.dni || '—'],
                 ['Email', cliente.email || '—'],
                 ['Teléfono', cliente.telefono || '—'],
                 ['Fecha nacimiento', fmtFecha(cliente.fecha_nacimiento)],
                 ['Sexo', cliente.sexo || '—'],
+                ['Dirección', [cliente.direccion, cliente.localidad, cliente.provincia, cliente.pais, cliente.codigo_postal].filter(Boolean).join(', ') || '—'],
+                ['Cómo nos conoció', cliente.como_nos_conocio || '—'],
                 ['Instagram', cliente.instagram || '—'],
+                ['Facebook', cliente.facebook || '—'],
+                ['TikTok', cliente.tiktok || '—'],
+                ['Twitter (X)', cliente.twitter || '—'],
               ].map(([label, value]) => (
                 <div key={label}>
                   <p className="text-gray-500 text-xs">{label}</p>
@@ -347,8 +356,11 @@ function HistorialCliente({ clienteId, onClose, onEdit, navigate }) {
 function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando }) {
   const menorDeEdad = esMenorDeEdad(form.fecha_nacimiento);
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={onSubmit} className="space-y-4">
       {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">{error}</div>}
+      
+      {/* IDENTIFICACIÓN */}
+      <SeccionHeader title="Identificación" />
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs text-gray-400 mb-1">Nombre *</label>
@@ -356,12 +368,20 @@ function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando })
             className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Apellidos *</label>
+          <label className="block text-xs text-gray-400 mb-1">Primer apellido *</label>
           <input required value={form.apellidos} onChange={(e) => setF('apellidos', e.target.value)}
             className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Segundo apellido</label>
+          <input value={form.segundo_apellido} onChange={(e) => setF('segundo_apellido', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">DNI / Pasaporte</label>
+          <input value={form.dni} onChange={(e) => setF('dni', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">Email</label>
           <input type="email" value={form.email} onChange={(e) => setF('email', e.target.value)}
@@ -373,13 +393,7 @@ function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando })
             className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
       </div>
-      <div>
-        <label className="block text-xs text-gray-400 mb-1">Notas</label>
-        <textarea value={form.notas} onChange={(e) => setF('notas', e.target.value)} rows={2}
-          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
-      </div>
-      <SeccionHeader title="Datos personales" />
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs text-gray-400 mb-1">F. nacimiento</label>
           <input type="date" value={form.fecha_nacimiento} onChange={(e) => setF('fecha_nacimiento', e.target.value)}
@@ -395,21 +409,89 @@ function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando })
             <option value="otro">Otro</option>
           </select>
         </div>
+      </div>
+
+      {/* DIRECCIÓN */}
+      <SeccionHeader title="Dirección" />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">País</label>
+          <input value={form.pais} onChange={(e) => setF('pais', e.target.value)} placeholder="Ej. España"
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Provincia</label>
+          <input value={form.provincia} onChange={(e) => setF('provincia', e.target.value)} placeholder="Ej. Madrid"
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Localidad</label>
+          <input value={form.localidad} onChange={(e) => setF('localidad', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Código Postal</label>
+          <input value={form.codigo_postal} onChange={(e) => setF('codigo_postal', e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Dirección (calle, vía, avda...)</label>
+        <input value={form.direccion} onChange={(e) => setF('direccion', e.target.value)}
+          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+
+      {/* NOTAS Y MARKETING */}
+      <SeccionHeader title="Notas y Marketing" />
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">¿Cómo nos ha conocido?</label>
+        <input value={form.como_nos_conocio} onChange={(e) => setF('como_nos_conocio', e.target.value)} placeholder="Instagram, Amigo, Buscador..."
+          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1">Notas internas</label>
+        <textarea value={form.notas} onChange={(e) => setF('notas', e.target.value)} rows={2}
+          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+      </div>
+
+      {/* REDES SOCIALES */}
+      <SeccionHeader title="Redes Sociales" />
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs text-gray-400 mb-1">Instagram</label>
           <input value={form.instagram} onChange={(e) => setF('instagram', e.target.value)} placeholder="@usuario"
             className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
         </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">TikTok</label>
+          <input value={form.tiktok} onChange={(e) => setF('tiktok', e.target.value)} placeholder="@usuario"
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Facebook</label>
+          <input value={form.facebook} onChange={(e) => setF('facebook', e.target.value)} placeholder="Perfil o nombre"
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Twitter (X)</label>
+          <input value={form.twitter} onChange={(e) => setF('twitter', e.target.value)} placeholder="@usuario"
+            className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+        </div>
       </div>
-      <SeccionHeader title="Flags" />
+
+      {/* FLAGS */}
+      <SeccionHeader title="Flags y Ajustes" />
       <div className="grid grid-cols-2 gap-2">
         <Toggle small label="Conflictivo" checked={form.conflictivo} onChange={() => setF('conflictivo', !form.conflictivo)} />
         <Toggle small label="Flexible" checked={form.flexible} onChange={() => setF('flexible', !form.flexible)} />
         <Toggle small label="Habla inglés" checked={form.habla_ingles} onChange={() => setF('habla_ingles', !form.habla_ingles)} />
         <Toggle small label="Cliente del estudio" checked={form.es_cliente_estudio} onChange={() => setF('es_cliente_estudio', !form.es_cliente_estudio)} />
         <Toggle small label="Acepta comunicaciones" checked={form.acepta_comunicaciones} onChange={() => setF('acepta_comunicaciones', !form.acepta_comunicaciones)} />
+        <Toggle small label="Notificaciones de sistema" checked={form.acepta_notificaciones_sistema} onChange={() => setF('acepta_notificaciones_sistema', !form.acepta_notificaciones_sistema)} />
         <Toggle small label="Acepta redes sociales" checked={form.acepta_redes} onChange={() => setF('acepta_redes', !form.acepta_redes)} />
+        <Toggle small label="Cliente de pruebas" checked={form.cliente_pruebas} onChange={() => setF('cliente_pruebas', !form.cliente_pruebas)} />
       </div>
+
       <SeccionHeader title="Información médica" />
       <div>
         <label className="block text-xs text-gray-400 mb-1">Info médica <span className="text-gray-600">(aparece en consentimientos)</span></label>
@@ -417,6 +499,7 @@ function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando })
           placeholder="Alergias, medicamentos, enfermedades relevantes..."
           className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500" />
       </div>
+
       {menorDeEdad && (
         <>
           <SeccionHeader title="Tutor legal (menor de edad)" />
@@ -439,6 +522,7 @@ function FormCliente({ form, setF, saving, error, onSubmit, onClose, editando })
           </div>
         </>
       )}
+
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose}
           className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
@@ -489,13 +573,20 @@ export default function Clientes() {
   const openEdit = (c) => {
     setEditando(c.id);
     setForm({
-      nombre: c.nombre || '', apellidos: c.apellidos || '',
-      email: c.email || '', telefono: c.telefono || '',
+      nombre: c.nombre || '', apellidos: c.apellidos || '', segundo_apellido: c.segundo_apellido || '',
+      email: c.email || '', telefono: c.telefono || '', dni: c.dni || '',
+      pais: c.pais || '', provincia: c.provincia || '', localidad: c.localidad || '',
+      direccion: c.direccion || '', codigo_postal: c.codigo_postal || '',
       fecha_nacimiento: c.fecha_nacimiento?.split('T')[0] || '',
-      notas: c.notas || '', sexo: c.sexo || '', instagram: c.instagram || '',
+      notas: c.notas || '', sexo: c.sexo || '',
+      instagram: c.instagram || '', facebook: c.facebook || '',
+      tiktok: c.tiktok || '', twitter: c.twitter || '',
       conflictivo: c.conflictivo || false, flexible: c.flexible || false,
       habla_ingles: c.habla_ingles || false, es_cliente_estudio: c.es_cliente_estudio || false,
+      cliente_pruebas: c.cliente_pruebas || false,
+      como_nos_conocio: c.como_nos_conocio || '',
       acepta_comunicaciones: c.acepta_comunicaciones ?? true,
+      acepta_notificaciones_sistema: c.acepta_notificaciones_sistema ?? true,
       acepta_redes: c.acepta_redes || false,
       info_medica: c.info_medica || '',
       tutor_legal_nombre: c.tutor_legal_nombre || '',
