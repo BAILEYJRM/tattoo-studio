@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   flexible BOOLEAN DEFAULT false,
   habla_ingles BOOLEAN DEFAULT false,
   es_cliente_estudio BOOLEAN DEFAULT false,
+  activo BOOLEAN DEFAULT true,
   no_shows INTEGER DEFAULT 0,
   tutor_legal_nombre VARCHAR(200),
   tutor_legal_dni VARCHAR(20),
@@ -104,6 +105,7 @@ CREATE TABLE IF NOT EXISTS citas (
   hora_inicio TIME NOT NULL,
   hora_fin TIME NOT NULL,
   descripcion TEXT,
+  tipo VARCHAR(50) DEFAULT 'tatuaje',
   estado VARCHAR(20) DEFAULT 'pendiente',
   precio DECIMAL(10,2),
   importe_senal DECIMAL(10,2) DEFAULT 0,
@@ -141,6 +143,49 @@ CREATE TABLE IF NOT EXISTS productos (
   proveedor VARCHAR(200),
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tintas
+CREATE TABLE IF NOT EXISTS tintas (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL,
+  marca VARCHAR(100),
+  color VARCHAR(100),
+  codigo VARCHAR(100),
+  numero_lote VARCHAR(100),
+  fecha_caducidad DATE,
+  homologada BOOLEAN DEFAULT true,
+  producto_id INTEGER REFERENCES productos(id),
+  activa BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Agujas
+CREATE TABLE IF NOT EXISTS agujas (
+  id SERIAL PRIMARY KEY,
+  marca VARCHAR(100),
+  modelo VARCHAR(100),
+  tipo VARCHAR(100),
+  numero_lote VARCHAR(100),
+  fecha_caducidad DATE,
+  fecha_fabricacion DATE,
+  producto_id INTEGER REFERENCES productos(id),
+  activa BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Preferencias de Artistas: Tintas
+CREATE TABLE IF NOT EXISTS artista_tintas_defecto (
+  empleado_id INTEGER REFERENCES empleados(id) ON DELETE CASCADE,
+  tinta_id INTEGER REFERENCES tintas(id) ON DELETE CASCADE,
+  PRIMARY KEY (empleado_id, tinta_id)
+);
+
+-- Preferencias de Artistas: Agujas
+CREATE TABLE IF NOT EXISTS artista_agujas_defecto (
+  empleado_id INTEGER REFERENCES empleados(id) ON DELETE CASCADE,
+  aguja_id INTEGER REFERENCES agujas(id) ON DELETE CASCADE,
+  PRIMARY KEY (empleado_id, aguja_id)
 );
 
 -- Movimientos de stock
