@@ -577,9 +577,8 @@ export default function Configuracion() {
             </div>
 
             <div className="flex justify-end pt-4 border-t border-gray-800">
-              <SaveBtn onClick={() => {
-                save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
-                // Forzar recarga o aplicar directamente al document (se manejará desde un context global)
+              <SaveBtn onClick={async () => {
+                await save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
                 window.location.reload(); 
               }} saving={saving} />
             </div>
