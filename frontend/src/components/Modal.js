@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) {
   if (!isOpen) return null;
 
   return (
@@ -9,7 +9,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
         className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
-      <div className="relative z-10 bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+      <div className={`relative z-10 bg-gray-800 rounded-xl shadow-2xl w-full ${maxWidth} mx-4 max-h-[90vh] flex flex-col`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
           <button

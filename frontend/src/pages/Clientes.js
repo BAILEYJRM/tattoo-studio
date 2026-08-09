@@ -780,7 +780,7 @@ export default function Clientes() {
         )}
       </div>
 
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editando ? 'Editar cliente' : 'Nuevo cliente'}>
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editando ? 'Editar cliente' : 'Nuevo cliente'} maxWidth="max-w-3xl">
         <FormCliente form={form} setF={setF} saving={saving} error={error} onSubmit={handleSubmit} onClose={() => setModal(false)} editando={editando} />
       </Modal>
 
