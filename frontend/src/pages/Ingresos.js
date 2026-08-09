@@ -47,8 +47,8 @@ export default function Ingresos() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getEstResumen(lunesSemanaActual(), hoy()),
-      getEstResumen(primerDiaMes(), hoy()),
+      getEstResumen({ fecha_inicio: lunesSemanaActual(), fecha_fin: hoy() }),
+      getEstResumen({ fecha_inicio: primerDiaMes(), fecha_fin: hoy() }),
       getEstEvolucion(anioEvo)
     ])
       .then(([semR, mesR, evoR]) => {
