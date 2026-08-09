@@ -376,7 +376,7 @@ export default function Tpv({ onVentaCreada }) {
 
           {/* Rejilla de productos */}
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+            <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(95px, 1fr))' }}>
               {articulosTpvFiltrados.map(art => (
                 <div key={art.id} className="relative group aspect-square">
                   <button 
