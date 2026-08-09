@@ -203,6 +203,9 @@ export const crearCitasGrupo = (data) => api.post('/citas/grupo', data);
 // Configuración
 export const getConfiguracion = () => api.get('/configuracion');
 export const updateConfiguracion = (data) => api.put('/configuracion', data);
+export const uploadLogo = (formData) => api.post('/configuracion/logo', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 export const getConfiguracionPublica = () => api.get('/configuracion/publica');
 export const getDiasFestivos = () => api.get('/configuracion/dias-festivos');
 export const addDiaFestivo = (data) => api.post('/configuracion/dias-festivos', data);

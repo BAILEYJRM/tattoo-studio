@@ -61,6 +61,17 @@ async function deleteDiaFestivo(req, res) {
   }
 }
 
+async function uploadLogo(req, res) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
+    const url = `/uploads/logos/${req.file.filename}`;
+    await Configuracion.setMultiple({ theme_logo_url: url });
+    res.json({ url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   getConfiguracion,
   updateConfiguracion,
@@ -68,4 +79,5 @@ module.exports = {
   getDiasFestivos,
   addDiaFestivo,
   deleteDiaFestivo,
+  uploadLogo,
 };

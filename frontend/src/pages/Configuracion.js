@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  getConfiguracion, updateConfiguracion,
+  getConfiguracion, updateConfiguracion, uploadLogo, getImagenUrl,
   getDiasFestivos, addDiaFestivo, deleteDiaFestivo,
 } from '../api';
 
@@ -13,6 +13,7 @@ const TABS = [
   { id: 'comunicaciones', label: 'Comunicaciones' },
   { id: 'calendario', label: 'Calendario' },
   { id: 'politica', label: 'Política' },
+  { id: 'personalizacion', label: 'Personalización' },
 ];
 
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
@@ -473,6 +474,116 @@ export default function Configuracion() {
             <div className="flex justify-end pt-2">
               <SaveBtn onClick={() => save(['politica_cancelacion', 'info_adicional_clientes'])} saving={saving} />
             </div>
+          </div>
+        )}
+
+        {/* ── Personalización ── */}
+        {tab === 'personalizacion' && (
+          <div className="space-y-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Personalización del Panel</h2>
+            <p className="text-sm text-gray-400 mb-6">Ajusta los colores, tipografía y logotipo para adaptar la plataforma a la imagen de tu estudio.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field label="Color Principal (Acento)" hint="Color de botones y elementos activos">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={c('theme_primary_color') || '#4f46e5'}
+                    onChange={e => setC('theme_primary_color', e.target.value)}
+                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                  />
+                  <Input value={c('theme_primary_color') || '#4f46e5'} onChange={v => setC('theme_primary_color', v)} placeholder="#4f46e5" />
+                </div>
+              </Field>
+
+              <Field label="Color de Fondo (Panel)" hint="Color de fondo de la aplicación">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={c('theme_bg_color') || '#111827'}
+                    onChange={e => setC('theme_bg_color', e.target.value)}
+                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                  />
+                  <Input value={c('theme_bg_color') || '#111827'} onChange={v => setC('theme_bg_color', v)} placeholder="#111827" />
+                </div>
+              </Field>
+
+              <Field label="Tipografía Principal" hint="Fuente usada en todo el panel">
+                <select
+                  value={c('theme_font_family') || 'Inter, sans-serif'}
+                  onChange={e => setC('theme_font_family', e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="Inter, sans-serif">Inter (Por defecto)</option>
+                  <option value="Roboto, sans-serif">Roboto</option>
+                  <option value="Poppins, sans-serif">Poppins</option>
+                  <option value="'Open Sans', sans-serif">Open Sans</option>
+                  <option value="Montserrat, sans-serif">Montserrat</option>
+                  <option value="monospace">Monospace</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                </select>
+              </Field>
+
+              <Field label="Tamaño de Letra Base" hint="Tamaño por defecto (ej. 14px o 16px)">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="12"
+                    max="20"
+                    value={parseInt(c('theme_font_size')) || 14}
+                    onChange={e => setC('theme_font_size', `${e.target.value}px`)}
+                    className="w-full accent-indigo-500"
+                  />
+                  <span className="text-white text-sm w-12">{c('theme_font_size') || '14px'}</span>
+                </div>
+              </Field>
+
+              <div className="md:col-span-2 mt-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
+                <h3 className="text-sm font-medium text-white mb-3">Logotipo del Estudio</h3>
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                    {c('theme_logo_url') ? (
+                      <img src={getImagenUrl(c('theme_logo_url'))} alt="Logo" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-gray-500 text-xs">Sin logo</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-400 mb-2">Sube una imagen (PNG, JPG) para usarla como logotipo principal. Tamaño máximo recomendado: 2MB.</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append('logo', file);
+                        setSaving(true);
+                        try {
+                          const res = await uploadLogo(fd);
+                          setC('theme_logo_url', res.data.url);
+                          setMsg('Logotipo actualizado. Haz clic en Guardar.');
+                        } catch (err) {
+                          alert('Error al subir el logo');
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-gray-800">
+              <SaveBtn onClick={() => {
+                save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
+                // Forzar recarga o aplicar directamente al document (se manejará desde un context global)
+                window.location.reload(); 
+              }} saving={saving} />
+            </div>
+            {msg && <p className="text-indigo-400 text-sm mt-2 text-right">{msg}</p>}
           </div>
         )}
 
