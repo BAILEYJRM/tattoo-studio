@@ -45,7 +45,7 @@ function StockBadge({ stock, minimo }) {
   );
 }
 
-export default function Inventario() {
+export default function Piercing() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');

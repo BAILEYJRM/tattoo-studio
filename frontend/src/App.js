@@ -7,7 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Citas from './pages/Citas';
 import Clientes from './pages/Clientes';
 import Empleados from './pages/Empleados';
-import Inventario from './pages/Inventario';
+import Piercing from './pages/Piercing';
+import Materiales from './pages/Materiales';
 import Ventas from './pages/Ventas';
 import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
@@ -87,10 +88,18 @@ export default function App() {
             }
           />
           <Route
-            path="/inventario"
+            path="/piercing"
             element={
               <PrivateRoute>
-                <Inventario />
+                <Piercing />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/materiales"
+            element={
+              <PrivateRoute>
+                <Materiales />
               </PrivateRoute>
             }
           />
