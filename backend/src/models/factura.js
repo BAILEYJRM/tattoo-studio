@@ -1,10 +1,12 @@
 const pool = require('../config/database');
+const Configuracion = require('./configuracion');
 
 const Factura = {
   async crear({ recibo_id, cliente_id, datos_cliente, fecha, subtotal, iva_porcentaje, iva_importe, total }) {
+    const confAnio = await Configuracion.get('factura_anio_fiscal');
     const seqRes = await pool.query("SELECT NEXTVAL('factura_seq') AS num");
     const num = seqRes.rows[0].num;
-    const year = new Date(fecha).getFullYear();
+    const year = confAnio || new Date(fecha).getFullYear();
     const numero = `FAC-${year}-${String(num).padStart(4, '0')}`;
 
     const result = await pool.query(

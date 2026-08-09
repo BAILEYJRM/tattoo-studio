@@ -65,8 +65,21 @@ async function uploadLogo(req, res) {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
     const url = `/uploads/logos/${req.file.filename}`;
-    await Configuracion.setMultiple({ theme_logo_url: url });
+    const tipo = req.body.tipo || 'theme_logo_url';
+    await Configuracion.setMultiple({ [tipo]: url });
     res.json({ url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function reiniciarSecuenciaFactura(req, res) {
+  try {
+    const { numero } = req.body;
+    if (!numero || isNaN(numero)) return res.status(400).json({ error: 'Número inválido' });
+    
+    await pool.query(`ALTER SEQUENCE factura_seq RESTART WITH ${Number(numero)}`);
+    res.json({ ok: true, mensaje: `Secuencia reiniciada a ${numero}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -80,4 +93,5 @@ module.exports = {
   addDiaFestivo,
   deleteDiaFestivo,
   uploadLogo,
+  reiniciarSecuenciaFactura,
 };

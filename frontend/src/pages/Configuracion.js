@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
   getConfiguracion, updateConfiguracion, uploadLogo, getImagenUrl,
-  getDiasFestivos, addDiaFestivo, deleteDiaFestivo,
+  getDiasFestivos, addDiaFestivo, deleteDiaFestivo, resetSecuenciaFactura
 } from '../api';
 import { ThemeContext } from '../context/ThemeContext';
 
@@ -85,6 +85,7 @@ export default function Configuracion() {
   const [msg, setMsg] = useState('');
   const [newFestivo, setNewFestivo] = useState({ fecha: '', descripcion: '' });
   const [addingFestivo, setAddingFestivo] = useState(false);
+  const [nuevaSecuenciaFactura, setNuevaSecuenciaFactura] = useState('');
 
   useEffect(() => {
     Promise.all([getConfiguracion(), getDiasFestivos()]).then(([cfgRes, festRes]) => {
@@ -108,10 +109,27 @@ export default function Configuracion() {
       const res = await updateConfiguracion(partial);
       setConfig(res.data);
       updateTheme(res.data);
-      setMsg('Guardado correctamente');
+      setMsg('Configuración guardada');
       setTimeout(() => setMsg(''), 3000);
-    } catch {
-      setMsg('Error al guardar');
+      return true;
+    } catch (err) {
+      alert('Error al guardar configuración');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleResetSecuenciaFactura = async () => {
+    if (!nuevaSecuenciaFactura) return;
+    if (!window.confirm(`¿Estás seguro de reiniciar la secuencia de facturas al número ${nuevaSecuenciaFactura}?`)) return;
+    setSaving(true);
+    try {
+      const res = await resetSecuenciaFactura(nuevaSecuenciaFactura);
+      alert(res.data.mensaje);
+      setNuevaSecuenciaFactura('');
+    } catch (err) {
+      alert('Error al reiniciar secuencia: ' + (err.response?.data?.error || err.message));
     } finally {
       setSaving(false);
     }
@@ -582,11 +600,97 @@ export default function Configuracion() {
 
             <div className="flex justify-end pt-4 border-t border-gray-800">
               <SaveBtn onClick={async () => {
-                await save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
-                window.location.reload(); 
+                const ok = await save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
+                if (ok) window.location.reload(); 
               }} saving={saving} />
             </div>
             {msg && <p className="text-indigo-400 text-sm mt-2 text-right">{msg}</p>}
+
+            {/* --- Personalización de Facturas --- */}
+            <div className="mt-12 pt-8 border-t border-gray-800 space-y-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Personalización de Facturas y Tickets</h2>
+              <p className="text-sm text-gray-400 mb-6">Configura los datos fiscales y visuales que aparecerán en los tickets y facturas impresas.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field label="Nombre Fiscal / Empresa">
+                  <Input value={c('factura_nombre')} onChange={v => setC('factura_nombre', v)} placeholder="Ej. Tattoo Studio SL" />
+                </Field>
+                <Field label="CIF / NIF">
+                  <Input value={c('factura_cif')} onChange={v => setC('factura_cif', v)} placeholder="Ej. B12345678" />
+                </Field>
+                <Field label="Dirección Completa">
+                  <Input value={c('factura_direccion')} onChange={v => setC('factura_direccion', v)} placeholder="Calle Principal 123, 28001 Madrid" />
+                </Field>
+                <Field label="Datos de Contacto">
+                  <Input value={c('factura_contactos')} onChange={v => setC('factura_contactos', v)} placeholder="Tel: 91 123 45 67 | info@tattoostudio.com" />
+                </Field>
+                <Field label="Año Fiscal (Opcional)" hint="Fuerza un año para el prefijo de factura. Déjalo en blanco para usar el año actual.">
+                  <Input value={c('factura_anio_fiscal')} onChange={v => setC('factura_anio_fiscal', v)} placeholder="Ej. 2026" />
+                </Field>
+                
+                <Field label="Reiniciar Contador de Facturas" hint="Atención: Modifica el número de la siguiente factura a emitir.">
+                  <div className="flex gap-2">
+                    <Input type="number" value={nuevaSecuenciaFactura} onChange={setNuevaSecuenciaFactura} placeholder="Próximo número..." />
+                    <button onClick={handleResetSecuenciaFactura} disabled={saving || !nuevaSecuenciaFactura} className="px-3 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                      Reiniciar
+                    </button>
+                  </div>
+                </Field>
+
+                <div className="md:col-span-2">
+                  <Field label="Texto Legal / Pie de Factura">
+                    <textarea
+                      value={c('factura_texto_legal')}
+                      onChange={e => setC('factura_texto_legal', e.target.value)}
+                      rows={3}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="Inscrita en el Registro Mercantil..."
+                    />
+                  </Field>
+                </div>
+
+                <div className="md:col-span-2 mt-2 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
+                  <h3 className="text-sm font-medium text-white mb-3">Logotipo para Facturas (Opcional)</h3>
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-white rounded-lg border border-gray-300 flex items-center justify-center overflow-hidden shrink-0">
+                      {c('factura_logo_url') ? (
+                        <img src={getImagenUrl(c('factura_logo_url'))} alt="Logo Factura" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-gray-400 text-xs text-center px-2">Usará el logo general</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-400 mb-2">Sube una imagen específica (ideal fondo transparente/blanco) para las facturas y tickets impresos.</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const fd = new FormData();
+                          fd.append('logo', file);
+                          fd.append('tipo', 'factura_logo_url');
+                          setSaving(true);
+                          try {
+                            const res = await uploadLogo(fd);
+                            setC('factura_logo_url', res.data.url);
+                            setMsg('Logotipo de factura subido. Haz clic en Guardar.');
+                          } catch (err) {
+                            alert('Error al subir el logo');
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4 border-t border-gray-800">
+                <SaveBtn onClick={() => save(['factura_nombre', 'factura_cif', 'factura_direccion', 'factura_contactos', 'factura_anio_fiscal', 'factura_texto_legal', 'factura_logo_url'])} saving={saving} />
+              </div>
+            </div>
           </div>
         )}
 

@@ -1,11 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getConfiguracionPublica, getImagenUrl } from '../api';
 
 export default function FacturaImprimible({ venta, onClose }) {
+  const [config, setConfig] = useState({});
+
   useEffect(() => {
-    // Retrasar la impresión un momento para asegurar que el DOM está listo
+    getConfiguracionPublica().then(res => setConfig(res.data)).catch(console.error);
+
+    // Retrasar la impresión un momento para asegurar que el DOM está listo y la config cargada
     const timer = setTimeout(() => {
       window.print();
-    }, 500);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -18,16 +23,32 @@ export default function FacturaImprimible({ venta, onClose }) {
         <div className="flex justify-between items-start mb-12">
           <div>
             <h1 className="text-4xl font-black text-gray-900 tracking-tighter">FACTURA</h1>
-            <p className="text-gray-500 mt-2 font-medium">#{venta.id.toString().padStart(6, '0')}</p>
+            <p className="text-gray-500 mt-2 font-medium">#{venta.numero || venta.id.toString().padStart(6, '0')}</p>
             <p className="text-gray-500 font-medium">Fecha: {new Date(venta.fecha).toLocaleDateString()}</p>
           </div>
-          <div className="text-right">
-            <h2 className="text-xl font-bold text-gray-900">TATTOO STUDIO</h2>
-            <p className="text-gray-600 mt-1">Calle Principal, 123</p>
-            <p className="text-gray-600">28001 Madrid, España</p>
-            <p className="text-gray-600">CIF: B12345678</p>
-            <p className="text-gray-600">Tel: 91 234 56 78</p>
-            <p className="text-gray-600">info@tattoostudio.com</p>
+          <div className="text-right flex flex-col items-end">
+            {(config.factura_logo_url || config.theme_logo_url) && (
+              <img src={getImagenUrl(config.factura_logo_url || config.theme_logo_url)} alt="Logo" className="max-h-16 mb-2 object-contain" />
+            )}
+            <h2 className="text-xl font-bold text-gray-900">{config.factura_nombre || 'TATTOO STUDIO'}</h2>
+            {config.factura_direccion ? (
+              config.factura_direccion.split(',').map((line, i) => (
+                <p key={i} className="text-gray-600">{line.trim()}</p>
+              ))
+            ) : (
+              <>
+                <p className="text-gray-600 mt-1">Calle Principal, 123</p>
+                <p className="text-gray-600">28001 Madrid, España</p>
+              </>
+            )}
+            <p className="text-gray-600">CIF: {config.factura_cif || 'B12345678'}</p>
+            {config.factura_contactos ? (
+              config.factura_contactos.split('|').map((line, i) => (
+                <p key={i} className="text-gray-600">{line.trim()}</p>
+              ))
+            ) : (
+              <p className="text-gray-600">Tel: 91 234 56 78</p>
+            )}
           </div>
         </div>
 
@@ -97,9 +118,9 @@ export default function FacturaImprimible({ venta, onClose }) {
         </div>
 
         {/* Pie de página */}
-        <div className="mt-20 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p>Método de pago: <span className="capitalize font-medium text-gray-700">{venta.metodo_pago}</span></p>
-          <p className="mt-2">Documento generado electrónicamente. Gracias por confiar en Tattoo Studio.</p>
+        <div className="mt-20 pt-8 border-t border-gray-200 text-center text-sm text-gray-500 whitespace-pre-line">
+          <p className="mb-4">Método de pago: <span className="capitalize font-medium text-gray-700">{venta.metodo_pago}</span></p>
+          {config.factura_texto_legal || 'Documento generado electrónicamente. Gracias por confiar en nosotros.'}
         </div>
 
         {/* Botones de acción */}

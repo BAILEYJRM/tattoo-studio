@@ -20,5 +20,6 @@ router.delete('/dias-festivos/:id', auth, soloAdmin, ctrl.deleteDiaFestivo);
 router.get('/', auth, soloAdmin, ctrl.getConfiguracion);
 router.put('/', auth, soloAdmin, ctrl.updateConfiguracion);
 router.post('/logo', auth, soloAdmin, upload.single('logo'), ctrl.uploadLogo);
+router.post('/reiniciar-secuencia-factura', auth, soloAdmin, ctrl.reiniciarSecuenciaFactura);
 
 module.exports = router;

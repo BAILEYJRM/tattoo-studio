@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getConfiguracionPublica, getImagenUrl } from '../api';
 
 export default function TicketImprimible({ venta, onClose }) {
+  const [config, setConfig] = useState({});
+
   useEffect(() => {
-    // Retrasar la impresión un momento para asegurar que el DOM está listo
+    getConfiguracionPublica().then(res => setConfig(res.data)).catch(console.error);
     const timer = setTimeout(() => {
       window.print();
-    }, 500);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -16,13 +19,32 @@ export default function TicketImprimible({ venta, onClose }) {
       <div className="max-w-[80mm] mx-auto bg-white min-h-screen print:min-h-0 print:w-full">
         {/* Cabecera del ticket */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold mb-1">TATTOO STUDIO</h1>
-          <p className="text-xs">Calle Principal, 123</p>
-          <p className="text-xs">28001 Madrid, España</p>
-          <p className="text-xs">CIF: B12345678</p>
-          <p className="text-xs">Tlf: 91 234 56 78</p>
+          {(config.factura_logo_url || config.theme_logo_url) && (
+            <img src={getImagenUrl(config.factura_logo_url || config.theme_logo_url)} alt="Logo" className="max-h-12 mx-auto mb-2 object-contain grayscale" />
+          )}
+          <h1 className="text-2xl font-bold mb-1">{config.factura_nombre || 'TATTOO STUDIO'}</h1>
+          
+          {config.factura_direccion ? (
+            config.factura_direccion.split(',').map((line, i) => (
+              <p key={i} className="text-xs">{line.trim()}</p>
+            ))
+          ) : (
+            <>
+              <p className="text-xs">Calle Principal, 123</p>
+              <p className="text-xs">28001 Madrid, España</p>
+            </>
+          )}
+          <p className="text-xs">CIF: {config.factura_cif || 'B12345678'}</p>
+          
+          {config.factura_contactos ? (
+            config.factura_contactos.split('|').map((line, i) => (
+              <p key={i} className="text-xs">{line.trim()}</p>
+            ))
+          ) : (
+            <p className="text-xs">Tlf: 91 234 56 78</p>
+          )}
           <div className="border-b border-dashed border-gray-400 my-4"></div>
-          <p className="text-xs">Ticket: #{venta.id.toString().padStart(6, '0')}</p>
+          <p className="text-xs">Ticket: #{venta.numero || venta.id.toString().padStart(6, '0')}</p>
           <p className="text-xs">Fecha: {new Date(venta.fecha).toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
           {venta.cliente_nombre && <p className="text-xs">Cliente: {venta.cliente_nombre}</p>}
           <div className="border-b border-dashed border-gray-400 my-4"></div>

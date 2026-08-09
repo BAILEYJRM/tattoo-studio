@@ -8,7 +8,8 @@ const CLAVES_PUBLICAS = [
   'servicios_tatuaje', 'servicios_piercing', 'servicios_microblading',
   'servicios_laser', 'servicios_barberia', 'servicios_estetica',
   'politica_cancelacion', 'info_adicional_clientes',
-  'theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url'
+  'theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url',
+  'factura_nombre', 'factura_direccion', 'factura_contactos', 'factura_cif', 'factura_logo_url', 'factura_texto_legal', 'factura_anio_fiscal'
 ];
 
 async function getAll() {
