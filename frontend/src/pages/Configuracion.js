@@ -99,7 +99,7 @@ export default function Configuracion() {
   const bool = (clave) => config[clave] === 'true';
   const setC = (clave, valor) => setConfig(prev => ({ ...prev, [clave]: String(valor) }));
 
-  const { updateTheme } = useContext(ThemeContext);
+  const { updateTheme, changePrimaryColor } = useContext(ThemeContext);
 
   const save = async (claves) => {
     setSaving(true);
@@ -547,6 +547,37 @@ export default function Configuracion() {
                 <h2 className="text-lg font-semibold text-white mb-4">Personalización del Panel</h2>
                 <p className="text-sm text-gray-400 mb-6">Ajusta los colores, tipografía y logotipo para adaptar la plataforma a la imagen de tu estudio.</p>
                 
+                <div className="mb-8">
+                  <h3 className="text-sm font-medium text-white mb-3">Skins Predefinidas (Estilos)</h3>
+                  <div className="flex flex-wrap gap-4">
+                    {[
+                      { name: 'Indigo (Por defecto)', color: '#4f46e5' },
+                      { name: 'Rosa', color: '#e11d48' },
+                      { name: 'Esmeralda', color: '#10b981' },
+                      { name: 'Violeta', color: '#8b5cf6' },
+                      { name: 'Naranja', color: '#f97316' },
+                      { name: 'Cian', color: '#06b6d4' },
+                    ].map(skin => (
+                      <button
+                        key={skin.name}
+                        onClick={() => {
+                          setC('theme_primary_color', skin.color);
+                          if (changePrimaryColor) changePrimaryColor(skin.color);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                          c('theme_primary_color') === skin.color 
+                            ? 'border-indigo-500 bg-gray-800' 
+                            : 'border-gray-700 bg-gray-900 hover:bg-gray-800'
+                        }`}
+                        title={skin.name}
+                      >
+                        <span className="w-5 h-5 rounded-full shadow-inner" style={{ backgroundColor: skin.color }}></span>
+                        <span className="text-sm text-gray-300">{skin.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Field label="Color Principal (Acento)" hint="Color de botones y elementos activos">
                     <div className="flex items-center gap-3">

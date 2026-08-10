@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
-const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita, verificarSolapamiento, crearCitasGrupo } = require('../controllers/citaController');
+const { getCitas, getCita, crearCita, actualizarCita, actualizarEstado, finalizarCita, subirImagenCita, getImagenesCita, verificarSolapamiento, crearCitasGrupo, eliminarCita } = require('../controllers/citaController');
 const { getMaterialCita, registrarMaterial, eliminarMaterial } = require('../controllers/citaMaterialController');
 const { auth } = require('../middleware/auth');
 
@@ -22,6 +22,7 @@ router.get('/', getCitas);
 router.get('/:id', getCita);
 router.post('/', crearCita);
 router.put('/:id', actualizarCita);
+router.delete('/:id', eliminarCita);
 router.patch('/:id/estado', actualizarEstado);
 router.patch('/:id/finalizar', finalizarCita);
 router.get('/:id/imagenes', getImagenesCita);

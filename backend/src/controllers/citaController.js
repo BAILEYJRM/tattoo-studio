@@ -161,8 +161,18 @@ const crearCitasGrupo = async (req, res) => {
   }
 };
 
+const eliminarCita = async (req, res) => {
+  try {
+    const cita = await Cita.eliminar(req.params.id);
+    if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
+    res.json(cita);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   getCitas, getCita, crearCita, actualizarCita, actualizarEstado,
   finalizarCita, subirImagenCita, getImagenesCita,
-  verificarSolapamiento, crearCitasGrupo,
+  verificarSolapamiento, crearCitasGrupo, eliminarCita,
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   getCitas, getClientes, getEmpleados, getCabinas,
-  createCita, updateCita, updateCitaEstado,
+  createCita, updateCita, updateCitaEstado, deleteCita,
   finalizarCita, getImagenesCita, subirImagenCita, getImagenUrl,
   enviarComunicacion,
   getMaterialCita, addMaterialCita, deleteMaterialCita,
@@ -11,6 +11,7 @@ import {
   getEventos, crearEvento, updateEvento, eliminarEvento
 } from '../api';
 import Modal from '../components/Modal';
+import TimeGrid from '../components/TimeGrid';
 
 const EVENTO_TIPOS = ['convención', 'viaje', 'formación', 'otro'];
 const EVENTO_COLOR = {
@@ -63,7 +64,7 @@ function Toggle({ label, checked, onChange }) {
   );
 }
 
-function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
+function YearView({ citas, eventos = [], year, onYearChange, onSelectDay, showWeekends = true, showCompleted = true, showRejected = true }) {
   const citasByDate = {};
   citas.forEach(c => {
     const key = c.fecha?.split('T')[0];
@@ -86,7 +87,7 @@ function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
 
   const today = new Date().toISOString().split('T')[0];
   const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const DAY_NAMES = ['D','L','M','X','J','V','S'];
+  const DAY_NAMES = ['L','M','X','J','V','S','D'];
 
   return (
     <div className="bg-gray-900 rounded-xl p-5">
@@ -101,7 +102,7 @@ function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 12 }, (_, month) => {
-          const firstDay = new Date(year, month, 1).getDay();
+          const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
           const daysInMonth = new Date(year, month + 1, 0).getDate();
           const cells = [];
           for (let i = 0; i < firstDay; i++) cells.push(null);
@@ -110,14 +111,17 @@ function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
           return (
             <div key={month} className="bg-gray-800 rounded-lg p-3">
               <p className="text-white text-xs font-semibold mb-2 text-center">{MONTH_NAMES[month]}</p>
-              <div className="grid grid-cols-7 mb-1">
-                {DAY_NAMES.map(d => <div key={d} className="text-center text-gray-600 text-xs">{d}</div>)}
+              <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} mb-1`}>
+                {DAY_NAMES.filter((_, i) => showWeekends || i < 5).map(d => <div key={d} className="text-center text-gray-600 text-xs">{d}</div>)}
               </div>
-              <div className="grid grid-cols-7 gap-px">
+              <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} gap-px`}>
                 {cells.map((day, idx) => {
+                  if (!showWeekends && idx % 7 >= 5) return null; // Skip weekend cells
                   if (!day) return <div key={`e-${idx}`} />;
                   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                  const dayCitas = citasByDate[dateStr] || [];
+                  let dayCitas = citasByDate[dateStr] || [];
+                  if (!showCompleted) dayCitas = dayCitas.filter(c => c.estado !== 'completada');
+                  if (!showRejected) dayCitas = dayCitas.filter(c => c.estado !== 'cancelada');
                   const dayEventos = eventosByDate[dateStr] || [];
                   const isToday = dateStr === today;
                   return (
@@ -146,10 +150,10 @@ function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
   );
 }
 
-function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [] }) {
+function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [], showWeekends = true, showCompleted = true, showRejected = true }) {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const citasByDate = {};
@@ -174,63 +178,92 @@ function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMont
 
   const today = new Date().toISOString().split('T')[0];
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dayNames = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <div className="bg-gray-900 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={() => onMonthChange(-1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        </button>
-        <span className="text-white font-semibold text-sm">{monthNames[month]} {year}</span>
-        <button onClick={() => onMonthChange(1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-        </button>
+    <div className="bg-gray-900 rounded-xl border border-gray-800 flex flex-col overflow-hidden">
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-900">
+        <h2 className="text-xl font-bold text-white capitalize">{monthNames[month]} {year}</h2>
+        <div className="flex items-center gap-2">
+          <button onClick={() => onMonthChange(-1)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button onClick={() => onMonthChange(1)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-7 mb-1">
-        {dayNames.map((d) => <div key={d} className="text-center text-xs text-gray-500 font-medium py-1">{d}</div>)}
+
+      {/* Days of week */}
+      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} border-b border-gray-800 bg-gray-800/30`}>
+        {dayNames.filter((_, i) => showWeekends || i < 5).map((d) => <div key={d} className="text-center text-xs text-gray-400 font-semibold py-3 uppercase tracking-wider">{d}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+
+      {/* Grid */}
+      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} bg-gray-800 gap-[1px]`}>
         {cells.map((day, idx) => {
-          if (!day) return <div key={`e-${idx}`} />;
+          if (!showWeekends && idx % 7 >= 5) return null; // Skip weekend cells
+          if (!day) return <div key={`empty-${idx}`} className="bg-gray-900 min-h-[160px]" />;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const daysCitas = citasByDate[dateStr] || [];
+          let daysCitas = citasByDate[dateStr] || [];
+          if (!showCompleted) daysCitas = daysCitas.filter(c => c.estado !== 'completada');
+          if (!showRejected) daysCitas = daysCitas.filter(c => c.estado !== 'cancelada');
           const dayEventos = eventosByDate[dateStr] || [];
           const isToday = dateStr === today;
           const isSelected = dateStr === selectedDate;
           const isFestivo = diasFestivos.includes(dateStr);
+          
           return (
             <button
               key={dateStr}
               onClick={() => onSelectDate(isSelected ? null : dateStr)}
-              className={`relative aspect-square flex flex-col items-center justify-start pt-1 rounded-lg text-xs transition-colors ${
-                isSelected ? 'bg-indigo-600 text-white' : isFestivo ? 'bg-red-500/15 text-red-400 font-semibold' : isToday ? 'bg-indigo-600/20 text-indigo-400 font-bold' : 'text-gray-300 hover:bg-gray-800'
+              className={`relative bg-gray-900 min-h-[160px] flex flex-col p-1.5 transition-colors text-left focus:outline-none ${
+                isSelected ? 'ring-2 ring-inset ring-indigo-500 bg-gray-800/50' : 'hover:bg-gray-800/50'
               }`}
             >
-              <span>{day}</span>
-              {(daysCitas.length > 0 || dayEventos.length > 0) && (
-                <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
-                  {dayEventos.slice(0, 2).map((ev, i) => (
-                    <span
-                      key={`e-${i}`}
-                      className="w-2 h-2 rounded-sm"
-                      style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.9)' : (EVENTO_COLOR_HEX[ev.tipo] || EVENTO_COLOR_HEX.otro) }}
-                      title={ev.titulo}
-                    />
-                  ))}
-                  {daysCitas.slice(0, 3).map((c, i) => (
-                    <span
-                      key={`c-${i}`}
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : (c.artista_color || '#6366f1') }}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* Day Header */}
+              <div className="flex justify-between items-start mb-1.5">
+                <span className={`w-7 h-7 flex items-center justify-center rounded-full text-sm ${
+                  isToday ? 'bg-indigo-600 text-white font-bold' : 
+                  isFestivo ? 'text-red-400 font-semibold bg-red-500/10' : 
+                  'text-gray-300 font-medium'
+                }`}>
+                  {day}
+                </span>
+                {(daysCitas.length > 0 || dayEventos.length > 0) && (
+                  <span className="text-[10px] text-gray-500 mt-1 mr-1">{daysCitas.length + dayEventos.length} items</span>
+                )}
+              </div>
+
+              {/* Day Content */}
+              <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar w-full">
+                {dayEventos.map((ev, i) => (
+                  <div
+                    key={`ev-${i}`}
+                    className="truncate px-2 py-1 rounded text-[11px] text-white text-left font-medium w-full"
+                    style={{ backgroundColor: EVENTO_COLOR_HEX[ev.tipo] || EVENTO_COLOR_HEX.otro }}
+                    title={ev.titulo}
+                  >
+                    {ev.titulo}
+                  </div>
+                ))}
+                {daysCitas.map((c, i) => (
+                  <div
+                    key={`ci-${i}`}
+                    className="truncate px-1.5 py-1 rounded text-[11px] text-white text-left font-medium flex items-center gap-1.5 w-full"
+                    style={{ backgroundColor: c.artista_color ? `${c.artista_color}40` : 'rgba(99,102,241,0.25)', borderLeft: `3px solid ${c.artista_color || '#6366f1'}` }}
+                    title={`${c.hora_inicio?.slice(0, 5)} - ${c.cliente_nombre}`}
+                  >
+                    <span className="font-bold whitespace-nowrap">{c.hora_inicio?.slice(0, 5)}</span>
+                    <span className="truncate">{c.cliente_nombre}</span>
+                  </div>
+                ))}
+              </div>
             </button>
           );
         })}
@@ -259,12 +292,33 @@ export default function Citas() {
   const [empleados, setEmpleados] = useState([]);
   const [cabinas, setCabinas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [vista, setVista] = useState('lista');
+  const [vista, setVista] = useState(() => localStorage.getItem('calendarioVista') || 'calendario');
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Sincronizar la vista elegida con localStorage para que persista
+  useEffect(() => {
+    localStorage.setItem('calendarioVista', vista);
+  }, [vista]);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [diasFestivos, setDiasFestivos] = useState([]);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [showWeekends, setShowWeekends] = useState(true);
+  const [showRejected, setShowRejected] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [showViewMenu, setShowViewMenu] = useState(false);
+  const [showSyncMenu, setShowSyncMenu] = useState(false);
+
+  const handleSync = async (provider) => {
+    setShowSyncMenu(false);
+    try {
+      const response = await fetch(`http://localhost:3000/api/sync/${provider}`, { method: 'POST' });
+      const data = await response.json();
+      alert(data.message || 'Sincronización iniciada');
+    } catch (error) {
+      alert('Error de conexión con el servicio de sincronización');
+    }
+  };
 
   // Solapamiento
   const [modalSolapamiento, setModalSolapamiento] = useState(false);
@@ -381,8 +435,39 @@ export default function Citas() {
 
   const handleEliminarEvento = async (id) => {
     if (!window.confirm('¿Eliminar este evento?')) return;
-    try { await eliminarEvento(id); fetchAll(); }
+    try { await eliminarEvento(id); fetchAll(); setModalEvento(false); }
     catch (e) { console.error(e); }
+  };
+
+  const handleEliminarCita = async (id) => {
+    if (!window.confirm('¿Eliminar esta cita?')) return;
+    try { await deleteCita(id); fetchAll(); setModal(false); }
+    catch (e) { console.error(e); }
+  };
+
+  const handleEmptySlotClick = (dateObj, hour, minute) => {
+    const startTimeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    let endHour = hour;
+    let endMinute = minute + 30;
+    if (endMinute >= 60) {
+      endMinute -= 60;
+      endHour += 1;
+    }
+    const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+    
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    
+    setEditando(null);
+    setForm({
+      ...emptyForm,
+      fecha: `${y}-${m}-${d}`,
+      hora_inicio: startTimeStr,
+      hora_fin: endTimeStr,
+    });
+    setError('');
+    setModal(true);
   };
 
   const openEdit = (cita) => {
@@ -567,6 +652,8 @@ export default function Citas() {
   };
 
   const citasFiltradas = citas.filter((c) => {
+    if (!showCompleted && c.estado === 'completada') return false;
+    if (!showRejected && c.estado === 'cancelada') return false;
     if (filtroEstado && c.estado !== filtroEstado) return false;
     if (selectedDate && c.fecha?.split('T')[0] !== selectedDate) return false;
     return true;
@@ -591,6 +678,28 @@ export default function Citas() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Calendario global</h1>
         <div className="flex items-center gap-2">
+            {/* Sync Menu */}
+            <div className="relative">
+              <button onClick={() => setShowSyncMenu(!showSyncMenu)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+              </button>
+              {showSyncMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowSyncMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 py-2 divide-y divide-gray-800">
+                    <button onClick={() => handleSync('google')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                      <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+                      Sincronizar Google
+                    </button>
+                    <button onClick={() => handleSync('goldie')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                      <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z"/></svg>
+                      Sincronizar Goldie
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
           <button onClick={() => { setModalGrupo(true); setPasoGrupo(1); setFormGrupo({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' }); setClientesGrupo([]); setResultadoGrupo(null); }}
             className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -609,13 +718,53 @@ export default function Citas() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex gap-1 bg-gray-900 p-1 rounded-lg">
-          {[['lista','Lista'],['calendario','Mes'],['año','Año']].map(([v, label]) => (
-            <button key={v} onClick={() => setVista(v)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${vista === v ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}>
-              {label}
-            </button>
-          ))}
+        {/* Dropdown de Vistas y Filtros */}
+        <div className="relative">
+          <button 
+            onClick={() => setShowViewMenu(!showViewMenu)}
+            className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition-colors border border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {vista === 'calendario' ? 'Mes' : vista === 'año' ? 'Año' : vista === 'semana' ? 'Semana' : 'Día'}
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {showViewMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowViewMenu(false)} />
+              <div className="absolute left-0 mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 py-2 divide-y divide-gray-800">
+                <div className="px-2 py-1">
+                  {[['dia','Día', 'D'], ['semana','Semana', 'S'], ['calendario','Mes', 'M'], ['año','Año', 'Y']].map(([v, label, key]) => (
+                    <button key={v} onClick={() => { setVista(v); setShowViewMenu(false); }} className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-gray-800 transition-colors ${vista === v ? 'bg-gray-800/50 text-indigo-400 font-medium' : 'text-gray-300'}`}>
+                      <span>{label}</span>
+                      <span className="text-xs text-gray-500 font-mono">{key}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="px-2 py-2 space-y-1">
+                  <label className="flex items-center gap-3 px-3 py-2 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors group">
+                    <div className="flex-shrink-0 text-indigo-500 w-5 h-5 flex items-center justify-center">
+                      {showWeekends && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
+                    </div>
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Mostrar fines de semana</span>
+                    <input type="checkbox" className="hidden" checked={showWeekends} onChange={(e) => setShowWeekends(e.target.checked)} />
+                  </label>
+                  <label className="flex items-center gap-3 px-3 py-2 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors group">
+                    <div className="flex-shrink-0 text-indigo-500 w-5 h-5 flex items-center justify-center">
+                      {showRejected && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
+                    </div>
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Mostrar eventos rechazados</span>
+                    <input type="checkbox" className="hidden" checked={showRejected} onChange={(e) => setShowRejected(e.target.checked)} />
+                  </label>
+                  <label className="flex items-center gap-3 px-3 py-2 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors group">
+                    <div className="flex-shrink-0 text-indigo-500 w-5 h-5 flex items-center justify-center">
+                      {showCompleted && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
+                    </div>
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Mostrar tareas completadas</span>
+                    <input type="checkbox" className="hidden" checked={showCompleted} onChange={(e) => setShowCompleted(e.target.checked)} />
+                  </label>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
           className="bg-gray-900 text-gray-300 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
@@ -630,10 +779,27 @@ export default function Citas() {
         )}
       </div>
 
-      {vista === 'calendario' && (
-        <Calendar citas={citas} eventos={eventos} selectedDate={selectedDate} onSelectDate={setSelectedDate}
-          currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos} />
-      )}
+        {(vista === 'dia' || vista === 'semana') && (
+          <TimeGrid
+            mode={vista}
+            citas={citas}
+            eventos={eventos}
+            currentDate={selectedDate || currentMonth.toISOString().split('T')[0]}
+            onChangeDate={setSelectedDate}
+            showWeekends={showWeekends}
+            showCompleted={showCompleted}
+            showRejected={showRejected}
+            onCitaClick={openEdit}
+            onEventoClick={openEditEvento}
+            onEmptySlotClick={handleEmptySlotClick}
+          />
+        )}
+
+        {vista === 'calendario' && (
+          <Calendar citas={citas} eventos={eventos} selectedDate={selectedDate} onSelectDate={setSelectedDate}
+            currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos}
+            showWeekends={showWeekends} showCompleted={showCompleted} showRejected={showRejected} />
+        )}
 
       {vista === 'año' && (
         <YearView
@@ -641,12 +807,13 @@ export default function Citas() {
           eventos={eventos}
           year={currentYear}
           onYearChange={setCurrentYear}
-          onSelectDay={(dateStr) => { setSelectedDate(dateStr); setVista('lista'); }}
+          onSelectDay={(dateStr) => { setSelectedDate(dateStr); setVista('calendario'); }}
+          showWeekends={showWeekends} showCompleted={showCompleted} showRejected={showRejected}
         />
       )}
 
       {/* List */}
-      <div className="bg-gray-900 rounded-xl overflow-hidden">
+      <div className="bg-gray-900 rounded-xl overflow-hidden mt-4">
         {loading ? (
           <div className="p-8 text-center text-gray-500 text-sm">Cargando...</div>
         ) : (citasFiltradas.length === 0 && eventosFiltrados.length === 0) ? (
@@ -699,7 +866,7 @@ export default function Citas() {
                     <div className="w-1 rounded-full flex-shrink-0" style={{ backgroundColor: cita.artista_color || '#6366f1' }} />
                     <div className="text-center bg-gray-800 rounded-lg px-2 py-2 flex-1">
                       <p className="text-indigo-400 text-xs font-medium">
-                        {new Date(cita.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase()}
+                        {new Date(cita.fecha?.includes('T') ? cita.fecha : cita.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase()}
                       </p>
                       <p className="text-white text-sm font-bold mt-0.5">{cita.hora_inicio?.slice(0, 5)}</p>
                       <p className="text-gray-500 text-xs">{cita.hora_fin?.slice(0, 5)}</p>
@@ -871,6 +1038,12 @@ export default function Citas() {
               className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
               Cancelar
             </button>
+            {editando && (
+              <button type="button" onClick={() => handleEliminarCita(editando)}
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                Eliminar
+              </button>
+            )}
             <button type="submit" disabled={saving}
               className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
               {saving ? 'Guardando...' : editando ? 'Actualizar' : 'Crear'}
@@ -1366,6 +1539,12 @@ export default function Citas() {
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={() => setModalEvento(false)}
               className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">Cancelar</button>
+            {editandoEvento && (
+              <button type="button" onClick={() => handleEliminarEvento(editandoEvento)}
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                Eliminar
+              </button>
+            )}
             <button type="submit" disabled={savingEvento}
               className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
               {savingEvento ? 'Guardando...' : editandoEvento ? 'Actualizar' : 'Crear'}

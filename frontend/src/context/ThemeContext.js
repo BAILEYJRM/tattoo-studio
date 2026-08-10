@@ -45,9 +45,36 @@ export function ThemeProvider({ children }) {
     }).catch(err => console.error('Error loading theme:', err));
   };
 
+  const [colorMode, setColorMode] = useState('dark');
+
   useEffect(() => {
     loadTheme();
+    // Load local color mode
+    const storedMode = localStorage.getItem('app-color-mode');
+    if (storedMode === 'light') {
+      setColorMode('light');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
   }, []);
+
+  const toggleColorMode = () => {
+    const newMode = colorMode === 'dark' ? 'light' : 'dark';
+    setColorMode(newMode);
+    localStorage.setItem('app-color-mode', newMode);
+    if (newMode === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  };
+
+  const changePrimaryColor = (color) => {
+    // For local preview
+    document.documentElement.style.setProperty('--color-primary', color);
+    document.documentElement.style.setProperty('--color-primary-content', getContrast(color));
+  };
 
   const updateTheme = (newConfig) => {
     setTheme(newConfig);
@@ -56,7 +83,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, updateTheme }}>
+    <ThemeContext.Provider value={{ theme, updateTheme, colorMode, toggleColorMode, changePrimaryColor }}>
       {children}
     </ThemeContext.Provider>
   );

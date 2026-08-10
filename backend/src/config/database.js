@@ -1,5 +1,11 @@
- const { Pool } = require('pg');
+const pg = require('pg');
+const { Pool } = pg;
 const dotenv = require('dotenv');
+
+// Configurar pg para que no convierta los campos DATE (OID 1082) a objetos Date locales, evitando desfases de zona horaria.
+pg.types.setTypeParser(1082, function(stringValue) {
+  return stringValue;
+});
 
 dotenv.config();
 

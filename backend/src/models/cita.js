@@ -147,6 +147,14 @@ const Cita = {
     );
     return result.rows;
   },
+
+  async eliminar(id) {
+    const result = await pool.query(
+      'DELETE FROM citas WHERE id=$1 RETURNING *',
+      [id]
+    );
+    return result.rows[0];
+  },
 };
 
 module.exports = Cita;
