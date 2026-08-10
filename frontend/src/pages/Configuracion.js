@@ -78,6 +78,7 @@ function serializeHorario({ abierto, apertura, cierre }) {
 
 export default function Configuracion() {
   const [tab, setTab] = useState('estudio');
+  const [subTabPersonalizacion, setSubTabPersonalizacion] = useState('panel');
   const [config, setConfig] = useState({});
   const [festivos, setFestivos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -163,7 +164,7 @@ export default function Configuracion() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="space-y-5">
       <h1 className="text-2xl font-bold text-white mb-6">Configuración del estudio</h1>
 
       {/* Tabs */}
@@ -493,8 +494,26 @@ export default function Configuracion() {
                 placeholder="Información extra que se incluirá en los emails a clientes..."
               />
             </Field>
+            <Field label="Política de reembolso">
+              <textarea
+                value={c('politica_reembolso')}
+                onChange={e => setC('politica_reembolso', e.target.value)}
+                rows={5}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                placeholder="Escribe aquí la política de devoluciones y reembolsos de adelantos..."
+              />
+            </Field>
+            <Field label="Política de privacidad">
+              <textarea
+                value={c('politica_privacidad')}
+                onChange={e => setC('politica_privacidad', e.target.value)}
+                rows={5}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                placeholder="Términos sobre la recolección, uso y protección de datos del usuario..."
+              />
+            </Field>
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save(['politica_cancelacion', 'info_adicional_clientes'])} saving={saving} />
+              <SaveBtn onClick={() => save(['politica_cancelacion', 'info_adicional_clientes', 'politica_reembolso', 'politica_privacidad'])} saving={saving} />
             </div>
           </div>
         )}
@@ -502,207 +521,418 @@ export default function Configuracion() {
         {/* ── Personalización ── */}
         {tab === 'personalizacion' && (
           <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Personalización del Panel</h2>
-            <p className="text-sm text-gray-400 mb-6">Ajusta los colores, tipografía y logotipo para adaptar la plataforma a la imagen de tu estudio.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Color Principal (Acento)" hint="Color de botones y elementos activos">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={c('theme_primary_color') || '#4f46e5'}
-                    onChange={e => setC('theme_primary_color', e.target.value)}
-                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
-                  />
-                  <Input value={c('theme_primary_color') || '#4f46e5'} onChange={v => setC('theme_primary_color', v)} placeholder="#4f46e5" />
-                </div>
-              </Field>
-
-              <Field label="Color de Fondo Principal" hint="Color de fondo de la aplicación">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={c('theme_bg_color') || '#171717'}
-                    onChange={e => setC('theme_bg_color', e.target.value)}
-                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
-                  />
-                  <Input value={c('theme_bg_color') || '#171717'} onChange={v => setC('theme_bg_color', v)} placeholder="#171717" />
-                </div>
-              </Field>
-
-              <Field label="Color de Fondo Secundario" hint="Color de los paneles y tarjetas">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={c('theme_surface_color') || '#262626'}
-                    onChange={e => setC('theme_surface_color', e.target.value)}
-                    className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
-                  />
-                  <Input value={c('theme_surface_color') || '#262626'} onChange={v => setC('theme_surface_color', v)} placeholder="#262626" />
-                </div>
-              </Field>
-
-              <Field label="Tipografía Principal" hint="Fuente usada en todo el panel">
-                <select
-                  value={c('theme_font_family') || 'Inter, sans-serif'}
-                  onChange={e => setC('theme_font_family', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+            <div className="flex flex-wrap gap-2 mb-4 border-b border-gray-800 pb-2">
+              {[
+                { id: 'panel', label: 'Panel' },
+                { id: 'facturas', label: 'Facturas' },
+                { id: 'tickets', label: 'Tickets' },
+                { id: 'consentimientos', label: 'Consentimientos' },
+                { id: 'whatsapp', label: 'WhatsApp' },
+                { id: 'correo', label: 'Correo' }
+              ].map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => setSubTabPersonalizacion(st.id)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    subTabPersonalizacion === st.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
                 >
-                  <option value="Inter, sans-serif">Inter (Por defecto)</option>
-                  <option value="Roboto, sans-serif">Roboto</option>
-                  <option value="Poppins, sans-serif">Poppins</option>
-                  <option value="'Open Sans', sans-serif">Open Sans</option>
-                  <option value="Montserrat, sans-serif">Montserrat</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="'Times New Roman', serif">Times New Roman</option>
-                </select>
-              </Field>
+                  {st.label}
+                </button>
+              ))}
+            </div>
 
-              <Field label="Tamaño de Letra Base" hint="Tamaño por defecto (ej. 14px o 16px)">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="12"
-                    max="20"
-                    value={parseInt(c('theme_font_size')) || 14}
-                    onChange={e => setC('theme_font_size', `${e.target.value}px`)}
-                    className="w-full accent-indigo-500"
-                  />
-                  <span className="text-white text-sm w-12">{c('theme_font_size') || '14px'}</span>
+            {subTabPersonalizacion === 'panel' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Personalización del Panel</h2>
+                <p className="text-sm text-gray-400 mb-6">Ajusta los colores, tipografía y logotipo para adaptar la plataforma a la imagen de tu estudio.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field label="Color Principal (Acento)" hint="Color de botones y elementos activos">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={c('theme_primary_color') || '#4f46e5'}
+                        onChange={e => setC('theme_primary_color', e.target.value)}
+                        className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                      />
+                      <Input value={c('theme_primary_color') || '#4f46e5'} onChange={v => setC('theme_primary_color', v)} placeholder="#4f46e5" />
+                    </div>
+                  </Field>
+
+                  <Field label="Color de Fondo Principal" hint="Color de fondo de la aplicación">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={c('theme_bg_color') || '#171717'}
+                        onChange={e => setC('theme_bg_color', e.target.value)}
+                        className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                      />
+                      <Input value={c('theme_bg_color') || '#171717'} onChange={v => setC('theme_bg_color', v)} placeholder="#171717" />
+                    </div>
+                  </Field>
+
+                  <Field label="Color de Fondo Secundario" hint="Color de los paneles y tarjetas">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={c('theme_surface_color') || '#262626'}
+                        onChange={e => setC('theme_surface_color', e.target.value)}
+                        className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+                      />
+                      <Input value={c('theme_surface_color') || '#262626'} onChange={v => setC('theme_surface_color', v)} placeholder="#262626" />
+                    </div>
+                  </Field>
+
+                  <Field label="Tipografía Principal" hint="Fuente usada en todo el panel">
+                    <select
+                      value={c('theme_font_family') || 'Inter, sans-serif'}
+                      onChange={e => setC('theme_font_family', e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="Inter, sans-serif">Inter (Por defecto)</option>
+                      <option value="Roboto, sans-serif">Roboto</option>
+                      <option value="Poppins, sans-serif">Poppins</option>
+                      <option value="'Open Sans', sans-serif">Open Sans</option>
+                      <option value="Montserrat, sans-serif">Montserrat</option>
+                      <option value="monospace">Monospace</option>
+                      <option value="'Times New Roman', serif">Times New Roman</option>
+                    </select>
+                  </Field>
+
+                  <Field label="Tamaño de Letra Base" hint="Tamaño por defecto (ej. 14px o 16px)">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="12"
+                        max="20"
+                        value={parseInt(c('theme_font_size')) || 14}
+                        onChange={e => setC('theme_font_size', `${e.target.value}px`)}
+                        className="w-full accent-indigo-500"
+                      />
+                      <span className="text-white text-sm w-12">{c('theme_font_size') || '14px'}</span>
+                    </div>
+                  </Field>
+
+                  <div className="md:col-span-2 mt-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
+                    <h3 className="text-sm font-medium text-white mb-3">Logotipo del Estudio</h3>
+                    <div className="flex items-center gap-6">
+                      <div className="w-24 h-24 bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                        {c('theme_logo_url') ? (
+                          <img src={getImagenUrl(c('theme_logo_url'))} alt="Logo" className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-gray-500 text-xs">Sin logo</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-400 mb-2">Sube una imagen (PNG, JPG) para usarla como logotipo principal. Tamaño máximo recomendado: 2MB.</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const fd = new FormData();
+                            fd.append('logo', file);
+                            setSaving(true);
+                            try {
+                              const res = await uploadLogo(fd);
+                              setC('theme_logo_url', res.data.url);
+                              setMsg('Logotipo actualizado. Haz clic en Guardar.');
+                            } catch (err) {
+                              alert('Error al subir el logo');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </Field>
 
-              <div className="md:col-span-2 mt-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
-                <h3 className="text-sm font-medium text-white mb-3">Logotipo del Estudio</h3>
-                <div className="flex items-center gap-6">
-                  <div className="w-24 h-24 bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
-                    {c('theme_logo_url') ? (
-                      <img src={getImagenUrl(c('theme_logo_url'))} alt="Logo" className="w-full h-full object-contain" />
-                    ) : (
-                      <span className="text-gray-500 text-xs">Sin logo</span>
-                    )}
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={async () => {
+                    const ok = await save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
+                    if (ok) window.location.reload(); 
+                  }} saving={saving} />
+                </div>
+                {msg && <p className="text-indigo-400 text-sm mt-2 text-right">{msg}</p>}
+              </div>
+            )}
+
+            {subTabPersonalizacion === 'facturas' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Personalización de Facturas</h2>
+                <p className="text-sm text-gray-400 mb-6">Configura los datos fiscales y visuales que aparecerán en las facturas y documentos tamaño A4.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field label="Nombre Fiscal / Empresa">
+                    <Input value={c('factura_nombre')} onChange={v => setC('factura_nombre', v)} placeholder="Ej. Tattoo Studio SL" />
+                  </Field>
+                  <Field label="CIF / NIF">
+                    <Input value={c('factura_cif')} onChange={v => setC('factura_cif', v)} placeholder="Ej. B12345678" />
+                  </Field>
+                  <Field label="Dirección Completa">
+                    <Input value={c('factura_direccion')} onChange={v => setC('factura_direccion', v)} placeholder="Calle Principal 123, 28001 Madrid" />
+                  </Field>
+                  <Field label="Datos de Contacto">
+                    <Input value={c('factura_contactos')} onChange={v => setC('factura_contactos', v)} placeholder="Tel: 91 123 45 67 | info@tattoostudio.com" />
+                  </Field>
+                  <Field label="Año Fiscal (Opcional)" hint="Fuerza un año para el prefijo de factura. Déjalo en blanco para usar el año actual.">
+                    <Input value={c('factura_anio_fiscal')} onChange={v => setC('factura_anio_fiscal', v)} placeholder="Ej. 2026" />
+                  </Field>
+                  
+                  <Field label="Reiniciar Contador de Facturas" hint="Atención: Modifica el número de la siguiente factura a emitir.">
+                    <div className="flex gap-2">
+                      <Input type="number" value={nuevaSecuenciaFactura} onChange={setNuevaSecuenciaFactura} placeholder="Próximo número..." />
+                      <button onClick={handleResetSecuenciaFactura} disabled={saving || !nuevaSecuenciaFactura} className="px-3 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                        Reiniciar
+                      </button>
+                    </div>
+                  </Field>
+
+                  <div className="md:col-span-2">
+                    <Field label="Texto Legal / Pie de Factura">
+                      <textarea
+                        value={c('factura_texto_legal')}
+                        onChange={e => setC('factura_texto_legal', e.target.value)}
+                        rows={3}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                        placeholder="Inscrita en el Registro Mercantil..."
+                      />
+                    </Field>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-400 mb-2">Sube una imagen (PNG, JPG) para usarla como logotipo principal. Tamaño máximo recomendado: 2MB.</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        const fd = new FormData();
-                        fd.append('logo', file);
-                        setSaving(true);
-                        try {
-                          const res = await uploadLogo(fd);
-                          setC('theme_logo_url', res.data.url);
-                          setMsg('Logotipo actualizado. Haz clic en Guardar.');
-                        } catch (err) {
-                          alert('Error al subir el logo');
-                        } finally {
-                          setSaving(false);
-                        }
-                      }}
-                      className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
-                    />
+
+                  <div className="md:col-span-2 mt-2 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
+                    <h3 className="text-sm font-medium text-white mb-3">Logotipo para Facturas (Opcional)</h3>
+                    <div className="flex items-center gap-6">
+                      <div className="w-24 h-24 bg-white rounded-lg border border-gray-300 flex items-center justify-center overflow-hidden shrink-0">
+                        {c('factura_logo_url') ? (
+                          <img src={getImagenUrl(c('factura_logo_url'))} alt="Logo Factura" className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-gray-400 text-xs text-center px-2">Usará el logo general</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-400 mb-2">Sube una imagen específica (ideal fondo transparente/blanco) para las facturas y tickets impresos.</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const fd = new FormData();
+                            fd.append('logo', file);
+                            fd.append('tipo', 'factura_logo_url');
+                            setSaving(true);
+                            try {
+                              const res = await uploadLogo(fd);
+                              setC('factura_logo_url', res.data.url);
+                              setMsg('Logotipo de factura subido. Haz clic en Guardar.');
+                            } catch (err) {
+                              alert('Error al subir el logo');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 cursor-pointer"
+                        />
+                      </div>
+                    </div>
                   </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={() => save(['factura_nombre', 'factura_cif', 'factura_direccion', 'factura_contactos', 'factura_anio_fiscal', 'factura_texto_legal', 'factura_logo_url'])} saving={saving} />
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="flex justify-end pt-4 border-t border-gray-800">
-              <SaveBtn onClick={async () => {
-                const ok = await save(['theme_primary_color', 'theme_bg_color', 'theme_font_family', 'theme_font_size', 'theme_logo_url']);
-                if (ok) window.location.reload(); 
-              }} saving={saving} />
-            </div>
-            {msg && <p className="text-indigo-400 text-sm mt-2 text-right">{msg}</p>}
+            {subTabPersonalizacion === 'tickets' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Personalización de Tickets (80mm)</h2>
+                <p className="text-sm text-gray-400 mb-6">Configura el diseño y opciones de impresión para los tickets de caja y recibos impresos térmicamente.</p>
 
-            {/* --- Personalización de Facturas --- */}
-            <div className="mt-12 pt-8 border-t border-gray-800 space-y-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Personalización de Facturas y Tickets</h2>
-              <p className="text-sm text-gray-400 mb-6">Configura los datos fiscales y visuales que aparecerán en los tickets y facturas impresas.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Field label="Nombre Fiscal / Empresa">
-                  <Input value={c('factura_nombre')} onChange={v => setC('factura_nombre', v)} placeholder="Ej. Tattoo Studio SL" />
-                </Field>
-                <Field label="CIF / NIF">
-                  <Input value={c('factura_cif')} onChange={v => setC('factura_cif', v)} placeholder="Ej. B12345678" />
-                </Field>
-                <Field label="Dirección Completa">
-                  <Input value={c('factura_direccion')} onChange={v => setC('factura_direccion', v)} placeholder="Calle Principal 123, 28001 Madrid" />
-                </Field>
-                <Field label="Datos de Contacto">
-                  <Input value={c('factura_contactos')} onChange={v => setC('factura_contactos', v)} placeholder="Tel: 91 123 45 67 | info@tattoostudio.com" />
-                </Field>
-                <Field label="Año Fiscal (Opcional)" hint="Fuerza un año para el prefijo de factura. Déjalo en blanco para usar el año actual.">
-                  <Input value={c('factura_anio_fiscal')} onChange={v => setC('factura_anio_fiscal', v)} placeholder="Ej. 2026" />
-                </Field>
-                
-                <Field label="Reiniciar Contador de Facturas" hint="Atención: Modifica el número de la siguiente factura a emitir.">
-                  <div className="flex gap-2">
-                    <Input type="number" value={nuevaSecuenciaFactura} onChange={setNuevaSecuenciaFactura} placeholder="Próximo número..." />
-                    <button onClick={handleResetSecuenciaFactura} disabled={saving || !nuevaSecuenciaFactura} className="px-3 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
-                      Reiniciar
-                    </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2 p-4 border border-gray-700 rounded-lg bg-gray-800/50 space-y-4">
+                     <h3 className="text-sm font-medium text-white mb-2">Diseño del Ticket</h3>
+                     
+                     <Field label="Encabezado (Inicio de página)">
+                       <textarea
+                         value={c('ticket_encabezado')}
+                         onChange={e => setC('ticket_encabezado', e.target.value)}
+                         rows={5}
+                         className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                         placeholder="Ej:&#10;BLACK BLOOD ART STUDIO&#10;Avda. Galicia 15 Bajo&#10;27700 Ribadeo · Lugo&#10;www.black-blood.es&#10;@blackbloodartstudio"
+                       />
+                     </Field>
+
+                     <Field label="Pie de página">
+                       <textarea
+                         value={c('ticket_pie')}
+                         onChange={e => setC('ticket_pie', e.target.value)}
+                         rows={4}
+                         className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                         placeholder="Ej:&#10;Gracias por confiar en&#10;BLACK BLOOD ART STUDIO&#10;Tattoo · Piercing&#10;Ribadeo"
+                       />
+                     </Field>
                   </div>
-                </Field>
 
-                <div className="md:col-span-2">
-                  <Field label="Texto Legal / Pie de Factura">
+                  <Field label="Prefijo Núm. Ticket">
+                    <Input value={c('ticket_prefijo')} onChange={v => setC('ticket_prefijo', v)} placeholder="Ej. TK" />
+                  </Field>
+
+                  <Field label="Long. Mínima Número">
+                    <Input type="number" value={c('ticket_long_num')} onChange={v => setC('ticket_long_num', v)} placeholder="Ej. 3" />
+                  </Field>
+
+                  <div className="md:col-span-2 flex flex-col gap-4 mt-2">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative flex items-center justify-center w-5 h-5 border-2 border-gray-500 rounded bg-gray-800 group-hover:border-indigo-400 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={c('ticket_disable_print') === 'true'}
+                          onChange={e => setC('ticket_disable_print', e.target.checked ? 'true' : 'false')}
+                          className="absolute opacity-0 w-full h-full cursor-pointer"
+                        />
+                        {c('ticket_disable_print') === 'true' && <svg className="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                      </div>
+                      <span className="text-sm font-medium text-gray-300">Desactivar Impresión Automática</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative flex items-center justify-center w-5 h-5 border-2 border-gray-500 rounded bg-gray-800 group-hover:border-indigo-400 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={c('ticket_enable_email') === 'true'}
+                          onChange={e => setC('ticket_enable_email', e.target.checked ? 'true' : 'false')}
+                          className="absolute opacity-0 w-full h-full cursor-pointer"
+                        />
+                        {c('ticket_enable_email') === 'true' && <svg className="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                      </div>
+                      <span className="text-sm font-medium text-gray-300">Activar Tickets Digitales por Email</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={() => save([
+                    'ticket_encabezado', 'ticket_pie', 'ticket_prefijo', 'ticket_long_num', 'ticket_disable_print', 'ticket_enable_email'
+                  ])} saving={saving} />
+                </div>
+              </div>
+            )}
+
+            {subTabPersonalizacion === 'consentimientos' && (
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-white mb-2">Consentimientos Informados</h2>
+                    <p className="text-sm text-gray-400">Personaliza los textos legales, cuidados y curas que se incluirán en el documento de consentimiento.</p>
+                  </div>
+                  <button
+                    onClick={() => window.open('/api/consentimiento/preview', '_blank')}
+                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors border border-gray-700 whitespace-nowrap"
+                  >
+                    Ver Vista Previa
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-6">
+                  <Field label="Instrucciones de Curas" hint="Explica paso a paso cómo realizar las curas. Si se deja en blanco se usará la plantilla estándar.">
                     <textarea
-                      value={c('factura_texto_legal')}
-                      onChange={e => setC('factura_texto_legal', e.target.value)}
-                      rows={3}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
-                      placeholder="Inscrita en el Registro Mercantil..."
+                      value={c('consentimiento_curas')}
+                      onChange={e => setC('consentimiento_curas', e.target.value)}
+                      rows={5}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="Ej: Lavar 3 veces al día con agua tibia y jabón neutro, secar a toques con papel de cocina..."
+                    />
+                  </Field>
+
+                  <Field label="Instrucciones Generales de Cuidados" hint="Recomendaciones generales y cosas a evitar (sol, piscina, playa, etc.).">
+                    <textarea
+                      value={c('consentimiento_cuidados')}
+                      onChange={e => setC('consentimiento_cuidados', e.target.value)}
+                      rows={5}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="Ej: Evitar exposición directa al sol durante los primeros 15 días. No sumergir en piscinas ni en el mar..."
+                    />
+                  </Field>
+
+                  <Field label="Cláusula de Protección de Datos (RGPD)" hint="Texto legal específico sobre el tratamiento de los datos personales y médicos del cliente.">
+                    <textarea
+                      value={c('consentimiento_proteccion_datos')}
+                      onChange={e => setC('consentimiento_proteccion_datos', e.target.value)}
+                      rows={6}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="De acuerdo con el Reglamento (UE) 2016/679 relativo a la protección de las personas físicas (RGPD)..."
                     />
                   </Field>
                 </div>
 
-                <div className="md:col-span-2 mt-2 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
-                  <h3 className="text-sm font-medium text-white mb-3">Logotipo para Facturas (Opcional)</h3>
-                  <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 bg-white rounded-lg border border-gray-300 flex items-center justify-center overflow-hidden shrink-0">
-                      {c('factura_logo_url') ? (
-                        <img src={getImagenUrl(c('factura_logo_url'))} alt="Logo Factura" className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-gray-400 text-xs text-center px-2">Usará el logo general</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-400 mb-2">Sube una imagen específica (ideal fondo transparente/blanco) para las facturas y tickets impresos.</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const fd = new FormData();
-                          fd.append('logo', file);
-                          fd.append('tipo', 'factura_logo_url');
-                          setSaving(true);
-                          try {
-                            const res = await uploadLogo(fd);
-                            setC('factura_logo_url', res.data.url);
-                            setMsg('Logotipo de factura subido. Haz clic en Guardar.');
-                          } catch (err) {
-                            alert('Error al subir el logo');
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                        className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 cursor-pointer"
-                      />
-                    </div>
-                  </div>
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={() => save([
+                    'consentimiento_curas', 'consentimiento_cuidados', 'consentimiento_proteccion_datos'
+                  ])} saving={saving} />
                 </div>
               </div>
-              <div className="flex justify-end pt-4 border-t border-gray-800">
-                <SaveBtn onClick={() => save(['factura_nombre', 'factura_cif', 'factura_direccion', 'factura_contactos', 'factura_anio_fiscal', 'factura_texto_legal', 'factura_logo_url'])} saving={saving} />
+            )}
+
+            {subTabPersonalizacion === 'whatsapp' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Mensajes de WhatsApp</h2>
+                <p className="text-sm text-gray-400 mb-6">Configura la plantilla para los mensajes de WhatsApp. Puedes usar las variables: <span className="font-mono text-indigo-400">[CLIENTE]</span>, <span className="font-mono text-indigo-400">[FECHA]</span>, <span className="font-mono text-indigo-400">[HORA]</span>, <span className="font-mono text-indigo-400">[SERVICIO]</span>, que se rellenarán automáticamente al contactar.</p>
+                
+                <Field label="Plantilla de Mensaje (Recordatorio/Cita)">
+                  <textarea
+                    value={c('whatsapp_plantilla_cita')}
+                    onChange={e => setC('whatsapp_plantilla_cita', e.target.value)}
+                    rows={6}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                    placeholder="Hola [CLIENTE], te escribimos para recordarte tu cita para [SERVICIO] el día [FECHA] a las [HORA]..."
+                  />
+                </Field>
+
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={() => save(['whatsapp_plantilla_cita'])} saving={saving} />
+                </div>
               </div>
-            </div>
+            )}
+
+            {subTabPersonalizacion === 'correo' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Notificaciones por Correo</h2>
+                <p className="text-sm text-gray-400 mb-6">Configura el diseño del pie de página y los textos legales (RGPD) que se incluirán en todos los correos electrónicos enviados.</p>
+                
+                <div className="grid grid-cols-1 gap-6">
+                  <Field label="Pie de Página (Firma / Despedida)" hint="Texto que aparecerá al final del cuerpo del correo.">
+                    <textarea
+                      value={c('correo_pie_pagina')}
+                      onChange={e => setC('correo_pie_pagina', e.target.value)}
+                      rows={4}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="Atentamente,&#10;El equipo de Tattoo Studio."
+                    />
+                  </Field>
+
+                  <Field label="Aviso Legal y Protección de Datos (RGPD)" hint="Este texto aparecerá en letra pequeña al fondo del correo electrónico.">
+                    <textarea
+                      value={c('correo_proteccion_datos')}
+                      onChange={e => setC('correo_proteccion_datos', e.target.value)}
+                      rows={5}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 resize-y"
+                      placeholder="AVISO LEGAL: Este mensaje y sus archivos adjuntos van dirigidos exclusivamente a su destinatario, pudiendo contener información confidencial sometida a secreto profesional..."
+                    />
+                  </Field>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-gray-800">
+                  <SaveBtn onClick={() => save(['correo_pie_pagina', 'correo_proteccion_datos'])} saving={saving} />
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 

@@ -487,7 +487,7 @@ export default function Consentimientos() {
                       <div className="flex items-center justify-end gap-2">
                         {c.pdf_path ? (
                           <a
-                            href={`http://localhost:3000/${c.pdf_path}`}
+                            href={`http://localhost:5000/${c.pdf_path}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"

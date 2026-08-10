@@ -14,7 +14,6 @@ import Ingresos from './pages/Ingresos';
 import Gastos from './pages/Gastos';
 import Consentimientos from './pages/Consentimientos';
 import Cabinas from './pages/Cabinas';
-import EventosCalendario from './pages/EventosCalendario';
 import { RecuentoDiario, LiquidacionArtista, LiquidacionEstudio, Recibos } from './pages/contabilidad';
 import Comunicaciones from './pages/Comunicaciones';
 import Tintas from './pages/Tintas';
@@ -65,7 +64,7 @@ export default function App() {
             }
           />
           <Route
-            path="/citas"
+            path="/calendario"
             element={
               <PrivateRoute>
                 <Citas />
@@ -133,14 +132,6 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Consentimientos />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/eventos-calendario"
-            element={
-              <PrivateRoute>
-                <EventosCalendario />
               </PrivateRoute>
             }
           />

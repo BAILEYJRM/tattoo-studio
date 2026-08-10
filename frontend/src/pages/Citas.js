@@ -8,8 +8,27 @@ import {
   getTintas, getAgujas,
   getDiasFestivos,
   verificarSolapamientoCita, crearCitasGrupo,
+  getEventos, crearEvento, updateEvento, eliminarEvento
 } from '../api';
 import Modal from '../components/Modal';
+
+const EVENTO_TIPOS = ['convención', 'viaje', 'formación', 'otro'];
+const EVENTO_COLOR = {
+  'convención': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  'viaje': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  'formación': 'bg-green-500/10 text-green-400 border-green-500/20',
+  'otro': 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+};
+const EVENTO_COLOR_HEX = {
+  'convención': '#a855f7',
+  'viaje': '#3b82f6',
+  'formación': '#22c55e',
+  'otro': '#6b7280',
+};
+const emptyEvento = {
+  titulo: '', descripcion: '', empleado_id: '',
+  fecha_inicio: '', fecha_fin: '', tipo: 'otro',
+};
 
 const ESTADOS = ['pendiente', 'confirmada', 'completada', 'cancelada'];
 const ESTADO_CONFIG = {
@@ -44,12 +63,25 @@ function Toggle({ label, checked, onChange }) {
   );
 }
 
-function YearView({ citas, year, onYearChange, onSelectDay }) {
+function YearView({ citas, eventos = [], year, onYearChange, onSelectDay }) {
   const citasByDate = {};
   citas.forEach(c => {
     const key = c.fecha?.split('T')[0];
     if (!citasByDate[key]) citasByDate[key] = [];
     citasByDate[key].push(c);
+  });
+
+  const eventosByDate = {};
+  eventos.forEach(ev => {
+    if (!ev.fecha_inicio || !ev.fecha_fin) return;
+    let current = new Date(ev.fecha_inicio.split('T')[0]);
+    const end = new Date(ev.fecha_fin.split('T')[0]);
+    while (current <= end) {
+      const key = current.toISOString().split('T')[0];
+      if (!eventosByDate[key]) eventosByDate[key] = [];
+      eventosByDate[key].push(ev);
+      current.setDate(current.getDate() + 1);
+    }
   });
 
   const today = new Date().toISOString().split('T')[0];
@@ -86,15 +118,19 @@ function YearView({ citas, year, onYearChange, onSelectDay }) {
                   if (!day) return <div key={`e-${idx}`} />;
                   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const dayCitas = citasByDate[dateStr] || [];
+                  const dayEventos = eventosByDate[dateStr] || [];
                   const isToday = dateStr === today;
                   return (
                     <button key={dateStr} onClick={() => onSelectDay(dateStr)}
                       className={`flex flex-col items-center justify-center rounded text-xs py-0.5 transition-colors ${isToday ? 'bg-indigo-600/30 text-indigo-300 font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
                       <span className="leading-none">{day}</span>
-                      {dayCitas.length > 0 && (
+                      {(dayCitas.length > 0 || dayEventos.length > 0) && (
                         <div className="flex gap-px mt-0.5 flex-wrap justify-center">
+                          {dayEventos.slice(0, 1).map((ev, i) => (
+                            <span key={`e-${i}`} className="w-1.5 h-1.5 rounded-sm" style={{ backgroundColor: EVENTO_COLOR_HEX[ev.tipo] || EVENTO_COLOR_HEX.otro }} title={ev.titulo} />
+                          ))}
                           {dayCitas.slice(0, 3).map((c, i) => (
-                            <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: c.artista_color || '#6366f1' }} />
+                            <span key={`c-${i}`} className="w-1 h-1 rounded-full" style={{ backgroundColor: c.artista_color || '#6366f1' }} />
                           ))}
                         </div>
                       )}
@@ -110,7 +146,7 @@ function YearView({ citas, year, onYearChange, onSelectDay }) {
   );
 }
 
-function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [] }) {
+function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMonth, onMonthChange, diasFestivos = [] }) {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
@@ -121,6 +157,19 @@ function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChan
     const key = c.fecha?.split('T')[0];
     if (!citasByDate[key]) citasByDate[key] = [];
     citasByDate[key].push(c);
+  });
+
+  const eventosByDate = {};
+  eventos.forEach(ev => {
+    if (!ev.fecha_inicio || !ev.fecha_fin) return;
+    let current = new Date(ev.fecha_inicio.split('T')[0]);
+    const end = new Date(ev.fecha_fin.split('T')[0]);
+    while (current <= end) {
+      const key = current.toISOString().split('T')[0];
+      if (!eventosByDate[key]) eventosByDate[key] = [];
+      eventosByDate[key].push(ev);
+      current.setDate(current.getDate() + 1);
+    }
   });
 
   const today = new Date().toISOString().split('T')[0];
@@ -150,6 +199,7 @@ function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChan
           if (!day) return <div key={`e-${idx}`} />;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const daysCitas = citasByDate[dateStr] || [];
+          const dayEventos = eventosByDate[dateStr] || [];
           const isToday = dateStr === today;
           const isSelected = dateStr === selectedDate;
           const isFestivo = diasFestivos.includes(dateStr);
@@ -162,11 +212,19 @@ function Calendar({ citas, selectedDate, onSelectDate, currentMonth, onMonthChan
               }`}
             >
               <span>{day}</span>
-              {daysCitas.length > 0 && (
+              {(daysCitas.length > 0 || dayEventos.length > 0) && (
                 <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                  {dayEventos.slice(0, 2).map((ev, i) => (
+                    <span
+                      key={`e-${i}`}
+                      className="w-2 h-2 rounded-sm"
+                      style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.9)' : (EVENTO_COLOR_HEX[ev.tipo] || EVENTO_COLOR_HEX.otro) }}
+                      title={ev.titulo}
+                    />
+                  ))}
                   {daysCitas.slice(0, 3).map((c, i) => (
                     <span
-                      key={i}
+                      key={`c-${i}`}
                       className="w-1.5 h-1.5 rounded-full"
                       style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.7)' : (c.artista_color || '#6366f1') }}
                     />
@@ -196,6 +254,7 @@ const emptyFinalizar = {
 
 export default function Citas() {
   const [citas, setCitas] = useState([]);
+  const [eventos, setEventos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [cabinas, setCabinas] = useState([]);
@@ -228,6 +287,11 @@ export default function Citas() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const [modalEvento, setModalEvento] = useState(false);
+  const [editandoEvento, setEditandoEvento] = useState(null);
+  const [formEvento, setFormEvento] = useState(emptyEvento);
+  const [savingEvento, setSavingEvento] = useState(false);
+
   const [modalFinalizar, setModalFinalizar] = useState(false);
   const [citaFinalizar, setCitaFinalizar] = useState(null);
   const [formFinalizar, setFormFinalizar] = useState(emptyFinalizar);
@@ -254,10 +318,11 @@ export default function Citas() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [citasRes, clientesRes, empleadosRes, cabinasRes] = await Promise.all([
-        getCitas(), getClientes(), getEmpleados(), getCabinas(),
+      const [citasRes, eventosRes, clientesRes, empleadosRes, cabinasRes] = await Promise.all([
+        getCitas(), getEventos(), getClientes(), getEmpleados(), getCabinas(),
       ]);
       setCitas(citasRes.data);
+      setEventos(eventosRes.data);
       setClientes(clientesRes.data);
       setEmpleados(empleadosRes.data);
       setCabinas(cabinasRes.data);
@@ -278,6 +343,46 @@ export default function Citas() {
     setForm({ ...emptyForm, fecha: selectedDate || '' });
     setError('');
     setModal(true);
+  };
+
+  const openNewEvento = () => {
+    setEditandoEvento(null);
+    setFormEvento({ ...emptyEvento, fecha_inicio: selectedDate || '', fecha_fin: selectedDate || '' });
+    setError('');
+    setModalEvento(true);
+  };
+
+  const openEditEvento = (ev) => {
+    setEditandoEvento(ev.id);
+    setFormEvento({
+      titulo: ev.titulo || '', descripcion: ev.descripcion || '',
+      empleado_id: ev.empleado_id || '',
+      fecha_inicio: ev.fecha_inicio?.split('T')[0] || '',
+      fecha_fin: ev.fecha_fin?.split('T')[0] || '',
+      tipo: ev.tipo || 'otro',
+    });
+    setError('');
+    setModalEvento(true);
+  };
+
+  const handleSubmitEvento = async (e) => {
+    e.preventDefault();
+    setSavingEvento(true);
+    setError('');
+    try {
+      const payload = { ...formEvento, empleado_id: formEvento.empleado_id ? Number(formEvento.empleado_id) : null };
+      if (editandoEvento) await updateEvento(editandoEvento, payload);
+      else await crearEvento(payload);
+      setModalEvento(false);
+      fetchAll();
+    } catch (err) { setError(err.response?.data?.error || 'Error al guardar evento'); }
+    finally { setSavingEvento(false); }
+  };
+
+  const handleEliminarEvento = async (id) => {
+    if (!window.confirm('¿Eliminar este evento?')) return;
+    try { await eliminarEvento(id); fetchAll(); }
+    catch (e) { console.error(e); }
   };
 
   const openEdit = (cita) => {
@@ -467,18 +572,33 @@ export default function Citas() {
     return true;
   });
 
+  const eventosFiltrados = eventos.filter((e) => {
+    if (selectedDate) {
+      if (!e.fecha_inicio || !e.fecha_fin) return false;
+      const date = new Date(selectedDate);
+      const start = new Date(e.fecha_inicio.split('T')[0]);
+      const end = new Date(e.fecha_fin.split('T')[0]);
+      if (date < start || date > end) return false;
+    }
+    return true;
+  });
+
   const TIPOS_IMG = ['referencia', 'proceso', 'resultado'];
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Citas</h1>
+        <h1 className="text-2xl font-bold text-white">Calendario global</h1>
         <div className="flex items-center gap-2">
           <button onClick={() => { setModalGrupo(true); setPasoGrupo(1); setFormGrupo({ fecha: '', hora_inicio: '', hora_fin: '', artista_id: '', cabina_id: '', descripcion: '' }); setClientesGrupo([]); setResultadoGrupo(null); }}
             className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             Cita de grupo
+          </button>
+          <button onClick={openNewEvento} className="bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            Nuevo evento
           </button>
           <button onClick={openNew} className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -511,13 +631,14 @@ export default function Citas() {
       </div>
 
       {vista === 'calendario' && (
-        <Calendar citas={citas} selectedDate={selectedDate} onSelectDate={setSelectedDate}
+        <Calendar citas={citas} eventos={eventos} selectedDate={selectedDate} onSelectDate={setSelectedDate}
           currentMonth={currentMonth} onMonthChange={handleMonthChange} diasFestivos={diasFestivos} />
       )}
 
       {vista === 'año' && (
         <YearView
           citas={citas}
+          eventos={eventos}
           year={currentYear}
           onYearChange={setCurrentYear}
           onSelectDay={(dateStr) => { setSelectedDate(dateStr); setVista('lista'); }}
@@ -528,12 +649,48 @@ export default function Citas() {
       <div className="bg-gray-900 rounded-xl overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-500 text-sm">Cargando...</div>
-        ) : citasFiltradas.length === 0 ? (
+        ) : (citasFiltradas.length === 0 && eventosFiltrados.length === 0) ? (
           <div className="p-8 text-center text-gray-500 text-sm">
-            {selectedDate || filtroEstado ? 'No hay citas con esos filtros' : 'No hay citas registradas'}
+            {selectedDate || filtroEstado ? 'No hay registros con esos filtros' : 'No hay citas ni eventos registrados'}
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
+            {eventosFiltrados.map((ev) => {
+              const fmtDate = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+              return (
+                <div key={`ev-${ev.id}`} className="px-5 py-4 hover:bg-gray-800/50 transition-colors bg-gray-800/20">
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-stretch gap-2 min-w-[60px]">
+                      <div className="w-1 rounded-full flex-shrink-0" style={{ backgroundColor: EVENTO_COLOR_HEX[ev.tipo] || EVENTO_COLOR_HEX.otro }} />
+                      <div className="text-center bg-gray-800 rounded-lg px-2 py-2 flex-1 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-white font-medium text-sm">{ev.titulo}</p>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${EVENTO_COLOR[ev.tipo] || EVENTO_COLOR.otro}`}>
+                          {ev.tipo}
+                        </span>
+                      </div>
+                      <p className="text-indigo-400 text-xs mt-0.5">
+                        {fmtDate(ev.fecha_inicio?.split('T')[0])} — {fmtDate(ev.fecha_fin?.split('T')[0])}
+                      </p>
+                      {ev.empleado_nombre && <p className="text-gray-400 text-xs">Responsable: {ev.empleado_nombre}</p>}
+                      {ev.descripcion && <p className="text-gray-500 text-xs mt-1 line-clamp-1">{ev.descripcion}</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2 flex-wrap justify-end mt-2">
+                        <button onClick={() => openEditEvento(ev)} className="text-gray-400 hover:text-white text-xs transition-colors">Editar</button>
+                        <button onClick={() => handleEliminarEvento(ev.id)} className="text-gray-400 hover:text-red-400 text-xs transition-colors">Eliminar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
             {citasFiltradas.map((cita) => (
               <div key={cita.id} className="px-5 py-4 hover:bg-gray-800/50 transition-colors">
                 <div className="flex items-start gap-4">
@@ -1165,6 +1322,58 @@ export default function Citas() {
           </div>
         </div>
       )}
+      <Modal isOpen={modalEvento} onClose={() => setModalEvento(false)} title={editandoEvento ? 'Editar evento' : 'Nuevo evento'}>
+        <form onSubmit={handleSubmitEvento} className="space-y-4">
+          {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">{error}</div>}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Título *</label>
+            <input required value={formEvento.titulo} onChange={(e) => setFormEvento({ ...formEvento, titulo: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Tipo</label>
+            <select value={formEvento.tipo} onChange={(e) => setFormEvento({ ...formEvento, tipo: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              {EVENTO_TIPOS.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Empleado asignado</label>
+            <select value={formEvento.empleado_id} onChange={(e) => setFormEvento({ ...formEvento, empleado_id: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Sin asignar</option>
+              {empleados.map((e) => <option key={e.id} value={e.id}>{e.nombre} {e.apellidos}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Fecha inicio *</label>
+              <input required type="date" value={formEvento.fecha_inicio} onChange={(e) => setFormEvento({ ...formEvento, fecha_inicio: e.target.value })}
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5">Fecha fin *</label>
+              <input required type="date" value={formEvento.fecha_fin} onChange={(e) => setFormEvento({ ...formEvento, fecha_fin: e.target.value })}
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Descripción</label>
+            <textarea value={formEvento.descripcion} onChange={(e) => setFormEvento({ ...formEvento, descripcion: e.target.value })} rows={2}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-gray-500"
+              placeholder="Detalles del evento..." />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setModalEvento(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">Cancelar</button>
+            <button type="submit" disabled={savingEvento}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+              {savingEvento ? 'Guardando...' : editandoEvento ? 'Actualizar' : 'Crear'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
     </div>
   );
 }

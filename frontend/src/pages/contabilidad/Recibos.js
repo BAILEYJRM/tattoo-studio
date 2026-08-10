@@ -200,7 +200,7 @@ export default function Recibos() {
                     <td className="px-4 py-3 text-gray-400">{fmtFp[r.forma_pago] || r.forma_pago || '—'}</td>
                     <td className="px-4 py-3">
                       {r.pdf_path ? (
-                        <a href={`http://localhost:3000/${r.pdf_path}`} target="_blank" rel="noreferrer"
+                        <a href={`http://localhost:5000/${r.pdf_path}`} target="_blank" rel="noreferrer"
                           className="text-indigo-400 hover:text-indigo-300 text-xs transition-colors">Ver PDF</a>
                       ) : <span className="text-gray-600 text-xs">Sin PDF</span>}
                     </td>
