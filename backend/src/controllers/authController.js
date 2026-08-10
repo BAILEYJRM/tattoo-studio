@@ -1,6 +1,7 @@
  const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const Empleado = require('../models/empleado');
+const { Empleado, Estudio } = require('../models/empleado');
+
 
 const login = async (req, res) => {
   try {
@@ -85,4 +86,58 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { login, registro, forgotPassword, resetPassword };
+const registroPublico = async (req, res) => {
+  const client = await require('../config/database').connect();
+  try {
+    const { nombreEstudio, email, password, plan = 'basico' } = req.body;
+    if (!nombreEstudio || !email || !password) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios.' });
+    }
+
+    await client.query('BEGIN');
+
+    // 1. Create the studio
+    const estudioRes = await client.query(
+      `INSERT INTO estudios (nombre, email_admin, plan) VALUES ($1, $2, $3)
+       RETURNING id, nombre, plan, estado, trial_ends_at`,
+      [nombreEstudio, email, plan]
+    );
+    const estudio = estudioRes.rows[0];
+
+    // 2. Create the first admin user linked to this studio
+    const hash = await bcrypt.hash(password, 10);
+    const empRes = await client.query(
+      `INSERT INTO empleados (nombre, email, password, rol, estudio_id)
+       VALUES ($1, $2, $3, 'admin', $4)
+       RETURNING id, nombre, email, rol`,
+      [nombreEstudio, email, hash, estudio.id]
+    );
+    const empleado = empRes.rows[0];
+
+    await client.query('COMMIT');
+
+    // 3. Return JWT so user is logged in automatically
+    const token = jwt.sign(
+      { id: empleado.id, email: empleado.email, rol: empleado.rol, nombre: empleado.nombre, estudio_id: estudio.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    res.status(201).json({
+      token,
+      usuario: { id: empleado.id, nombre: empleado.nombre, email: empleado.email, rol: empleado.rol },
+      estudio
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe una cuenta con ese email.' });
+    }
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { login, registro, forgotPassword, resetPassword, registroPublico };
+

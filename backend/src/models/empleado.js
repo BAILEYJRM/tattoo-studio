@@ -1,6 +1,23 @@
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 
+const Estudio = {
+  async crear({ nombre, email }) {
+    const result = await pool.query(
+      `INSERT INTO estudios (nombre, email_admin) VALUES ($1, $2)
+       RETURNING id, nombre, email_admin, plan, estado, trial_ends_at`,
+      [nombre, email]
+    );
+    return result.rows[0];
+  },
+
+  async buscarPorId(id) {
+    const result = await pool.query('SELECT * FROM estudios WHERE id = $1', [id]);
+    return result.rows[0];
+  }
+};
+
+
 const Empleado = {
   async crear({ nombre, apellidos, email, password, telefono, rol }) {
     const hash = await bcrypt.hash(password, 10);
@@ -59,4 +76,4 @@ const Empleado = {
   }
 };
 
-module.exports = Empleado;
+module.exports = { Empleado, Estudio };

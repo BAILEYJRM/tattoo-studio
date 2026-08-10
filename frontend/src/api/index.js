@@ -34,6 +34,9 @@ export const forgotPassword = (email) =>
 export const resetPassword = (token, newPassword) =>
   api.post('/auth/reset-password', { token, newPassword });
 
+export const registroPublico = (data) =>
+  api.post('/auth/registro-publico', data);
+
 // Clientes
 export const getClientes = (buscar) =>
   api.get('/clientes', { params: buscar ? { buscar } : {} });

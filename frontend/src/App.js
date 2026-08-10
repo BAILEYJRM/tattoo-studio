@@ -22,29 +22,43 @@ import Estadisticas from './pages/Estadisticas';
 import Configuracion from './pages/Configuracion';
 import ClientesDuplicados from './pages/ClientesDuplicados';
 import ResetPassword from './pages/ResetPassword';
+import Landing from './pages/Landing';
+import Register from './pages/Register';
+
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
   if (!token) return <Navigate to="/login" replace />;
-  if (adminOnly && usuario?.rol !== 'admin') return <Navigate to="/" replace />;
+  if (adminOnly && usuario?.rol !== 'admin') return <Navigate to="/app" replace />;
   return <Layout>{children}</Layout>;
 }
 
 function PublicRoute({ children }) {
   const { token } = useAuth();
-  return token ? <Navigate to="/" replace /> : children;
+  return token ? <Navigate to="/app" replace /> : children;
 }
+
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* ── Public routes ── */}
+          <Route path="/" element={<Landing />} />
           <Route
             path="/login"
             element={
               <PublicRoute>
                 <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/registro"
+            element={
+              <PublicRoute>
+                <Register />
               </PublicRoute>
             }
           />
@@ -56,8 +70,10 @@ export default function App() {
               </PublicRoute>
             }
           />
+
+          {/* ── Private App routes (at /app/*) ── */}
           <Route
-            path="/"
+            path="/app"
             element={
               <PrivateRoute>
                 <Dashboard />
@@ -225,6 +241,7 @@ export default function App() {
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

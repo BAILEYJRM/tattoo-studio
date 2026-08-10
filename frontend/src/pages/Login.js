@@ -19,7 +19,7 @@ export default function Login() {
     try {
       const res = await login(form.email, form.password);
       loginUser(res.data.token, res.data.usuario);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
     } finally {
