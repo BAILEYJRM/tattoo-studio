@@ -557,6 +557,7 @@ export default function Configuracion() {
                       { name: 'Violeta', color: '#8b5cf6' },
                       { name: 'Naranja', color: '#f97316' },
                       { name: 'Cian', color: '#06b6d4' },
+                      { name: 'Dorado (Animado)', color: '#d4af37' },
                     ].map(skin => (
                       <button
                         key={skin.name}
@@ -584,10 +585,20 @@ export default function Configuracion() {
                       <input
                         type="color"
                         value={c('theme_primary_color') || '#4f46e5'}
-                        onChange={e => setC('theme_primary_color', e.target.value)}
+                        onChange={e => {
+                          setC('theme_primary_color', e.target.value);
+                          if (changePrimaryColor) changePrimaryColor(e.target.value);
+                        }}
                         className="w-12 h-12 p-1 bg-gray-800 border border-gray-700 rounded cursor-pointer"
                       />
-                      <Input value={c('theme_primary_color') || '#4f46e5'} onChange={v => setC('theme_primary_color', v)} placeholder="#4f46e5" />
+                      <Input 
+                        value={c('theme_primary_color') || '#4f46e5'} 
+                        onChange={v => {
+                          setC('theme_primary_color', v);
+                          if (changePrimaryColor) changePrimaryColor(v);
+                        }} 
+                        placeholder="#4f46e5" 
+                      />
                     </div>
                   </Field>
 

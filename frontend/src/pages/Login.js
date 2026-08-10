@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../api';
+import { login, forgotPassword } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -8,9 +8,11 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isForgot, setIsForgot] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -20,6 +22,21 @@ export default function Login() {
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+    try {
+      const res = await forgotPassword(form.email);
+      setSuccess(res.data.mensaje || 'Se han enviado las instrucciones.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al procesar la solicitud.');
     } finally {
       setLoading(false);
     }
@@ -40,10 +57,15 @@ export default function Login() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <form onSubmit={isForgot ? handleForgot : handleLogin} className="bg-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-lg px-4 py-3">
+              {success}
             </div>
           )}
 
@@ -59,25 +81,48 @@ export default function Login() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Contraseña</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
-              placeholder="••••••••"
-            />
-          </div>
+          {!isForgot && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm text-gray-400">Contraseña</label>
+                <button
+                  type="button"
+                  onClick={() => { setIsForgot(true); setError(''); setSuccess(''); }}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  ¿Has olvidado tu contraseña?
+                </button>
+              </div>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required={!isForgot}
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+                placeholder="••••••••"
+              />
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors mt-2"
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+            {loading ? 'Procesando...' : isForgot ? 'Enviar instrucciones' : 'Iniciar sesión'}
           </button>
+          
+          {isForgot && (
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => { setIsForgot(false); setError(''); setSuccess(''); }}
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Volver al inicio de sesión
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

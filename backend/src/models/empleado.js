@@ -33,6 +33,29 @@ const Empleado = {
       [id]
     );
     return result.rows[0];
+  },
+
+  async guardarTokenRecuperacion(email, token, expires) {
+    await pool.query(
+      'UPDATE empleados SET reset_password_token = $1, reset_password_expires = $2 WHERE email = $3',
+      [token, expires, email]
+    );
+  },
+
+  async buscarPorTokenRecuperacion(token) {
+    const result = await pool.query(
+      'SELECT * FROM empleados WHERE reset_password_token = $1 AND reset_password_expires > NOW() AND activo = true',
+      [token]
+    );
+    return result.rows[0];
+  },
+
+  async actualizarPassword(id, newPassword) {
+    const hash = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE empleados SET password = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2',
+      [hash, id]
+    );
   }
 };
 

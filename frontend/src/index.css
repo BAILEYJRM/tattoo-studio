@@ -66,6 +66,51 @@
     color: #ffffff !important;
     font-weight: 700 !important;
   }
+
+  /* Gold Skin Animation */
+  [data-skin="gold"] .bg-indigo-400,
+  [data-skin="gold"] .bg-indigo-500,
+  [data-skin="gold"] .bg-indigo-600,
+  [data-skin="gold"] .bg-indigo-700 {
+    background: linear-gradient(
+      -45deg, 
+      #9c7c38 0%, 
+      #d4af37 25%, 
+      #f9f3cc 50%, 
+      #d4af37 75%, 
+      #9c7c38 100%
+    ) !important;
+    background-size: 200% auto !important;
+    animation: goldShine 3s linear infinite !important;
+    color: #000000 !important;
+    border: none !important;
+  }
+
+  [data-skin="gold"] .text-indigo-400,
+  [data-skin="gold"] .text-indigo-500,
+  [data-skin="gold"] .text-indigo-600,
+  [data-skin="gold"] .text-indigo-700 {
+    background: linear-gradient(
+      -45deg, 
+      #9c7c38 0%, 
+      #d4af37 25%, 
+      #f9f3cc 50%, 
+      #d4af37 75%, 
+      #9c7c38 100%
+    ) !important;
+    background-size: 200% auto !important;
+    animation: goldShine 3s linear infinite !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    color: transparent !important;
+  }
+
+  @keyframes goldShine {
+    to {
+      background-position: 200% center;
+    }
+  }
 }
 
 @layer utilities {

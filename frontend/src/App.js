@@ -21,6 +21,7 @@ import Agujas from './pages/Agujas';
 import Estadisticas from './pages/Estadisticas';
 import Configuracion from './pages/Configuracion';
 import ClientesDuplicados from './pages/ClientesDuplicados';
+import ResetPassword from './pages/ResetPassword';
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
@@ -44,6 +45,14 @@ export default function App() {
             element={
               <PublicRoute>
                 <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <PublicRoute>
+                <ResetPassword />
               </PublicRoute>
             }
           />

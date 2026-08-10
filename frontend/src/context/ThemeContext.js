@@ -19,6 +19,11 @@ export function ThemeProvider({ children }) {
   const applyTheme = (config) => {
     const root = document.documentElement;
     if (config.theme_primary_color) {
+      if (config.theme_primary_color.toLowerCase() === '#d4af37') {
+        root.setAttribute('data-skin', 'gold');
+      } else {
+        root.removeAttribute('data-skin');
+      }
       root.style.setProperty('--color-primary', config.theme_primary_color);
       root.style.setProperty('--color-primary-content', getContrast(config.theme_primary_color));
     }
@@ -72,6 +77,11 @@ export function ThemeProvider({ children }) {
 
   const changePrimaryColor = (color) => {
     // For local preview
+    if (color.toLowerCase() === '#d4af37') {
+      document.documentElement.setAttribute('data-skin', 'gold');
+    } else {
+      document.documentElement.removeAttribute('data-skin');
+    }
     document.documentElement.style.setProperty('--color-primary', color);
     document.documentElement.style.setProperty('--color-primary-content', getContrast(color));
   };
