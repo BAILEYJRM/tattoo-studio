@@ -335,3 +335,104 @@ CREATE TABLE IF NOT EXISTS alertas (
   resuelta_en TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Leads
+CREATE TABLE IF NOT EXISTS leads (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  telefono VARCHAR(20),
+  email VARCHAR(150),
+  instagram VARCHAR(100),
+  origen VARCHAR(50) NOT NULL,
+  fecha_entrada TIMESTAMP DEFAULT NOW(),
+  artista_solicitado INTEGER REFERENCES empleados(id),
+  estilo_solicitado VARCHAR(100),
+  descripcion TEXT,
+  notas_internas TEXT,
+  responsable_id INTEGER REFERENCES empleados(id),
+  estado VARCHAR(30) DEFAULT 'Nuevo',
+  proyecto_id INTEGER REFERENCES proyectos(id),
+  cliente_id INTEGER REFERENCES clientes(id)
+);
+
+-- Proyectos
+CREATE TABLE IF NOT EXISTS proyectos (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id) ON DELETE SET NULL,
+  nombre VARCHAR(200) NOT NULL,
+  descripcion TEXT,
+  zona_corporal VARCHAR(100),
+  estilo VARCHAR(100),
+  color BOOLEAN DEFAULT true,
+  tamaño_aproximado VARCHAR(50),
+  artista_id INTEGER REFERENCES empleados(id),
+  sesiones_estimadas INTEGER,
+  duracion_estimada VARCHAR(50),
+  precio_estimado DECIMAL(10,2),
+  estado VARCHAR(30) DEFAULT 'Nuevo',
+  referencias TEXT,
+  notas_internas TEXT,
+  fecha_creacion TIMESTAMP DEFAULT NOW(),
+  origen_comercial VARCHAR(100)
+);
+
+-- Presupuestos (Quotes)
+CREATE TABLE IF NOT EXISTS presupuestos (
+  id SERIAL PRIMARY KEY,
+  cliente_id INTEGER REFERENCES clientes(id),
+  proyecto_id INTEGER REFERENCES proyectos(id),
+  artista_id INTEGER REFERENCES empleados(id),
+  fecha DATE DEFAULT CURRENT_DATE,
+  validez DATE,
+  servicios TEXT,
+  sesiones_estimadas INTEGER,
+  precio_por_sesion DECIMAL(10,2),
+  horas_estimadas DECIMAL(5,2),
+  precio_fijo DECIMAL(10,2),
+  descuento DECIMAL(5,2) DEFAULT 0,
+  impuesto DECIMAL(5,2) DEFAULT 0,
+  deposito_requerido DECIMAL(10,2),
+  total_estimado DECIMAL(10,2),
+  observaciones TEXT,
+  condiciones TEXT,
+  politica_cancelacion TEXT,
+  estado VARCHAR(30) DEFAULT 'Borrador',
+  creado_en TIMESTAMP DEFAULT NOW()
+);
+
+-- Token seguro para presupuesto público
+CREATE TABLE IF NOT EXISTS quote_tokens (
+  token VARCHAR(64) PRIMARY KEY,
+  presupuesto_id INTEGER REFERENCES presupuestos(id) ON DELETE CASCADE,
+  creado_en TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP
+);
+
+-- Seguimientos
+CREATE TABLE IF NOT EXISTS seguimientos (
+  id SERIAL PRIMARY KEY,
+  lead_id INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+  proyecto_id INTEGER REFERENCES proyectos(id) ON DELETE SET NULL,
+  fecha_hora TIMESTAMP NOT NULL,
+  responsable_id INTEGER REFERENCES empleados(id),
+  motivo VARCHAR(200),
+  estado VARCHAR(30) DEFAULT 'Pendiente',
+  notas TEXT
+);
+
+-- Actividad (timeline)
+CREATE TABLE IF NOT EXISTS actividad (
+  id SERIAL PRIMARY KEY,
+  entidad_tipo VARCHAR(50) NOT NULL,
+  entidad_id INTEGER NOT NULL,
+  usuario_id INTEGER REFERENCES empleados(id),
+  accion VARCHAR(100) NOT NULL,
+  detalle JSONB,
+  creado_en TIMESTAMP DEFAULT NOW()
+);
+
+-- Motivos de pérdida (lookup)
+CREATE TABLE IF NOT EXISTS motivos_perdida (
+  id SERIAL PRIMARY KEY,
+  descripcion VARCHAR(200) NOT NULL
+);
