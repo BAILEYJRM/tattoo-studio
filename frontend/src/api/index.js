@@ -276,4 +276,9 @@ export const createMotivoPerdida = (descripcion) => api.post('/motivos-perdida',
 // ── Comercial: Insights ──
 export const getInsightsResumen = () => api.get('/insights/resumen');
 
+// ── Booth Rental / Alquileres de Cabina ──
+export const getAlquileresCabina = () => api.get('/alquileres-cabina');
+export const createAlquilerCabina = (data) => api.post('/alquileres-cabina', data);
+export const pagarAlquilerCabina = (id, data) => api.post(`/alquileres-cabina/${id}/pagar`, data);
+
 

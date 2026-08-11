@@ -103,6 +103,31 @@ CREATE TABLE IF NOT EXISTS cabinas (
   descripcion TEXT,
   estado VARCHAR(20) NOT NULL DEFAULT 'disponible',
   activo BOOLEAN DEFAULT true,
+  tarifa_alquiler DECIMAL(10,2) DEFAULT 0,
+  frecuencia_alquiler VARCHAR(20) DEFAULT 'semanal',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Booth Rental / Alquileres de Cabinas (EE.UU. / España)
+CREATE TABLE IF NOT EXISTS alquileres_cabina (
+  id SERIAL PRIMARY KEY,
+  cabina_id INTEGER REFERENCES cabinas(id) ON DELETE CASCADE,
+  artista_id INTEGER REFERENCES empleados(id) ON DELETE CASCADE,
+  tarifa_monto DECIMAL(10,2) NOT NULL,
+  frecuencia VARCHAR(20) DEFAULT 'semanal',
+  fecha_proximo_pago DATE NOT NULL,
+  estado VARCHAR(20) DEFAULT 'al dia',
+  notas TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cobros_alquiler_cabina (
+  id SERIAL PRIMARY KEY,
+  alquiler_id INTEGER REFERENCES alquileres_cabina(id) ON DELETE CASCADE,
+  monto DECIMAL(10,2) NOT NULL,
+  fecha_pago DATE NOT NULL,
+  metodo_pago VARCHAR(50) DEFAULT 'efectivo',
+  notas TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
 

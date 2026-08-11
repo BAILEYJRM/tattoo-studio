@@ -75,6 +75,7 @@ app.use('/api/presupuestos', require('./routes/presupuestos'));
 app.use('/api/seguimientos', require('./routes/seguimientos'));
 app.use('/api/motivos-perdida', require('./routes/motivosPerdida'));
 app.use('/api/insights', require('./routes/insights'));
+app.use('/api/alquileres-cabina', require('./routes/alquileresCabina'));
 
 
 // Cron jobs

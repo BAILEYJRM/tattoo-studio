@@ -5,6 +5,7 @@ import {
   getLimpiezas, getResumenLimpiezas, crearLimpieza, eliminarLimpieza,
   getIncidencias, crearIncidencia, resolverIncidencia,
   getImagenUrl, deleteCabina, bulkDeleteCabinas,
+  getAlquileresCabina, createAlquilerCabina, pagarAlquilerCabina, getEmpleados
 } from '../api';
 import BulkSelectionBar from '../components/BulkSelectionBar';
 
@@ -175,10 +176,26 @@ export default function Cabinas() {
     setIncidencias(res.data);
   }, [filtroEstadoInc]);
 
+  const [alquileres, setAlquileres] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [modalBoothOpen, setModalBoothOpen] = useState(false);
+  const [formBooth, setFormBooth] = useState({ cabina_id: '', artista_id: '', tarifa_monto: '', frecuencia: 'semanal', fecha_proximo_pago: HOY, notas: '' });
+  const [modalPagoBooth, setModalPagoBooth] = useState(null);
+  const [montoPago, setMontoPago] = useState('');
+
+  const cargarAlquileres = useCallback(async () => {
+    const [alqRes, empRes] = await Promise.all([
+      getAlquileresCabina().catch(() => ({ data: [] })),
+      getEmpleados().catch(() => ({ data: [] }))
+    ]);
+    setAlquileres(alqRes.data);
+    setEmpleados(empRes.data);
+  }, []);
+
   useEffect(() => {
-    Promise.all([cargarCabinas(), cargarLimpiezas(), cargarIncidencias()])
+    Promise.all([cargarCabinas(), cargarLimpiezas(), cargarIncidencias(), cargarAlquileres()])
       .finally(() => setLoading(false));
-  }, [cargarCabinas, cargarLimpiezas, cargarIncidencias]);
+  }, [cargarCabinas, cargarLimpiezas, cargarIncidencias, cargarAlquileres]);
 
   // ── Handlers de cabina ──────────────────────────────────────────────────────
   const handleCambiarEstado = async (id, estado) => {
@@ -301,6 +318,36 @@ export default function Cabinas() {
     } finally { setSaving(false); }
   };
 
+  // ── Submit nuevo contrato Booth Rental ──
+  const handleSubmitNuevoBooth = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      await createAlquilerCabina(formBooth);
+      setModalBoothOpen(false);
+      setFormBooth({ cabina_id: '', artista_id: '', tarifa_monto: '', frecuencia: 'semanal', fecha_proximo_pago: HOY, notas: '' });
+      cargarAlquileres();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al crear contrato');
+    } finally { setSaving(false); }
+  };
+
+  // ── Submit pago Booth Rental ──
+  const handleSubmitPagoBooth = async (e) => {
+    e.preventDefault();
+    if (!modalPagoBooth) return;
+    setSaving(true);
+    setError('');
+    try {
+      await pagarAlquilerCabina(modalPagoBooth.id, { monto: montoPago, metodo_pago: 'efectivo' });
+      setModalPagoBooth(null);
+      cargarAlquileres();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al registrar pago');
+    } finally { setSaving(false); }
+  };
+
   // ── Resumen limpiezas ───────────────────────────────────────────────────────
   const TIPO_LABEL = Object.fromEntries(TIPOS_LIMPIEZA.map((t) => [t.value, t.label]));
   const totalLimpiezas = resumen.reduce((s, r) => s + parseInt(r.total), 0);
@@ -334,9 +381,10 @@ export default function Cabinas() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit flex-wrap">
         {[
           { key: 'cabinas', label: 'Panel' },
+          { key: 'booth_rental', label: 'Booth Rental / Alquileres' },
           { key: 'incidencias', label: `Incidencias${incidencias.filter((i) => i.estado === 'abierta').length > 0 ? ` (${incidencias.filter((i) => i.estado === 'abierta').length})` : ''}` },
           { key: 'historial', label: 'Historial' },
         ].map((t) => (
@@ -376,6 +424,65 @@ export default function Cabinas() {
             />
           ))}
         </div>
+        </div>
+      )}
+
+      {/* ── Tab Booth Rental (Alquileres) ── */}
+      {tab === 'booth_rental' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h2 className="text-white font-semibold text-lg">Contratos de Alquiler de Cabinas (Booth Rent)</h2>
+            <button onClick={() => setModalBoothOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-lg shadow-indigo-500/20">
+              + Nuevo Contrato Alquiler
+            </button>
+          </div>
+
+          {alquileres.length === 0 ? (
+            <div className="bg-gray-900 rounded-2xl p-12 text-center text-gray-500 border border-gray-800">
+              No hay contratos de alquiler de cabina registrados.
+            </div>
+          ) : (
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-400 border-b border-gray-800 bg-gray-900/80">
+                      <th className="px-4 py-3 font-medium">Cabina</th>
+                      <th className="px-4 py-3 font-medium">Artista</th>
+                      <th className="px-4 py-3 font-medium">Tarifa</th>
+                      <th className="px-4 py-3 font-medium">Frecuencia</th>
+                      <th className="px-4 py-3 font-medium">Próximo Pago</th>
+                      <th className="px-4 py-3 font-medium">Estado</th>
+                      <th className="px-4 py-3 font-medium text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800/60">
+                    {alquileres.map(a => (
+                      <tr key={a.id} className="hover:bg-gray-800/40 transition-colors">
+                        <td className="px-4 py-3 text-white font-medium">{a.cabina_nombre}</td>
+                        <td className="px-4 py-3 text-gray-300">{a.artista_nombre} {a.artista_apellidos || ''}</td>
+                        <td className="px-4 py-3 text-emerald-400 font-bold">{Number(a.tarifa_monto).toFixed(2)} €</td>
+                        <td className="px-4 py-3 text-gray-400 capitalize">{a.frecuencia}</td>
+                        <td className="px-4 py-3 text-gray-300 font-mono text-xs">{a.fecha_proximo_pago ? new Date(a.fecha_proximo_pago).toLocaleDateString('es-ES') : '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${a.estado === 'al dia' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                            {a.estado}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button onClick={() => { setModalPagoBooth(a); setMontoPago(a.tarifa_monto); }}
+                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors">
+                            Registrar Cobro
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -665,6 +772,71 @@ export default function Cabinas() {
               className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-colors">
               {saving ? 'Creando…' : 'Crear'}
             </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ── Modal Nuevo Contrato Booth Rental ── */}
+      <Modal isOpen={modalBoothOpen} onClose={() => setModalBoothOpen(false)} title="Nuevo Contrato de Alquiler (Booth Rent)">
+        <form onSubmit={handleSubmitNuevoBooth} className="space-y-4">
+          {error && <p className="text-red-400 text-sm bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Cabina *</label>
+            <select required value={formBooth.cabina_id} onChange={e => setFormBooth({...formBooth, cabina_id: e.target.value})}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2">
+              <option value="">Seleccionar cabina...</option>
+              {cabinas.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Artista *</label>
+            <select required value={formBooth.artista_id} onChange={e => setFormBooth({...formBooth, artista_id: e.target.value})}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2">
+              <option value="">Seleccionar artista...</option>
+              {empleados.map(emp => <option key={emp.id} value={emp.id}>{emp.nombre} {emp.apellidos || ''}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Tarifa (€ / $) *</label>
+              <input type="number" step="0.01" required value={formBooth.tarifa_monto} onChange={e => setFormBooth({...formBooth, tarifa_monto: e.target.value})}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2" placeholder="300.00" />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Frecuencia</label>
+              <select value={formBooth.frecuencia} onChange={e => setFormBooth({...formBooth, frecuencia: e.target.value})}
+                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2">
+                <option value="semanal">Semanal</option>
+                <option value="mensual">Mensual</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Fecha Próximo Pago</label>
+            <input type="date" required value={formBooth.fecha_proximo_pago} onChange={e => setFormBooth({...formBooth, fecha_proximo_pago: e.target.value})}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setModalBoothOpen(false)} className="flex-1 bg-gray-700 text-white py-2 rounded-lg text-sm">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold">Guardar Contrato</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ── Modal Registrar Pago Booth Rental ── */}
+      <Modal isOpen={!!modalPagoBooth} onClose={() => setModalPagoBooth(null)} title="Registrar Pago de Alquiler de Cabina">
+        <form onSubmit={handleSubmitPagoBooth} className="space-y-4">
+          <p className="text-sm text-gray-300">
+            Artista: <strong className="text-white">{modalPagoBooth?.artista_nombre}</strong> — Cabina: <strong className="text-white">{modalPagoBooth?.cabina_nombre}</strong>
+          </p>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Importe Cobrado (€ / $) *</label>
+            <input type="number" step="0.01" required value={montoPago} onChange={e => setMontoPago(e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setModalPagoBooth(null)} className="flex-1 bg-gray-700 text-white py-2 rounded-lg text-sm">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-semibold">Confirmar Pago</button>
           </div>
         </form>
       </Modal>

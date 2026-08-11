@@ -7,6 +7,7 @@ import { ThemeContext } from '../context/ThemeContext';
 
 const TABS = [
   { id: 'estudio', label: 'Información del estudio' },
+  { id: 'regional', label: 'Ajustes Regionales (US / ES)' },
   { id: 'servicios', label: 'Servicios' },
   { id: 'horarios', label: 'Horarios' },
   { id: 'festivos', label: 'Días festivos' },
@@ -235,6 +236,79 @@ export default function Configuracion() {
                 'estudio_provincia','estudio_email','estudio_telefono','codigo_higienico',
                 'estudio_instagram','estudio_facebook',
               ])} saving={saving} />
+            </div>
+          </div>
+        )}
+
+        {/* ── Ajustes Regionales (US / ES) ── */}
+        {tab === 'regional' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Configuración Regional e Internacionalización</h2>
+              <p className="text-gray-400 text-xs mt-1">Adapta KuroIchi al mercado de España (EUR, 24h, DD/MM/YYYY) o Estados Unidos (USD, 12h AM/PM, MM/DD/YYYY, Sales Tax, Tipping).</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-800/50 p-5 rounded-xl border border-gray-700/50">
+              <Field label="País / Mercado Principal" hint="Define los ajustes por defecto de moneda e idioma">
+                <select value={c('pais') || 'ES'} onChange={e => {
+                  const val = e.target.value;
+                  setC('pais', val);
+                  if (val === 'US') {
+                    setC('moneda', 'USD');
+                    setC('formato_fecha', 'MM/DD/YYYY');
+                    setC('formato_hora', '12h');
+                    setC('mostrar_propinas', 'true');
+                  } else {
+                    setC('moneda', 'EUR');
+                    setC('formato_fecha', 'DD/MM/YYYY');
+                    setC('formato_hora', '24h');
+                    setC('mostrar_propinas', 'false');
+                  }
+                }} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="ES">🇪🇸 España (Europa)</option>
+                  <option value="US">🇺🇸 Estados Unidos (USA)</option>
+                </select>
+              </Field>
+
+              <Field label="Moneda de Trabajo">
+                <select value={c('moneda') || 'EUR'} onChange={e => setC('moneda', e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="EUR">€ EUR (Euro)</option>
+                  <option value="USD">$ USD (US Dollar)</option>
+                </select>
+              </Field>
+
+              <Field label="Formato de Fecha">
+                <select value={c('formato_fecha') || 'DD/MM/YYYY'} onChange={e => setC('formato_fecha', e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="DD/MM/YYYY">DD/MM/YYYY (Día/Mes/Año - ES)</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY (Mes/Día/Año - US)</option>
+                </select>
+              </Field>
+
+              <Field label="Formato de Hora">
+                <select value={c('formato_hora') || '24h'} onChange={e => setC('formato_hora', e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="24h">24 Horas (ej: 16:30)</option>
+                  <option value="12h">12 Horas AM/PM (ej: 4:30 PM)</option>
+                </select>
+              </Field>
+
+              <Field label="Sales Tax (%) - EE.UU." hint="Porcentaje de impuesto estatal/local en EE.UU.">
+                <Input type="number" value={c('sales_tax_porcentaje')} onChange={v => setC('sales_tax_porcentaje', v)} placeholder="8.875" />
+              </Field>
+
+              <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+                <div>
+                  <p className="text-white text-sm font-medium">Habilitar Propinas (Tipping)</p>
+                  <p className="text-xs text-gray-500">Muestra selector de propinas en TPV y cobros (15%, 20%, 25%)</p>
+                </div>
+                <Toggle checked={bool('mostrar_propinas')} onChange={() => setC('mostrar_propinas', !bool('mostrar_propinas'))} />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <SaveBtn onClick={() => save(['pais', 'moneda', 'formato_fecha', 'formato_hora', 'sales_tax_porcentaje', 'mostrar_propinas'])} saving={saving} />
             </div>
           </div>
         )}
