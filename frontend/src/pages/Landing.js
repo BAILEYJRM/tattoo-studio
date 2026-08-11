@@ -311,6 +311,39 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Qué incluye */}
+      <section className="relative py-24 px-6 z-10 border-t border-white/5 bg-[#0a0a0a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter text-white">¿Qué incluye?</h2>
+            <p className="text-lg text-gray-400 font-medium max-w-2xl mx-auto">
+              Todo el ecosistema KuroIchi integrado de serie para que solo te preocupes de tatuar.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              "Agenda inteligente con recordatorios automáticos",
+              "Dashboard con métricas de rentabilidad por artista",
+              "Fichas de clientes con histórico visual de tatuajes",
+              "Generación y firma legal de consentimientos",
+              "Gestor integral de tintas, agujas y material",
+              "Identifica estilos y patrones de mayores ingresos",
+              "Sistema TPV y facturación simplificada",
+              "Soporte y actualizaciones continuas incluidas"
+            ].map((feature, idx) => (
+              <div key={idx} className="flex items-center gap-4 bg-[#111] border border-white/10 rounded-xl p-5 hover:bg-white/5 hover:border-red-500/50 transition-colors">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-red-500/20 text-red-500">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span className="text-gray-300 font-medium text-sm">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="pricing" className="relative py-32 px-6 z-10 border-t border-white/5 bg-[#080808]">
         <div className="max-w-5xl mx-auto">
