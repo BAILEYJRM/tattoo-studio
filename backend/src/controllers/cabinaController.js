@@ -2,26 +2,29 @@ const Cabina = require('../models/cabina');
 const pool = require('../config/database');
 
 const getCabinas = async (req, res) => {
-  try { res.json(await Cabina.buscarTodas()); }
+  try { res.json(await Cabina.buscarTodas(req.usuario.estudio_id)); }
   catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const getCabina = async (req, res) => {
   try {
-    const c = await Cabina.buscarPorId(req.params.id);
+    const c = await Cabina.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Cabina no encontrada' });
     res.json(c);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const crearCabina = async (req, res) => {
-  try { res.status(201).json(await Cabina.crear(req.body)); }
+  try {
+    req.body.estudio_id = req.usuario.estudio_id;
+    res.status(201).json(await Cabina.crear(req.body));
+  }
   catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const actualizarCabina = async (req, res) => {
   try {
-    const c = await Cabina.actualizar(req.params.id, req.body);
+    const c = await Cabina.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Cabina no encontrada' });
     res.json(c);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -32,7 +35,7 @@ const cambiarEstado = async (req, res) => {
     const { estado } = req.body;
     if (!['disponible', 'ocupada'].includes(estado))
       return res.status(400).json({ error: 'Estado inválido' });
-    const c = await Cabina.cambiarEstado(req.params.id, estado);
+    const c = await Cabina.cambiarEstado(req.params.id, estado, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Cabina no encontrada' });
     res.json(c);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -44,8 +47,8 @@ const deleteCabina = async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query('UPDATE citas SET cabina_id = NULL WHERE cabina_id = $1', [id]);
-      await client.query('DELETE FROM cabinas WHERE id = $1', [id]);
+      await client.query('UPDATE citas SET cabina_id = NULL WHERE cabina_id = $1 AND estudio_id = $2', [id, req.usuario.estudio_id]);
+      await client.query('DELETE FROM cabinas WHERE id = $1 AND estudio_id = $2', [id, req.usuario.estudio_id]);
       await client.query('COMMIT');
       res.json({ message: 'Cabina eliminada correctamente' });
     } catch (err) {
@@ -68,8 +71,8 @@ const bulkDeleteCabinas = async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query('UPDATE citas SET cabina_id = NULL WHERE cabina_id = ANY($1)', [ids]);
-      await client.query('DELETE FROM cabinas WHERE id = ANY($1)', [ids]);
+      await client.query('UPDATE citas SET cabina_id = NULL WHERE cabina_id = ANY($1) AND estudio_id = $2', [ids, req.usuario.estudio_id]);
+      await client.query('DELETE FROM cabinas WHERE id = ANY($1) AND estudio_id = $2', [ids, req.usuario.estudio_id]);
       await client.query('COMMIT');
       res.json({ message: `${ids.length} cabinas eliminadas correctamente` });
     } catch (err) {

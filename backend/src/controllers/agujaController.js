@@ -2,7 +2,7 @@ const Aguja = require('../models/aguja');
 
 const getAgujas = async (req, res) => {
   try {
-    const agujas = await Aguja.buscarTodas(req.query);
+    const agujas = await Aguja.buscarTodas(req.query, req.usuario.estudio_id);
     res.json(agujas);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
@@ -10,14 +10,14 @@ const getAgujas = async (req, res) => {
 const getCaducidadProxima = async (req, res) => {
   try {
     const dias = parseInt(req.query.dias) || 30;
-    const agujas = await Aguja.buscarProximasCaducidad(dias);
+    const agujas = await Aguja.buscarProximasCaducidad(dias, req.usuario.estudio_id);
     res.json(agujas);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const getAguja = async (req, res) => {
   try {
-    const a = await Aguja.buscarPorId(req.params.id);
+    const a = await Aguja.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!a) return res.status(404).json({ error: 'Aguja no encontrada' });
     res.json(a);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -25,14 +25,14 @@ const getAguja = async (req, res) => {
 
 const createAguja = async (req, res) => {
   try {
-    const a = await Aguja.crear(req.body);
+    const a = await Aguja.crear(req.body, req.usuario.estudio_id);
     res.status(201).json(a);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const updateAguja = async (req, res) => {
   try {
-    const a = await Aguja.actualizar(req.params.id, req.body);
+    const a = await Aguja.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!a) return res.status(404).json({ error: 'Aguja no encontrada' });
     res.json(a);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -40,7 +40,7 @@ const updateAguja = async (req, res) => {
 
 const deleteAguja = async (req, res) => {
   try {
-    const a = await Aguja.desactivar(req.params.id);
+    const a = await Aguja.desactivar(req.params.id, req.usuario.estudio_id);
     if (!a) return res.status(404).json({ error: 'Aguja no encontrada' });
     res.json(a);
   } catch (err) { res.status(500).json({ error: err.message }); }

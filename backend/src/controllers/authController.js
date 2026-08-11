@@ -13,16 +13,17 @@ const login = async (req, res) => {
     if (!valido) return res.status(401).json({ error: 'Credenciales incorrectas' });
 
     const token = jwt.sign(
-      { id: empleado.id, email: empleado.email, rol: empleado.rol, nombre: empleado.nombre },
+      { id: empleado.id, email: empleado.email, rol: empleado.rol, nombre: empleado.nombre, estudio_id: empleado.estudio_id },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
-    res.json({ token, usuario: { id: empleado.id, nombre: empleado.nombre, email: empleado.email, rol: empleado.rol } });
+    res.json({ token, usuario: { id: empleado.id, nombre: empleado.nombre, email: empleado.email, rol: empleado.rol, estudio_id: empleado.estudio_id } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 const registro = async (req, res) => {
   try {

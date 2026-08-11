@@ -10,8 +10,8 @@ const {
 const getComunicaciones = async (req, res) => {
   try {
     const { tipo, estado, fecha_inicio, fecha_fin } = req.query;
-    const conditions = [];
-    const values = [];
+    const conditions = ['ce.estudio_id = $1'];
+    const values = [req.usuario.estudio_id];
 
     if (tipo) { values.push(tipo); conditions.push(`ce.tipo = $${values.length}`); }
     if (estado) { values.push(estado); conditions.push(`ce.estado = $${values.length}`); }
@@ -37,7 +37,7 @@ const getComunicaciones = async (req, res) => {
 
 const getPlantillas = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM plantillas_comunicacion ORDER BY id');
+    const result = await pool.query('SELECT * FROM plantillas_comunicacion WHERE estudio_id = $1 ORDER BY id', [req.usuario.estudio_id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -49,8 +49,8 @@ const updatePlantilla = async (req, res) => {
     const { asunto, contenido, activa } = req.body;
     const result = await pool.query(
       `UPDATE plantillas_comunicacion SET asunto = $1, contenido = $2, activa = $3, updated_at = NOW()
-       WHERE id = $4 RETURNING *`,
-      [asunto, contenido, activa !== undefined ? activa : true, req.params.id]
+       WHERE id = $4 AND estudio_id = $5 RETURNING *`,
+      [asunto, contenido, activa !== undefined ? activa : true, req.params.id, req.usuario.estudio_id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Plantilla no encontrada' });
     res.json(result.rows[0]);
@@ -108,7 +108,8 @@ const getEstadisticas = async (req, res) => {
         COUNT(*) FILTER (WHERE estado = 'error')                                             AS total_error,
         COUNT(*)                                                                              AS total
       FROM comunicaciones_enviadas
-    `);
+      WHERE estudio_id = $1
+    `, [req.usuario.estudio_id]);
     const stats = result.rows[0];
     stats.tasa_exito = stats.total > 0
       ? Math.round((stats.total_ok / stats.total) * 100)

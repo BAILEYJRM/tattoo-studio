@@ -3,7 +3,7 @@ const ArticuloTpv = require('../models/articuloTpv');
 const articuloTpvController = {
   obtenerTodos: async (req, res) => {
     try {
-      const articulos = await ArticuloTpv.buscarTodos();
+      const articulos = await ArticuloTpv.buscarTodos(req.usuario.estudio_id);
       res.json(articulos);
     } catch (err) {
       console.error(err);
@@ -13,7 +13,7 @@ const articuloTpvController = {
 
   obtenerPorId: async (req, res) => {
     try {
-      const articulo = await ArticuloTpv.buscarPorId(req.params.id);
+      const articulo = await ArticuloTpv.buscarPorId(req.params.id, req.usuario.estudio_id);
       if (!articulo) return res.status(404).json({ error: 'Artículo no encontrado' });
       res.json(articulo);
     } catch (err) {
@@ -24,7 +24,7 @@ const articuloTpvController = {
 
   crear: async (req, res) => {
     try {
-      const articulo = await ArticuloTpv.crear(req.body);
+      const articulo = await ArticuloTpv.crear(req.body, req.usuario.estudio_id);
       res.status(201).json(articulo);
     } catch (err) {
       console.error(err);
@@ -34,7 +34,7 @@ const articuloTpvController = {
 
   actualizar: async (req, res) => {
     try {
-      const articulo = await ArticuloTpv.actualizar(req.params.id, req.body);
+      const articulo = await ArticuloTpv.actualizar(req.params.id, req.body, req.usuario.estudio_id);
       res.json(articulo);
     } catch (err) {
       console.error(err);
@@ -44,7 +44,7 @@ const articuloTpvController = {
 
   borrar: async (req, res) => {
     try {
-      await ArticuloTpv.borrar(req.params.id);
+      await ArticuloTpv.borrar(req.params.id, req.usuario.estudio_id);
       res.json({ success: true });
     } catch (err) {
       console.error(err);

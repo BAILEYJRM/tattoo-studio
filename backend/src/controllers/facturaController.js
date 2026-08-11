@@ -3,14 +3,14 @@ const Recibo = require('../models/recibo');
 
 const getFacturas = async (req, res) => {
   try {
-    const facturas = await Factura.buscarTodas(req.query);
+    const facturas = await Factura.buscarTodas(req.query, req.usuario.estudio_id);
     res.json(facturas);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const getFactura = async (req, res) => {
   try {
-    const factura = await Factura.buscarPorId(req.params.id);
+    const factura = await Factura.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!factura) return res.status(404).json({ error: 'Factura no encontrada' });
     res.json(factura);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -23,7 +23,7 @@ const crearFactura = async (req, res) => {
     let base = req.body;
     // Si viene de un recibo, heredar datos
     if (recibo_id) {
-      const recibo = await Recibo.buscarPorId(recibo_id);
+      const recibo = await Recibo.buscarPorId(recibo_id, req.usuario.estudio_id);
       if (!recibo) return res.status(404).json({ error: 'Recibo no encontrado' });
       const ivaPct = iva_porcentaje ?? 21;
       const iva = Number(recibo.subtotal) * ivaPct / 100;
@@ -39,7 +39,7 @@ const crearFactura = async (req, res) => {
       };
     }
 
-    const factura = await Factura.crear(base);
+    const factura = await Factura.crear(base, req.usuario.estudio_id);
     res.status(201).json(factura);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };

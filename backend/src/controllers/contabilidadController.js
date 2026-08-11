@@ -20,9 +20,9 @@ const getRecuentoDiario = async (req, res) => {
        FROM citas c
        LEFT JOIN clientes cl ON c.cliente_id = cl.id
        LEFT JOIN empleados e ON c.artista_id = e.id
-       WHERE c.fecha = $1 AND c.estado IN ('confirmada','completada')
+       WHERE c.fecha = $1 AND c.estado IN ('confirmada','completada') AND c.estudio_id = $2
        ORDER BY c.hora_inicio`,
-      [fecha]
+      [fecha, req.usuario.estudio_id]
     );
     const citas = citasRes.rows;
 
@@ -32,9 +32,9 @@ const getRecuentoDiario = async (req, res) => {
         cl.nombre || ' ' || cl.apellidos AS cliente_nombre
        FROM ventas v
        LEFT JOIN clientes cl ON v.cliente_id = cl.id
-       WHERE v.fecha = $1 AND v.estado = 'pagado'
+       WHERE v.fecha = $1 AND v.estado = 'pagado' AND v.estudio_id = $2
        ORDER BY v.created_at`,
-      [fecha]
+      [fecha, req.usuario.estudio_id]
     );
     const ventas = ventasRes.rows;
 
@@ -48,10 +48,10 @@ const getRecuentoDiario = async (req, res) => {
         ROUND(COALESCE(SUM(c.precio - c.precio * COALESCE(c.comision_artista, e.comision_porcentaje, 0) / 100), 0), 2) AS beneficio_estudio
        FROM citas c
        LEFT JOIN empleados e ON c.artista_id = e.id
-       WHERE c.fecha = $1 AND c.estado IN ('confirmada','completada')
+       WHERE c.fecha = $1 AND c.estado IN ('confirmada','completada') AND c.estudio_id = $2
        GROUP BY e.id, e.nombre, e.apellidos, e.color_calendario
        ORDER BY total_facturado DESC`,
-      [fecha]
+      [fecha, req.usuario.estudio_id]
     );
 
     // Calcular resumen global
@@ -107,15 +107,15 @@ const getLiquidacionArtista = async (req, res) => {
        LEFT JOIN clientes cl ON c.cliente_id = cl.id
        LEFT JOIN empleados e ON c.artista_id = e.id
        WHERE c.artista_id = $1 AND c.fecha BETWEEN $2 AND $3
-         AND c.estado IN ('confirmada','completada')
+         AND c.estado IN ('confirmada','completada') AND c.estudio_id = $4
        ORDER BY c.fecha, c.hora_inicio`,
-      [artista_id, fecha_inicio, fecha_fin]
+      [artista_id, fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
     const citas = citasRes.rows;
 
     const empRes = await pool.query(
-      'SELECT nombre, apellidos, nombre_artistico, color_calendario, comision_porcentaje FROM empleados WHERE id=$1',
-      [artista_id]
+      'SELECT nombre, apellidos, nombre_artistico, color_calendario, comision_porcentaje FROM empleados WHERE id=$1 AND estudio_id=$2',
+      [artista_id, req.usuario.estudio_id]
     );
 
     const totales = {
@@ -148,23 +148,23 @@ const getLiquidacionEstudio = async (req, res) => {
         COUNT(*) AS num_servicios
        FROM citas c
        LEFT JOIN empleados e ON c.artista_id = e.id
-       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado IN ('confirmada','completada')`,
-      [fecha_inicio, fecha_fin]
+       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado IN ('confirmada','completada') AND c.estudio_id = $3`,
+      [fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
 
     // Ingresos productos
     const productosRes = await pool.query(
       `SELECT COALESCE(SUM(v.total), 0) AS total_productos, COUNT(*) AS num_ventas
        FROM ventas v
-       WHERE v.fecha BETWEEN $1 AND $2 AND v.estado = 'pagado'`,
-      [fecha_inicio, fecha_fin]
+       WHERE v.fecha BETWEEN $1 AND $2 AND v.estado = 'pagado' AND v.estudio_id = $3`,
+      [fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
 
     // Gastos
     const gastosRes = await pool.query(
       `SELECT COALESCE(SUM(importe), 0) AS total_gastos, COUNT(*) AS num_gastos
-       FROM gastos WHERE fecha BETWEEN $1 AND $2`,
-      [fecha_inicio, fecha_fin]
+       FROM gastos WHERE fecha BETWEEN $1 AND $2 AND estudio_id = $3`,
+      [fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
 
     // Desglose por artista
@@ -177,10 +177,10 @@ const getLiquidacionEstudio = async (req, res) => {
         ROUND(COALESCE(SUM(c.precio - c.precio * COALESCE(c.comision_artista, e.comision_porcentaje, 0) / 100), 0), 2) AS beneficio_estudio
        FROM citas c
        LEFT JOIN empleados e ON c.artista_id = e.id
-       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado IN ('confirmada','completada')
+       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado IN ('confirmada','completada') AND c.estudio_id = $3
        GROUP BY e.id, e.nombre, e.apellidos, e.color_calendario
        ORDER BY facturado DESC`,
-      [fecha_inicio, fecha_fin]
+      [fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
 
     // Artículos más vendidos
@@ -188,11 +188,11 @@ const getLiquidacionEstudio = async (req, res) => {
       `SELECT vl.descripcion, SUM(vl.cantidad) AS cantidad, SUM(vl.subtotal) AS total
        FROM venta_lineas vl
        JOIN ventas v ON vl.venta_id = v.id
-       WHERE v.fecha BETWEEN $1 AND $2 AND v.estado = 'pagado'
+       WHERE v.fecha BETWEEN $1 AND $2 AND v.estado = 'pagado' AND v.estudio_id = $3
        GROUP BY vl.descripcion
        ORDER BY total DESC
        LIMIT 10`,
-      [fecha_inicio, fecha_fin]
+      [fecha_inicio, fecha_fin, req.usuario.estudio_id]
     );
 
     const s = serviciosRes.rows[0];

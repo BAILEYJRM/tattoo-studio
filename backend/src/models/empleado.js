@@ -19,12 +19,12 @@ const Estudio = {
 
 
 const Empleado = {
-  async crear({ nombre, apellidos, email, password, telefono, rol }) {
+  async crear({ nombre, apellidos, email, password, telefono, rol, estudio_id }) {
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO empleados (nombre, apellidos, email, password, telefono, rol)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nombre, apellidos, email, rol`,
-      [nombre, apellidos, email, hash, telefono, rol]
+      `INSERT INTO empleados (nombre, apellidos, email, password, telefono, rol, estudio_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nombre, apellidos, email, rol`,
+      [nombre, apellidos, email, hash, telefono, rol, estudio_id]
     );
     return result.rows[0];
   },
@@ -37,17 +37,18 @@ const Empleado = {
     return result.rows[0];
   },
 
-  async buscarTodos() {
+  async buscarTodos(estudio_id) {
     const result = await pool.query(
-      'SELECT id, nombre, apellidos, email, telefono, rol, activo, created_at FROM empleados ORDER BY nombre'
+      'SELECT id, nombre, apellidos, email, telefono, rol, activo, created_at FROM empleados WHERE estudio_id = $1 ORDER BY nombre',
+      [estudio_id]
     );
     return result.rows;
   },
 
-  async buscarPorId(id) {
+  async buscarPorId(id, estudio_id) {
     const result = await pool.query(
-      'SELECT id, nombre, apellidos, email, telefono, rol, activo FROM empleados WHERE id = $1',
-      [id]
+      'SELECT id, nombre, apellidos, email, telefono, rol, activo FROM empleados WHERE id = $1 AND estudio_id = $2',
+      [id, estudio_id]
     );
     return result.rows[0];
   },

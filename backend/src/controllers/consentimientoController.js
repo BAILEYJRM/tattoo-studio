@@ -9,9 +9,9 @@ const getConsentimientos = async (req, res) => {
     const { buscar, tipo, cliente_id } = req.query;
     let consentimientos;
     if (buscar) {
-      consentimientos = await Consentimiento.buscarPorCliente(buscar);
+      consentimientos = await Consentimiento.buscarPorCliente(buscar, req.usuario.estudio_id);
     } else {
-      consentimientos = await Consentimiento.buscarTodos({ tipo, cliente_id });
+      consentimientos = await Consentimiento.buscarTodos({ tipo, cliente_id }, req.usuario.estudio_id);
     }
     res.json(consentimientos);
   } catch (err) {
@@ -21,7 +21,7 @@ const getConsentimientos = async (req, res) => {
 
 const getConsentimiento = async (req, res) => {
   try {
-    const c = await Consentimiento.buscarPorId(req.params.id);
+    const c = await Consentimiento.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Consentimiento no encontrado' });
     res.json(c);
   } catch (err) {
@@ -35,7 +35,7 @@ const crearConsentimiento = async (req, res) => {
     const empleado_id = req.usuario.id;
 
     // Obtener plantilla para el PDF
-    const plantilla = await PlantillaConsentimiento.buscarPorId(plantilla_id);
+    const plantilla = await PlantillaConsentimiento.buscarPorId(plantilla_id, req.usuario.estudio_id);
     if (!plantilla) return res.status(404).json({ error: 'Plantilla no encontrada' });
 
     // Crear registro (sin pdf_path aún)
@@ -48,11 +48,12 @@ const crearConsentimiento = async (req, res) => {
       firma_imagen,
       pdf_path: null,
       empleado_id,
-    });
+      estudio_id: req.usuario.estudio_id,
+    }, req.usuario.estudio_id);
 
     // Generar PDF antes de responder
     const pdfPath = await generarPdfConsentimiento(consentimiento, plantilla);
-    await Consentimiento.actualizarPdf(consentimiento.id, pdfPath);
+    await Consentimiento.actualizarPdf(consentimiento.id, pdfPath, req.usuario.estudio_id);
     consentimiento.pdf_path = pdfPath;
 
     res.status(201).json(consentimiento);
@@ -63,16 +64,16 @@ const crearConsentimiento = async (req, res) => {
 
 const descargarPdf = async (req, res) => {
   try {
-    const c = await Consentimiento.buscarPorId(req.params.id);
+    const c = await Consentimiento.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Consentimiento no encontrado' });
     if (!c.pdf_path) return res.status(404).json({ error: 'PDF no generado aún' });
 
     const rutaAbsoluta = path.join(__dirname, '../../', c.pdf_path);
     if (!fs.existsSync(rutaAbsoluta)) {
       // Regenerar si no existe
-      const plantilla = await PlantillaConsentimiento.buscarPorId(c.plantilla_id);
+      const plantilla = await PlantillaConsentimiento.buscarPorId(c.plantilla_id, req.usuario.estudio_id);
       const pdfPath = await generarPdfConsentimiento(c, plantilla);
-      await Consentimiento.actualizarPdf(c.id, pdfPath);
+      await Consentimiento.actualizarPdf(c.id, pdfPath, req.usuario.estudio_id);
       const nuevaRuta = path.join(__dirname, '../../', pdfPath);
       return res.download(nuevaRuta, `consentimiento-${c.id}.pdf`);
     }
@@ -85,14 +86,14 @@ const descargarPdf = async (req, res) => {
 
 const regenerarPdf = async (req, res) => {
   try {
-    const c = await Consentimiento.buscarPorId(req.params.id);
+    const c = await Consentimiento.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Consentimiento no encontrado' });
 
-    const plantilla = await PlantillaConsentimiento.buscarPorId(c.plantilla_id);
+    const plantilla = await PlantillaConsentimiento.buscarPorId(c.plantilla_id, req.usuario.estudio_id);
     if (!plantilla) return res.status(404).json({ error: 'Plantilla no encontrada' });
 
     const pdfPath = await generarPdfConsentimiento(c, plantilla);
-    await Consentimiento.actualizarPdf(c.id, pdfPath);
+    await Consentimiento.actualizarPdf(c.id, pdfPath, req.usuario.estudio_id);
 
     res.json({ pdf_path: pdfPath });
   } catch (err) {
@@ -103,9 +104,9 @@ const regenerarPdf = async (req, res) => {
 const enviarEmailConsentimiento = async (req, res) => {
   try {
     const { enviarConsentimientoFirmado } = require('../services/emailService');
-    const c = await Consentimiento.buscarPorId(req.params.id);
+    const c = await Consentimiento.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!c) return res.status(404).json({ error: 'Consentimiento no encontrado' });
-    const ok = await enviarConsentimientoFirmado(req.params.id);
+    const ok = await enviarConsentimientoFirmado(req.params.id, req.usuario.estudio_id); // we might need to pass estudio_id if emailService is also multi-tenant, but for now we just verify if they own the consent
     if (ok) res.json({ ok: true, mensaje: 'Email enviado' });
     else res.status(422).json({ ok: false, mensaje: 'No se pudo enviar (cliente sin email o plantilla inactiva)' });
   } catch (err) {

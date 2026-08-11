@@ -4,10 +4,11 @@ const pool = require('../config/database');
 const getCitas = async (req, res) => {
   try {
     const { fecha, artista_id } = req.query;
+    const { estudio_id } = req.usuario;
     let citas;
-    if (fecha) citas = await Cita.buscarPorFecha(fecha);
-    else if (artista_id) citas = await Cita.buscarPorArtista(artista_id);
-    else citas = await Cita.buscarTodas();
+    if (fecha) citas = await Cita.buscarPorFecha(fecha, estudio_id);
+    else if (artista_id) citas = await Cita.buscarPorArtista(artista_id, estudio_id);
+    else citas = await Cita.buscarTodas(estudio_id);
     res.json(citas);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -16,7 +17,7 @@ const getCitas = async (req, res) => {
 
 const getCita = async (req, res) => {
   try {
-    const cita = await Cita.buscarPorId(req.params.id);
+    const cita = await Cita.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
     res.json(cita);
   } catch (err) {
@@ -26,7 +27,7 @@ const getCita = async (req, res) => {
 
 const crearCita = async (req, res) => {
   try {
-    const cita = await Cita.crear(req.body);
+    const cita = await Cita.crear(req.body, req.usuario.estudio_id);
     res.status(201).json(cita);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -35,7 +36,7 @@ const crearCita = async (req, res) => {
 
 const actualizarCita = async (req, res) => {
   try {
-    const cita = await Cita.actualizar(req.params.id, req.body);
+    const cita = await Cita.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
     res.json(cita);
   } catch (err) {
@@ -61,7 +62,7 @@ const finalizarCita = async (req, res) => {
     const cita = await Cita.finalizar(req.params.id, { forma_pago, precio_final, comision_artista, no_presentado });
     if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
     if (no_presentado && cita.cliente_id) {
-      await pool.query('UPDATE clientes SET no_shows = no_shows + 1 WHERE id=$1', [cita.cliente_id]);
+      await pool.query('UPDATE clientes SET no_shows = no_shows + 1 WHERE id=$1 AND estudio_id=$2', [cita.cliente_id, req.usuario.estudio_id]);
     }
     res.json(cita);
   } catch (err) {
@@ -98,7 +99,7 @@ const verificarSolapamiento = async (req, res) => {
     const hiStr = hora_inicio.length === 5 ? hora_inicio + ':00' : hora_inicio;
     const hfStr = hora_fin.length === 5 ? hora_fin + ':00' : hora_fin;
 
-    const params = [fecha, hiStr, hfStr];
+    const params = [fecha, hiStr, hfStr, req.usuario.estudio_id];
     let q = `
       SELECT c.*,
              cl.nombre || ' ' || cl.apellidos AS cliente_nombre,
@@ -109,12 +110,13 @@ const verificarSolapamiento = async (req, res) => {
       LEFT JOIN empleados e ON e.id = c.artista_id
       LEFT JOIN cabinas cab ON cab.id = c.cabina_id
       WHERE c.fecha = $1
+        AND c.estudio_id = $4
         AND c.estado NOT IN ('cancelada')
         AND c.hora_inicio < $3
         AND c.hora_fin > $2
     `;
 
-    let idx = 4;
+    let idx = 5;
     if (excluir_id) { q += ` AND c.id != $${idx}`; params.push(excluir_id); idx++; }
 
     const orConds = [];
@@ -144,10 +146,10 @@ const crearCitasGrupo = async (req, res) => {
     const creadas = [];
     for (const { cliente_id, precio } of clientes) {
       const qRes = await client.query(
-        `INSERT INTO citas (cliente_id, artista_id, cabina_id, fecha, hora_inicio, hora_fin, descripcion, precio, estado)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente') RETURNING *`,
+        `INSERT INTO citas (cliente_id, artista_id, cabina_id, fecha, hora_inicio, hora_fin, descripcion, precio, estado, estudio_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9) RETURNING *`,
         [cliente_id, artista_id || null, cabina_id || null, fecha, hiStr, hfStr,
-          descripcion || null, precio ? Number(precio) : null]
+          descripcion || null, precio ? Number(precio) : null, req.usuario.estudio_id]
       );
       creadas.push(qRes.rows[0]);
     }
@@ -163,7 +165,7 @@ const crearCitasGrupo = async (req, res) => {
 
 const eliminarCita = async (req, res) => {
   try {
-    const cita = await Cita.eliminar(req.params.id);
+    const cita = await Cita.eliminar(req.params.id, req.usuario.estudio_id);
     if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
     res.json(cita);
   } catch (err) {

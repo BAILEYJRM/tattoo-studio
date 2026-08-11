@@ -2,7 +2,7 @@ const Tinta = require('../models/tinta');
 
 const getTintas = async (req, res) => {
   try {
-    const tintas = await Tinta.buscarTodas(req.query);
+    const tintas = await Tinta.buscarTodas(req.query, req.usuario.estudio_id);
     res.json(tintas);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
@@ -10,14 +10,14 @@ const getTintas = async (req, res) => {
 const getCaducidadProxima = async (req, res) => {
   try {
     const dias = parseInt(req.query.dias) || 30;
-    const tintas = await Tinta.buscarProximasCaducidad(dias);
+    const tintas = await Tinta.buscarProximasCaducidad(dias, req.usuario.estudio_id);
     res.json(tintas);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const getTinta = async (req, res) => {
   try {
-    const t = await Tinta.buscarPorId(req.params.id);
+    const t = await Tinta.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!t) return res.status(404).json({ error: 'Tinta no encontrada' });
     res.json(t);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -25,14 +25,14 @@ const getTinta = async (req, res) => {
 
 const createTinta = async (req, res) => {
   try {
-    const t = await Tinta.crear(req.body);
+    const t = await Tinta.crear(req.body, req.usuario.estudio_id);
     res.status(201).json(t);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const updateTinta = async (req, res) => {
   try {
-    const t = await Tinta.actualizar(req.params.id, req.body);
+    const t = await Tinta.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!t) return res.status(404).json({ error: 'Tinta no encontrada' });
     res.json(t);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -40,7 +40,7 @@ const updateTinta = async (req, res) => {
 
 const deleteTinta = async (req, res) => {
   try {
-    const t = await Tinta.desactivar(req.params.id);
+    const t = await Tinta.desactivar(req.params.id, req.usuario.estudio_id);
     if (!t) return res.status(404).json({ error: 'Tinta no encontrada' });
     res.json(t);
   } catch (err) { res.status(500).json({ error: err.message }); }

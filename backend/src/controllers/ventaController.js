@@ -2,7 +2,7 @@ const Venta = require('../models/venta');
 
 const getVentas = async (req, res) => {
   try {
-    const ventas = await Venta.buscarTodas(req.query);
+    const ventas = await Venta.buscarTodas(req.query, req.usuario.estudio_id);
     res.json(ventas);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -11,7 +11,7 @@ const getVentas = async (req, res) => {
 
 const getVenta = async (req, res) => {
   try {
-    const venta = await Venta.buscarPorId(req.params.id);
+    const venta = await Venta.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
     res.json(venta);
   } catch (err) {
@@ -23,6 +23,7 @@ const crearVenta = async (req, res) => {
   try {
     const { lineas, ...ventaDatos } = req.body;
     ventaDatos.empleado_id = req.usuario.id;
+    ventaDatos.estudio_id = req.usuario.estudio_id;
     const venta = await Venta.crear(ventaDatos, lineas || []);
     res.status(201).json(venta);
   } catch (err) {
@@ -32,7 +33,7 @@ const crearVenta = async (req, res) => {
 
 const actualizarVenta = async (req, res) => {
   try {
-    const venta = await Venta.actualizar(req.params.id, req.body);
+    const venta = await Venta.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
     res.json(venta);
   } catch (err) {
@@ -43,7 +44,7 @@ const actualizarVenta = async (req, res) => {
 const getResumenDia = async (req, res) => {
   try {
     const fecha = req.query.fecha || new Date().toISOString().split('T')[0];
-    const resumen = await Venta.resumenDia(fecha);
+    const resumen = await Venta.resumenDia(fecha, req.usuario.estudio_id);
     res.json(resumen);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -55,7 +56,7 @@ const getResumenMes = async (req, res) => {
     const now = new Date();
     const year = req.query.year || now.getFullYear();
     const month = req.query.month || (now.getMonth() + 1);
-    const resumen = await Venta.resumenMes(year, month);
+    const resumen = await Venta.resumenMes(year, month, req.usuario.estudio_id);
     res.json(resumen);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -7,29 +7,29 @@ const Venta = {
       await client.query('BEGIN');
       const { cliente_id, cita_id, fecha, subtotal, total, impuestos, descuentos, metodo_pago, estado, notas, empleado_id } = datos;
       const ventaRes = await client.query(
-        `INSERT INTO ventas (cliente_id, cita_id, fecha, subtotal, total, impuestos, descuentos, metodo_pago, estado, notas, empleado_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+        `INSERT INTO ventas (cliente_id, cita_id, fecha, subtotal, total, impuestos, descuentos, metodo_pago, estado, notas, empleado_id, estudio_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
         [cliente_id || null, cita_id || null, fecha, subtotal, total, impuestos || 0, descuentos || 0,
-          metodo_pago || 'efectivo', estado || 'pagado', notas, empleado_id]
+          metodo_pago || 'efectivo', estado || 'pagado', notas, empleado_id, datos.estudio_id]
       );
       const venta = ventaRes.rows[0];
 
       for (const linea of lineas) {
         const { tipo, producto_id, descripcion, cantidad, precio_unitario, impuesto_porcentaje, descuento_porcentaje, subtotal: lineaSub } = linea;
         await client.query(
-          `INSERT INTO venta_lineas (venta_id, tipo, producto_id, descripcion, cantidad, precio_unitario, impuesto_porcentaje, descuento_porcentaje, subtotal)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-          [venta.id, tipo, producto_id || null, descripcion, cantidad, precio_unitario, impuesto_porcentaje || 21, descuento_porcentaje || 0, lineaSub]
+          `INSERT INTO venta_lineas (venta_id, tipo, producto_id, descripcion, cantidad, precio_unitario, impuesto_porcentaje, descuento_porcentaje, subtotal, estudio_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          [venta.id, tipo, producto_id || null, descripcion, cantidad, precio_unitario, impuesto_porcentaje || 21, descuento_porcentaje || 0, lineaSub, datos.estudio_id]
         );
         if (tipo === 'producto' && producto_id) {
           await client.query(
-            'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2',
-            [cantidad, producto_id]
+            'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2 AND estudio_id = $3',
+            [cantidad, producto_id, datos.estudio_id]
           );
           await client.query(
-            `INSERT INTO movimientos_stock (producto_id, tipo, cantidad, motivo, referencia_id, empleado_id)
-             VALUES ($1, 'salida', $2, 'venta', $3, $4)`,
-            [producto_id, cantidad, venta.id, empleado_id]
+            `INSERT INTO movimientos_stock (producto_id, tipo, cantidad, motivo, referencia_id, empleado_id, estudio_id)
+             VALUES ($1, 'salida', $2, 'venta', $3, $4, $5)`,
+            [producto_id, cantidad, venta.id, empleado_id, datos.estudio_id]
           );
         }
       }
@@ -44,13 +44,13 @@ const Venta = {
     }
   },
 
-  buscarTodas: async (params = {}) => {
+  buscarTodas: async (params = {}, estudio_id) => {
     let q = `SELECT v.*, c.nombre || ' ' || c.apellidos as cliente_nombre, e.nombre as empleado_nombre
              FROM ventas v
              LEFT JOIN clientes c ON c.id = v.cliente_id
              LEFT JOIN empleados e ON e.id = v.empleado_id`;
-    const conditions = [];
-    const values = [];
+    const conditions = [`v.estudio_id = $1`];
+    const values = [estudio_id];
     if (params.fecha_desde) { values.push(params.fecha_desde); conditions.push(`v.fecha >= $${values.length}`); }
     if (params.fecha_hasta) { values.push(params.fecha_hasta); conditions.push(`v.fecha <= $${values.length}`); }
     if (params.estado) { values.push(params.estado); conditions.push(`v.estado = $${values.length}`); }
@@ -60,14 +60,14 @@ const Venta = {
     return result.rows;
   },
 
-  buscarPorId: async (id) => {
+  buscarPorId: async (id, estudio_id) => {
     const ventaRes = await pool.query(
       `SELECT v.*, c.nombre || ' ' || c.apellidos as cliente_nombre, e.nombre as empleado_nombre
        FROM ventas v
        LEFT JOIN clientes c ON c.id = v.cliente_id
        LEFT JOIN empleados e ON e.id = v.empleado_id
-       WHERE v.id = $1`,
-      [id]
+       WHERE v.id = $1 AND v.estudio_id = $2`,
+      [id, estudio_id]
     );
     const venta = ventaRes.rows[0];
     if (!venta) return null;
@@ -81,33 +81,33 @@ const Venta = {
     return venta;
   },
 
-  actualizar: async (id, datos) => {
+  actualizar: async (id, datos, estudio_id) => {
     const { estado, notas, metodo_pago } = datos;
     const result = await pool.query(
-      'UPDATE ventas SET estado=$1, notas=$2, metodo_pago=$3 WHERE id=$4 RETURNING *',
-      [estado, notas, metodo_pago, id]
+      'UPDATE ventas SET estado=$1, notas=$2, metodo_pago=$3 WHERE id=$4 AND estudio_id=$5 RETURNING *',
+      [estado, notas, metodo_pago, id, estudio_id]
     );
     return result.rows[0];
   },
 
-  resumenDia: async (fecha) => {
+  resumenDia: async (fecha, estudio_id) => {
     const result = await pool.query(
       `SELECT COUNT(*) as num_ventas, COALESCE(SUM(total),0) as total,
          COALESCE(SUM(CASE WHEN metodo_pago='efectivo' THEN total ELSE 0 END),0) as efectivo,
          COALESCE(SUM(CASE WHEN metodo_pago='tarjeta' THEN total ELSE 0 END),0) as tarjeta,
          COALESCE(SUM(CASE WHEN metodo_pago='bizum' THEN total ELSE 0 END),0) as bizum
-       FROM ventas WHERE fecha = $1 AND estado = 'pagado'`,
-      [fecha]
+       FROM ventas WHERE fecha = $1 AND estado = 'pagado' AND estudio_id = $2`,
+      [fecha, estudio_id]
     );
     return result.rows[0];
   },
 
-  resumenMes: async (year, month) => {
+  resumenMes: async (year, month, estudio_id) => {
     const result = await pool.query(
       `SELECT COALESCE(SUM(total),0) as total, COUNT(*) as num_ventas
        FROM ventas
-       WHERE EXTRACT(YEAR FROM fecha) = $1 AND EXTRACT(MONTH FROM fecha) = $2 AND estado = 'pagado'`,
-      [year, month]
+       WHERE EXTRACT(YEAR FROM fecha) = $1 AND EXTRACT(MONTH FROM fecha) = $2 AND estado = 'pagado' AND estudio_id = $3`,
+      [year, month, estudio_id]
     );
     return result.rows[0];
   },

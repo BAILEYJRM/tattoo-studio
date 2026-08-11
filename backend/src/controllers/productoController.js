@@ -3,7 +3,7 @@ const pool = require('../config/database');
 
 const getProductos = async (req, res) => {
   try {
-    const productos = await Producto.buscarTodos();
+    const productos = await Producto.buscarTodos(req.usuario.estudio_id);
     res.json(productos);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -14,7 +14,7 @@ const buscarProductos = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) return res.json([]);
-    const productos = await Producto.buscar(q);
+    const productos = await Producto.buscar(q, req.usuario.estudio_id);
     res.json(productos);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -23,7 +23,7 @@ const buscarProductos = async (req, res) => {
 
 const getProducto = async (req, res) => {
   try {
-    const producto = await Producto.buscarPorId(req.params.id);
+    const producto = await Producto.buscarPorId(req.params.id, req.usuario.estudio_id);
     if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
     res.json(producto);
   } catch (err) {
@@ -33,7 +33,7 @@ const getProducto = async (req, res) => {
 
 const crearProducto = async (req, res) => {
   try {
-    const producto = await Producto.crear(req.body);
+    const producto = await Producto.crear(req.body, req.usuario.estudio_id);
     res.status(201).json(producto);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -42,7 +42,7 @@ const crearProducto = async (req, res) => {
 
 const actualizarProducto = async (req, res) => {
   try {
-    const producto = await Producto.actualizar(req.params.id, req.body);
+    const producto = await Producto.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
     res.json(producto);
   } catch (err) {
@@ -52,7 +52,7 @@ const actualizarProducto = async (req, res) => {
 
 const getStockBajo = async (req, res) => {
   try {
-    const productos = await Producto.stockBajo();
+    const productos = await Producto.stockBajo(req.usuario.estudio_id);
     res.json(productos);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -65,8 +65,8 @@ const deleteProducto = async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query('DELETE FROM movimientos_stock WHERE producto_id = $1', [id]);
-      await client.query('DELETE FROM productos WHERE id = $1', [id]);
+      await client.query('DELETE FROM movimientos_stock WHERE producto_id = $1 AND estudio_id = $2', [id, req.usuario.estudio_id]);
+      await client.query('DELETE FROM productos WHERE id = $1 AND estudio_id = $2', [id, req.usuario.estudio_id]);
       await client.query('COMMIT');
       res.json({ message: 'Producto eliminado correctamente' });
     } catch (err) {
@@ -89,8 +89,8 @@ const bulkDeleteProductos = async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query('DELETE FROM movimientos_stock WHERE producto_id = ANY($1)', [ids]);
-      await client.query('DELETE FROM productos WHERE id = ANY($1)', [ids]);
+      await client.query('DELETE FROM movimientos_stock WHERE producto_id = ANY($1) AND estudio_id = $2', [ids, req.usuario.estudio_id]);
+      await client.query('DELETE FROM productos WHERE id = ANY($1) AND estudio_id = $2', [ids, req.usuario.estudio_id]);
       await client.query('COMMIT');
       res.json({ message: `${ids.length} productos eliminados correctamente` });
     } catch (err) {

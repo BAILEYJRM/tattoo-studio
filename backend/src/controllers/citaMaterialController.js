@@ -2,21 +2,21 @@ const CitaMaterial = require('../models/citaMaterial');
 
 const getMaterialCita = async (req, res) => {
   try {
-    const material = await CitaMaterial.getMaterialCita(req.params.id);
+    const material = await CitaMaterial.getMaterialCita(req.params.id, req.usuario.estudio_id);
     res.json(material);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const registrarMaterial = async (req, res) => {
   try {
-    const item = await CitaMaterial.registrarMaterial(req.params.id, req.body);
+    const item = await CitaMaterial.registrarMaterial(req.params.id, req.body, req.usuario.estudio_id);
     res.status(201).json(item);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const eliminarMaterial = async (req, res) => {
   try {
-    await CitaMaterial.eliminarMaterial(req.params.material_id);
+    await CitaMaterial.eliminarMaterial(req.params.material_id, req.usuario.estudio_id);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };

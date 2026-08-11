@@ -2,7 +2,7 @@ const path = require('path');
 const Incidencia = require('../models/incidencia');
 
 const getIncidencias = async (req, res) => {
-  try { res.json(await Incidencia.buscarTodas(req.query)); }
+  try { res.json(await Incidencia.buscarTodas(req.query, req.usuario.estudio_id)); }
   catch (err) { res.status(500).json({ error: err.message }); }
 };
 
@@ -17,13 +17,13 @@ const crearIncidencia = async (req, res) => {
       foto_path,
       fecha: req.body.fecha || new Date().toISOString().split('T')[0],
     };
-    res.status(201).json(await Incidencia.crear(datos));
+    res.status(201).json(await Incidencia.crear(datos, req.usuario.estudio_id));
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 const resolver = async (req, res) => {
   try {
-    const i = await Incidencia.resolver(req.params.id);
+    const i = await Incidencia.resolver(req.params.id, req.usuario.estudio_id);
     if (!i) return res.status(404).json({ error: 'Incidencia no encontrada' });
     res.json(i);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -31,7 +31,7 @@ const resolver = async (req, res) => {
 
 const actualizarIncidencia = async (req, res) => {
   try {
-    const i = await Incidencia.actualizar(req.params.id, req.body);
+    const i = await Incidencia.actualizar(req.params.id, req.body, req.usuario.estudio_id);
     if (!i) return res.status(404).json({ error: 'Incidencia no encontrada' });
     res.json(i);
   } catch (err) { res.status(500).json({ error: err.message }); }

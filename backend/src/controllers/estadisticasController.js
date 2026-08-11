@@ -13,12 +13,13 @@ const getResumen = async (req, res) => {
   try {
     const { inicio, fin } = rango(req);
 
+    const eId = req.usuario.estudio_id;
     const [citasR, clientesR, facturacionR, gastosR, consentR, distR] = await Promise.all([
       pool.query(
         `SELECT COUNT(*) AS total,
                 ROUND(COUNT(*)::numeric / GREATEST(($2::date - $1::date + 1), 1), 2) AS media_diaria
-         FROM citas WHERE fecha BETWEEN $1 AND $2 AND estado NOT IN ('cancelada')`,
-        [inicio, fin]
+         FROM citas WHERE fecha BETWEEN $1 AND $2 AND estado NOT IN ('cancelada') AND estudio_id = $3`,
+        [inicio, fin, eId]
       ),
       pool.query(
         `SELECT
@@ -26,8 +27,8 @@ const getResumen = async (req, res) => {
            COUNT(DISTINCT CASE WHEN cl.created_at BETWEEN $1 AND $2 THEN cl.id END) AS clientes_nuevos
          FROM citas c
          JOIN clientes cl ON cl.id = c.cliente_id
-         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado NOT IN ('cancelada')`,
-        [inicio, fin]
+         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado NOT IN ('cancelada') AND c.estudio_id = $3`,
+        [inicio, fin, eId]
       ),
       pool.query(
         `SELECT COALESCE(SUM(
@@ -35,18 +36,18 @@ const getResumen = async (req, res) => {
                 WHEN c.no_presentado THEN 0
                 ELSE 0 END
          ), 0) AS total_servicios,
-         COALESCE((SELECT SUM(total) FROM ventas WHERE fecha BETWEEN $1 AND $2 AND estado = 'pagado'), 0) AS total_productos
+         COALESCE((SELECT SUM(total) FROM ventas WHERE fecha BETWEEN $1 AND $2 AND estado = 'pagado' AND estudio_id = $3), 0) AS total_productos
          FROM citas c
-         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada'`,
-        [inicio, fin]
+         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada' AND c.estudio_id = $3`,
+        [inicio, fin, eId]
       ),
       pool.query(
-        `SELECT COALESCE(SUM(importe), 0) AS total FROM gastos WHERE fecha BETWEEN $1 AND $2`,
-        [inicio, fin]
+        `SELECT COALESCE(SUM(importe), 0) AS total FROM gastos WHERE fecha BETWEEN $1 AND $2 AND estudio_id = $3`,
+        [inicio, fin, eId]
       ),
       pool.query(
-        `SELECT COUNT(*) AS total FROM consentimientos WHERE DATE(firmado_en) BETWEEN $1 AND $2`,
-        [inicio, fin]
+        `SELECT COUNT(*) AS total FROM consentimientos WHERE DATE(firmado_en) BETWEEN $1 AND $2 AND estudio_id = $3`,
+        [inicio, fin, eId]
       ),
       pool.query(
         `SELECT
@@ -54,8 +55,8 @@ const getResumen = async (req, res) => {
            COUNT(*) FILTER (WHERE descripcion ILIKE '%piercing%' OR tipo = 'piercing') AS piercing,
            COUNT(*) FILTER (WHERE descripcion ILIKE '%microblading%' OR descripcion ILIKE '%micro%' OR tipo = 'microblading') AS microblading,
            COUNT(*) FILTER (WHERE descripcion ILIKE '%laser%' OR descripcion ILIKE '%láser%' OR tipo = 'laser') AS laser
-         FROM citas WHERE fecha BETWEEN $1 AND $2 AND estado NOT IN ('cancelada')`,
-        [inicio, fin]
+         FROM citas WHERE fecha BETWEEN $1 AND $2 AND estado NOT IN ('cancelada') AND estudio_id = $3`,
+        [inicio, fin, eId]
       ),
     ]);
 
@@ -71,8 +72,8 @@ const getResumen = async (req, res) => {
        ), 0) AS total_comisiones
        FROM citas c
        LEFT JOIN empleados e ON e.id = c.artista_id
-       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada'`,
-      [inicio, fin]
+       WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada' AND c.estudio_id = $3`,
+      [inicio, fin, eId]
     );
 
     res.json({
@@ -121,10 +122,12 @@ const getRendimientoArtistas = async (req, res) => {
        LEFT JOIN citas c ON c.artista_id = e.id
          AND c.fecha BETWEEN $1 AND $2
          AND c.estado = 'completada'
+         AND c.estudio_id = $3
+       WHERE e.estudio_id = $3
        GROUP BY e.id, e.nombre, e.apellidos, e.color_calendario
        HAVING COUNT(c.id) > 0
        ORDER BY facturado DESC`,
-      [inicio, fin]
+      [inicio, fin, req.usuario.estudio_id]
     );
     res.json(r.rows.map((row) => ({
       ...row,
@@ -150,20 +153,20 @@ const getTopClientes = async (req, res) => {
                 COUNT(c.id) AS total_citas,
                 COALESCE(SUM(c.precio), 0) AS total_gastado
          FROM citas c JOIN clientes cl ON cl.id = c.cliente_id
-         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada'
+         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada' AND c.estudio_id = $4
          GROUP BY cl.id, cl.nombre, cl.apellidos
          ORDER BY total_citas DESC LIMIT $3`,
-        [inicio, fin, limite]
+        [inicio, fin, limite, req.usuario.estudio_id]
       ),
       pool.query(
         `SELECT cl.nombre || ' ' || cl.apellidos AS cliente_nombre,
                 COUNT(c.id) AS total_citas,
                 COALESCE(SUM(c.precio), 0) AS total_gastado
          FROM citas c JOIN clientes cl ON cl.id = c.cliente_id
-         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada' AND c.precio IS NOT NULL
+         WHERE c.fecha BETWEEN $1 AND $2 AND c.estado = 'completada' AND c.precio IS NOT NULL AND c.estudio_id = $4
          GROUP BY cl.id, cl.nombre, cl.apellidos
          ORDER BY total_gastado DESC LIMIT $3`,
-        [inicio, fin, limite]
+        [inicio, fin, limite, req.usuario.estudio_id]
       ),
     ]);
 
@@ -188,27 +191,27 @@ const getEvolucionMensual = async (req, res) => {
                 COALESCE(SUM(precio), 0) AS ingresos_servicios,
                 COUNT(*) AS citas
          FROM citas
-         WHERE EXTRACT(YEAR FROM fecha) = $1 AND estado = 'completada'
+         WHERE EXTRACT(YEAR FROM fecha) = $1 AND estado = 'completada' AND estudio_id = $2
          GROUP BY mes ORDER BY mes`,
-        [anio]
+        [anio, req.usuario.estudio_id]
       ),
       pool.query(
         `SELECT EXTRACT(MONTH FROM fecha)::int AS mes, COALESCE(SUM(total), 0) AS ingresos_productos
-         FROM ventas WHERE EXTRACT(YEAR FROM fecha) = $1 AND estado = 'pagado'
+         FROM ventas WHERE EXTRACT(YEAR FROM fecha) = $1 AND estado = 'pagado' AND estudio_id = $2
          GROUP BY mes ORDER BY mes`,
-        [anio]
+        [anio, req.usuario.estudio_id]
       ),
       pool.query(
         `SELECT EXTRACT(MONTH FROM fecha)::int AS mes, COALESCE(SUM(importe), 0) AS gastos
-         FROM gastos WHERE EXTRACT(YEAR FROM fecha) = $1
+         FROM gastos WHERE EXTRACT(YEAR FROM fecha) = $1 AND estudio_id = $2
          GROUP BY mes ORDER BY mes`,
-        [anio]
+        [anio, req.usuario.estudio_id]
       ),
       pool.query(
         `SELECT EXTRACT(MONTH FROM created_at)::int AS mes, COUNT(*) AS clientes_nuevos
-         FROM clientes WHERE EXTRACT(YEAR FROM created_at) = $1
+         FROM clientes WHERE EXTRACT(YEAR FROM created_at) = $1 AND estudio_id = $2
          GROUP BY mes ORDER BY mes`,
-        [anio]
+        [anio, req.usuario.estudio_id]
       ),
     ]);
 
@@ -250,8 +253,9 @@ const getDistribucionEdades = async (req, res) => {
          COUNT(*) AS total
        FROM (
          SELECT DATE_PART('year', AGE(fecha_nacimiento))::int AS edad
-         FROM clientes WHERE fecha_nacimiento IS NOT NULL AND activo = true
-       ) sub`
+         FROM clientes WHERE fecha_nacimiento IS NOT NULL AND activo = true AND estudio_id = $1
+       ) sub`,
+      [req.usuario.estudio_id]
     );
     const row = r.rows[0];
     const total = Number(row.total) || 1;
@@ -279,8 +283,8 @@ const getMetodosPago = async (req, res) => {
          COALESCE(SUM(precio) FILTER (WHERE forma_pago = 'transferencia'), 0)  AS transferencia,
          COALESCE(SUM(precio), 0) AS total
        FROM citas
-       WHERE fecha BETWEEN $1 AND $2 AND estado = 'completada' AND forma_pago IS NOT NULL`,
-      [inicio, fin]
+       WHERE fecha BETWEEN $1 AND $2 AND estado = 'completada' AND forma_pago IS NOT NULL AND estudio_id = $3`,
+      [inicio, fin, req.usuario.estudio_id]
     );
     const row = r.rows[0];
     const total = Number(row.total) || 1;
@@ -296,7 +300,7 @@ const getMetodosPago = async (req, res) => {
 // ── Impacto ecológico ─────────────────────────────────────────────────────────
 const getImpactoEco = async (req, res) => {
   try {
-    const r = await pool.query('SELECT COUNT(*) AS total FROM consentimientos');
+    const r = await pool.query('SELECT COUNT(*) AS total FROM consentimientos WHERE estudio_id = $1', [req.usuario.estudio_id]);
     const consentimientos = Number(r.rows[0].total);
     const paginas = consentimientos * 3;
     res.json({

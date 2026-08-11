@@ -12,37 +12,37 @@ const CLAVES_PUBLICAS = [
   'factura_nombre', 'factura_direccion', 'factura_contactos', 'factura_cif', 'factura_logo_url', 'factura_texto_legal', 'factura_anio_fiscal'
 ];
 
-async function getAll() {
-  const res = await pool.query('SELECT clave, valor FROM configuracion_estudio ORDER BY clave');
+async function getAll(estudio_id) {
+  const res = await pool.query('SELECT clave, valor FROM configuracion_estudio WHERE estudio_id = $1 ORDER BY clave', [estudio_id]);
   const obj = {};
   res.rows.forEach(r => { obj[r.clave] = r.valor; });
   return obj;
 }
 
-async function get(clave) {
-  const res = await pool.query('SELECT valor FROM configuracion_estudio WHERE clave = $1', [clave]);
+async function get(clave, estudio_id) {
+  const res = await pool.query('SELECT valor FROM configuracion_estudio WHERE clave = $1 AND estudio_id = $2', [clave, estudio_id]);
   return res.rows[0]?.valor ?? null;
 }
 
-async function set(clave, valor) {
+async function set(clave, valor, estudio_id) {
   await pool.query(
-    `INSERT INTO configuracion_estudio (clave, valor, updated_at)
-     VALUES ($1, $2, NOW())
-     ON CONFLICT (clave) DO UPDATE SET valor = $2, updated_at = NOW()`,
-    [clave, String(valor)]
+    `INSERT INTO configuracion_estudio (clave, valor, updated_at, estudio_id)
+     VALUES ($1, $2, NOW(), $3)
+     ON CONFLICT (clave, estudio_id) DO UPDATE SET valor = $2, updated_at = NOW()`,
+    [clave, String(valor), estudio_id]
   );
 }
 
-async function setMultiple(objeto) {
+async function setMultiple(objeto, estudio_id) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     for (const [clave, valor] of Object.entries(objeto)) {
       await client.query(
-        `INSERT INTO configuracion_estudio (clave, valor, updated_at)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (clave) DO UPDATE SET valor = $2, updated_at = NOW()`,
-        [clave, String(valor)]
+        `INSERT INTO configuracion_estudio (clave, valor, updated_at, estudio_id)
+         VALUES ($1, $2, NOW(), $3)
+         ON CONFLICT (clave, estudio_id) DO UPDATE SET valor = $2, updated_at = NOW()`,
+        [clave, String(valor), estudio_id]
       );
     }
     await client.query('COMMIT');
@@ -54,10 +54,10 @@ async function setMultiple(objeto) {
   }
 }
 
-async function getPublica() {
+async function getPublica(estudio_id) {
   const res = await pool.query(
-    'SELECT clave, valor FROM configuracion_estudio WHERE clave = ANY($1)',
-    [CLAVES_PUBLICAS]
+    'SELECT clave, valor FROM configuracion_estudio WHERE clave = ANY($1) AND estudio_id = $2',
+    [CLAVES_PUBLICAS, estudio_id]
   );
   const obj = {};
   res.rows.forEach(r => { obj[r.clave] = r.valor; });
