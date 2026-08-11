@@ -144,8 +144,7 @@ export default function Landing() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/5 shadow-2xl' : ''}`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/inkuro-logo.png" alt="Inkuro" className="w-10 h-10 object-cover rounded shadow-lg border border-red-500/20" />
-            <span className="font-black text-2xl tracking-tighter text-white uppercase" style={{ letterSpacing: '-0.05em' }}>Inkuro</span>
+            <span className="font-black text-2xl tracking-tighter text-white uppercase" style={{ letterSpacing: '-0.05em' }}>KuroIchi</span>
           </div>
           <div className="hidden md:flex gap-8 text-sm font-bold tracking-wide text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">HERRAMIENTAS</a>
@@ -194,11 +193,11 @@ export default function Landing() {
           <div className="relative bg-[#0d0d0d] border border-white/10 rounded-2xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.9)]">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-black">
               <div className="w-3 h-3 rounded-full bg-red-600"/><div className="w-3 h-3 rounded-full bg-yellow-600"/><div className="w-3 h-3 rounded-full bg-green-600"/>
-              <div className="ml-4 bg-[#1a1a1a] rounded px-3 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-500 border border-white/5">app.inkuro.com</div>
+              <div className="ml-4 bg-[#1a1a1a] rounded px-3 py-1 text-[10px] uppercase font-bold tracking-wider text-gray-500 border border-white/5">app.kuroichi.com</div>
             </div>
             <div className="flex h-[320px]">
               <div className="w-16 border-r border-white/5 flex flex-col items-center py-4 gap-4 bg-black">
-                <img src="/inkuro-logo.png" className="w-8 h-8 rounded mb-2 opacity-80" alt="I" />
+                <div className="font-black text-white tracking-tighter text-sm mb-2 opacity-80 uppercase">KI</div>
                 {[...Array(6)].map((_, i) => <div key={i} className={`w-8 h-8 rounded-lg ${i === 0 ? 'border border-red-500/50' : 'bg-[#1a1a1a]'}`} style={i === 0 ? { background: 'linear-gradient(135deg,#dc2626,#991b1b)', boxShadow: '0 4px 12px rgba(220,38,38,0.4)' } : {}} />)}
               </div>
               <div className="flex-1 p-6 bg-[#0a0a0a]">
@@ -300,7 +299,7 @@ export default function Landing() {
           <div className="relative rounded-[3rem] p-16 overflow-hidden border border-red-900/30 bg-[#0d0d0d]">
             <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle,rgba(220,38,38,0.4),transparent 70%)' }} />
             <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle,rgba(251,191,36,0.4),transparent 70%)' }} />
-            <img src="/inkuro-logo.png" className="w-16 h-16 mx-auto mb-8 rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.3)] border border-red-500/20" alt="Inkuro Icon" />
+            <div className="font-black text-4xl tracking-tighter text-white uppercase text-center mb-8" style={{ letterSpacing: '-0.05em' }}>KuroIchi</div>
             <h2 className="relative text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">Únete a los Profesionales</h2>
             <p className="relative text-gray-400 mb-10 text-lg font-medium max-w-xl mx-auto">14 días de prueba con todas las funcionalidades habilitadas. Da el salto y profesionaliza tu estudio hoy mismo.</p>
             <Link to="/registro" className="relative inline-flex items-center gap-3 text-white font-black px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105 uppercase tracking-wide border border-red-500/30 shadow-[0_10px_40px_rgba(220,38,38,0.3)]" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
@@ -315,13 +314,12 @@ export default function Landing() {
       <footer className="relative border-t border-white/5 py-12 px-6 z-10 bg-black">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/inkuro-logo.png" className="w-6 h-6 rounded" alt="Inkuro" />
-            <span className="text-gray-500 text-sm font-bold uppercase tracking-wider">© 2026 Inkuro. Todos los derechos reservados.</span>
+            <span className="text-gray-500 text-sm font-bold uppercase tracking-wider">© 2026 KuroIchi. Todos los derechos reservados.</span>
           </div>
           <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-gray-600">
             <a href="#" className="hover:text-red-400 transition-colors">Privacidad</a>
             <a href="#" className="hover:text-red-400 transition-colors">Términos</a>
-            <a href="mailto:hola@inkuro.com" className="hover:text-red-400 transition-colors">Contacto</a>
+            <a href="mailto:hola@kuroichi.com" className="hover:text-red-400 transition-colors">Contacto</a>
           </div>
         </div>
       </footer>
