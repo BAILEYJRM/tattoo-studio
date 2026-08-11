@@ -1,10 +1,17 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { getConfiguracionPublica } from '../api';
+import { getConfiguracion, getConfiguracionPublica } from '../api';
 
 export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    try {
+      const stored = localStorage.getItem('app-theme');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const getContrast = (hex) => {
     if (!hex) return '#ffffff';
@@ -17,6 +24,7 @@ export function ThemeProvider({ children }) {
   };
 
   const applyTheme = (config) => {
+    if (!config) return;
     const root = document.documentElement;
     if (config.theme_primary_color) {
       if (config.theme_primary_color.toLowerCase() === '#d4af37') {
@@ -42,19 +50,34 @@ export function ThemeProvider({ children }) {
   };
 
   const loadTheme = () => {
-    getConfiguracionPublica().then(res => {
+    const token = localStorage.getItem('token');
+    const fetchApi = token ? getConfiguracion() : getConfiguracionPublica();
+    
+    fetchApi.then(res => {
       const config = res.data;
       setTheme(config);
       localStorage.setItem('app-theme', JSON.stringify(config));
       applyTheme(config);
-    }).catch(err => console.error('Error loading theme:', err));
+    }).catch(err => {
+      console.warn('Falling back to local theme cache:', err);
+    });
   };
 
   const [colorMode, setColorMode] = useState('dark');
 
   useEffect(() => {
+    // 1. Aplicar tema guardado inmediatamente desde localStorage
+    const storedTheme = localStorage.getItem('app-theme');
+    if (storedTheme) {
+      try {
+        applyTheme(JSON.parse(storedTheme));
+      } catch (e) {}
+    }
+
+    // 2. Cargar último tema desde backend
     loadTheme();
-    // Load local color mode
+
+    // 3. Cargar modo oscuro/claro
     const storedMode = localStorage.getItem('app-color-mode');
     if (storedMode === 'light') {
       setColorMode('light');

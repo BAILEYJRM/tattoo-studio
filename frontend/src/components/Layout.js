@@ -6,7 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const dashboardItem = {
   to: '/app',
-  label: 'Dashboard',
+  labelKey: 'dashboard',
   icon: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -17,7 +17,7 @@ const dashboardItem = {
 const gestionItems = [
   {
     to: '/alertas',
-    label: 'Alertas',
+    labelKey: 'alertas',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,7 +27,7 @@ const gestionItems = [
   },
   {
     to: '/calendario',
-    label: 'Calendario',
+    labelKey: 'calendario',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -36,7 +36,7 @@ const gestionItems = [
   },
   {
     to: '/clientes',
-    label: 'Clientes',
+    labelKey: 'clientes',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -45,7 +45,7 @@ const gestionItems = [
   },
   {
     to: '/ventas',
-    label: 'Ventas (TPV)',
+    labelKey: 'ventas',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,7 +55,7 @@ const gestionItems = [
   },
   {
     to: '/consentimientos',
-    label: 'Consentimientos',
+    labelKey: 'consentimientos',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -64,7 +64,7 @@ const gestionItems = [
   },
   {
     to: '/cabinas',
-    label: 'Cabinas & Alquileres',
+    labelKey: 'cabinas',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +74,7 @@ const gestionItems = [
   },
   {
     to: '/empleados',
-    label: 'Empleados',
+    labelKey: 'empleados',
     adminOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,7 +84,7 @@ const gestionItems = [
   },
   {
     to: '/comunicaciones',
-    label: 'Comunicaciones',
+    labelKey: 'comunicaciones',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -97,7 +97,7 @@ const gestionItems = [
 const comercialItems = [
   {
     to: '/leads',
-    label: 'Leads',
+    labelKey: 'leads',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -106,7 +106,7 @@ const comercialItems = [
   },
   {
     to: '/proyectos',
-    label: 'Proyectos',
+    labelKey: 'proyectos',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -115,7 +115,7 @@ const comercialItems = [
   },
   {
     to: '/presupuestos',
-    label: 'Presupuestos',
+    labelKey: 'presupuestos',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
@@ -124,7 +124,7 @@ const comercialItems = [
   },
   {
     to: '/seguimientos',
-    label: 'Seguimientos',
+    labelKey: 'seguimientos',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -133,7 +133,7 @@ const comercialItems = [
   },
   {
     to: '/pipeline',
-    label: 'Pipeline (Kanban)',
+    labelKey: 'pipeline',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -142,7 +142,7 @@ const comercialItems = [
   },
   {
     to: '/insights',
-    label: 'Insights Comercial',
+    labelKey: 'insights',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,7 +155,7 @@ const comercialItems = [
 const inventarioItems = [
   {
     to: '/tintas',
-    label: 'Tintas',
+    labelKey: 'tintas',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -164,7 +164,7 @@ const inventarioItems = [
   },
   {
     to: '/agujas',
-    label: 'Agujas',
+    labelKey: 'agujas',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
@@ -173,7 +173,7 @@ const inventarioItems = [
   },
   {
     to: '/piercing',
-    label: 'Piercing',
+    labelKey: 'piercing',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -182,7 +182,7 @@ const inventarioItems = [
   },
   {
     to: '/materiales',
-    label: 'Materiales',
+    labelKey: 'materiales',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -194,7 +194,7 @@ const inventarioItems = [
 const contabilidadItems = [
   {
     to: '/estadisticas',
-    label: 'Estadísticas',
+    labelKey: 'estadisticas',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,7 +204,7 @@ const contabilidadItems = [
   },
   {
     to: '/gastos',
-    label: 'Gastos',
+    labelKey: 'gastos',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,7 +214,7 @@ const contabilidadItems = [
   },
   {
     to: '/ingresos',
-    label: 'Ingresos',
+    labelKey: 'ingresos',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,7 +224,7 @@ const contabilidadItems = [
   },
   {
     to: '/contabilidad/recuento-diario',
-    label: 'Recuento diario',
+    labelKey: 'recuento_diario',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,7 +234,7 @@ const contabilidadItems = [
   },
   {
     to: '/contabilidad/liquidacion-artista',
-    label: 'Mi Liquidación',
+    labelKey: 'mi_liquidacion',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -243,7 +243,7 @@ const contabilidadItems = [
   },
   {
     to: '/contabilidad/liquidacion-estudio',
-    label: 'Liq. estudio',
+    labelKey: 'liq_estudio',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -253,11 +253,11 @@ const contabilidadItems = [
   },
   {
     to: '/contabilidad/recibos',
-    label: 'Recibos',
+    labelKey: 'recibos',
     managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
   },
@@ -266,7 +266,7 @@ const contabilidadItems = [
 export default function Layout({ children }) {
   const { usuario, logout } = useAuth();
   const { colorMode, toggleColorMode } = useContext(ThemeContext);
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -303,7 +303,7 @@ export default function Layout({ children }) {
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <NavLink to={dashboardItem.to} end className={linkClass}>
           {dashboardItem.icon}
-          {dashboardItem.label}
+          {t(dashboardItem.labelKey)}
         </NavLink>
 
         {/* Helper de filtrado por rol */}
@@ -325,11 +325,11 @@ export default function Layout({ children }) {
               {/* Gestión group */}
               {gItems.length > 0 && (
                 <div className="pt-3">
-                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Gestión</p>
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('gestion')}</p>
                   {gItems.map((item) => (
                     <NavLink key={item.to} to={item.to} className={linkClass}>
                       {item.icon}
-                      {item.label}
+                      {t(item.labelKey)}
                     </NavLink>
                   ))}
                 </div>
@@ -338,11 +338,11 @@ export default function Layout({ children }) {
               {/* Comercial group */}
               {cItems.length > 0 && (
                 <div className="pt-3">
-                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Comercial</p>
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('comercial')}</p>
                   {cItems.map((item) => (
                     <NavLink key={item.to} to={item.to} className={linkClass}>
                       {item.icon}
-                      {item.label}
+                      {t(item.labelKey)}
                     </NavLink>
                   ))}
                 </div>
@@ -351,11 +351,11 @@ export default function Layout({ children }) {
               {/* Inventario group */}
               {iItems.length > 0 && (
                 <div className="pt-3">
-                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Inventario</p>
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('inventario')}</p>
                   {iItems.map((item) => (
                     <NavLink key={item.to} to={item.to} className={linkClass}>
                       {item.icon}
-                      {item.label}
+                      {t(item.labelKey)}
                     </NavLink>
                   ))}
                 </div>
@@ -364,11 +364,11 @@ export default function Layout({ children }) {
               {/* Contabilidad group */}
               {contItems.length > 0 && (
                 <div className="pt-3">
-                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Contabilidad</p>
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('contabilidad')}</p>
                   {contItems.map((item) => (
                     <NavLink key={item.to} to={item.to} className={linkClass}>
                       {item.icon}
-                      {item.label}
+                      {t(item.labelKey)}
                     </NavLink>
                   ))}
                 </div>
@@ -423,7 +423,7 @@ export default function Layout({ children }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Configuración
+            {t('configuracion')}
           </NavLink>
         )}
 
@@ -434,7 +434,7 @@ export default function Layout({ children }) {
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Cerrar sesión
+          {t('cerrar_sesion')}
         </button>
       </div>
     </aside>
