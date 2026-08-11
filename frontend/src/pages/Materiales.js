@@ -50,6 +50,16 @@ export default function Materiales() {
   const [modalProducto, setModalProducto] = useState(false);
   const [modalMovimiento, setModalMovimiento] = useState(false);
   const [modalQR, setModalQR] = useState(false);
+  
+  // Filtros Avanzados
+  const [proveedorFiltro, setProveedorFiltro] = useState('');
+  const [estadoFiltro, setEstadoFiltro] = useState('');
+  const [caducidadFiltro, setCaducidadFiltro] = useState('');
+  const [stockMin, setStockMin] = useState('');
+  const [stockMax, setStockMax] = useState('');
+  const [precioMin, setPrecioMin] = useState('');
+  const [precioMax, setPrecioMax] = useState('');
+
   const [editando, setEditando] = useState(null);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [movimientos, setMovimientos] = useState([]);
@@ -128,12 +138,67 @@ export default function Materiales() {
     return () => clearTimeout(timer);
   }, [modalQR]);
 
-  const productosFiltrados = productos.filter((p) =>
-    (!categoriaFiltro || p.categoria === categoriaFiltro) && 
-    p.categoria !== 'piercings_joyeria' && 
-    p.categoria !== 'tintas_pigmentos' && 
-    p.categoria !== 'agujas_cartuchos'
-  );
+  const proveedoresUnicos = [...new Set(productos.map(p => p.proveedor).filter(Boolean))].sort();
+
+  const productosFiltrados = productos.filter((p) => {
+    // Excluir categorías de otros módulos
+    if (p.categoria === 'piercings_joyeria' || p.categoria === 'tintas_pigmentos' || p.categoria === 'agujas_cartuchos') return false;
+    
+    // Categoría y Proveedor
+    if (categoriaFiltro && p.categoria !== categoriaFiltro) return false;
+    if (proveedorFiltro && p.proveedor !== proveedorFiltro) return false;
+
+    // Estado de Stock
+    if (estadoFiltro === 'stock_bajo' && p.stock_actual > p.stock_minimo) return false;
+    if (estadoFiltro === 'sin_stock' && p.stock_actual > 0) return false;
+    if (estadoFiltro === 'ok' && p.stock_actual <= p.stock_minimo) return false;
+
+    // Caducidad
+    if (caducidadFiltro) {
+      if (!p.fecha_caducidad) return false;
+      const cad = new Date(p.fecha_caducidad);
+      const hoy = new Date();
+      const meses3 = new Date();
+      meses3.setMonth(hoy.getMonth() + 3);
+
+      if (caducidadFiltro === 'caducado' && cad >= hoy) return false;
+      if (caducidadFiltro === 'proximo' && (cad < hoy || cad > meses3)) return false;
+    }
+
+    // Rangos de Stock
+    if (stockMin !== '' && p.stock_actual < Number(stockMin)) return false;
+    if (stockMax !== '' && p.stock_actual > Number(stockMax)) return false;
+
+    // Rangos de Precio
+    if (precioMin !== '' && Number(p.precio_venta) < Number(precioMin)) return false;
+    if (precioMax !== '' && Number(p.precio_venta) > Number(precioMax)) return false;
+
+    // Búsqueda local por si acaso (aunque hay debounce, ayuda a refinar resultados)
+    if (busqueda && !p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) && !p.sku?.toLowerCase().includes(busqueda.toLowerCase())) {
+        return false;
+    }
+
+    return true;
+  });
+
+  const exportarCSV = () => {
+    const cabeceras = ['Producto', 'Categoría', 'SKU', 'Stock Actual', 'Stock Mínimo', 'Caducidad', 'Proveedor', 'Precio Venta'];
+    const lineas = productosFiltrados.map(p => [
+      p.nombre, p.categoria, p.sku, p.stock_actual, p.stock_minimo, 
+      p.fecha_caducidad ? p.fecha_caducidad.split('T')[0] : '', 
+      p.proveedor, p.precio_venta
+    ].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
+    
+    const csvContent = [cabeceras.join(','), ...lineas].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'inventario.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const abrirCrear = () => {
     setEditando(null);
@@ -280,39 +345,101 @@ export default function Materiales() {
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex-1 min-w-[200px] relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre, SKU o código de barras..."
-            className="w-full bg-gray-900 border border-gray-700 text-white placeholder-gray-500 text-sm rounded-lg pl-9 pr-4 py-2.5 focus:outline-none focus:border-indigo-500"
-          />
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-white">Inventario</h1>
+          <p className="text-gray-400 mt-1">{productosFiltrados.length} productos encontrados</p>
         </div>
-        <button
-          onClick={() => setModalQR(true)}
-          className="bg-gray-900 border border-gray-700 hover:border-indigo-500 text-gray-300 hover:text-white text-sm px-3 py-2.5 rounded-lg transition-colors flex items-center gap-2"
-          title="Escanear código de barras"
-        >
+        <button onClick={abrirCrear} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M3 8V5a1 1 0 011-1h3M3 16v3a1 1 0 001 1h3m10-14h3a1 1 0 011 1v3" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Escanear
+          Añadir Producto
         </button>
-        <select
-          value={categoriaFiltro}
-          onChange={(e) => setCategoriaFiltro(e.target.value)}
-          className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500"
-        >
-          {CATEGORIAS.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
+      </div>
+
+      {/* Panel de Filtros */}
+      <div className="bg-[#141414] border border-white/5 shadow-lg rounded-xl p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <h2 className="text-white font-bold text-lg">Filtros</h2>
+          </div>
+          <button onClick={exportarCSV} className="flex items-center gap-2 text-sm text-gray-300 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            Exportar
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Fila 1 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buscar</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <svg className="w-4 h-4 absolute left-3 top-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input type="text" placeholder="Buscar producto..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-indigo-500" />
+              </div>
+              <button onClick={() => setModalQR(true)} title="Escanear QR" className="bg-[#0a0a0a] border border-gray-800 text-indigo-400 hover:text-indigo-300 px-3 py-2.5 rounded-lg transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5V16M3 8V5a1 1 0 011-1h3M3 16v3a1 1 0 001 1h3m10-14h3a1 1 0 011 1v3" /></svg>
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Categorías</label>
+            <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-full bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+              {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Proveedores</label>
+            <select value={proveedorFiltro} onChange={(e) => setProveedorFiltro(e.target.value)} className="w-full bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+              <option value="">Todos los proveedores</option>
+              {proveedoresUnicos.map((p, i) => <option key={i} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          {/* Fila 2 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</label>
+            <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="w-full bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+              <option value="">Todos los estados</option>
+              <option value="ok">Stock OK</option>
+              <option value="stock_bajo">Stock Bajo</option>
+              <option value="sin_stock">Sin Stock</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Caducidad</label>
+            <select value={caducidadFiltro} onChange={(e) => setCaducidadFiltro(e.target.value)} className="w-full bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+              <option value="">Cualquier fecha</option>
+              <option value="proximo">Próximo a caducar (&lt;3 meses)</option>
+              <option value="caducado">Caducado</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rango de Stock</label>
+            <div className="flex gap-2">
+              <input type="number" placeholder="Min" value={stockMin} onChange={(e) => setStockMin(e.target.value)} className="w-1/2 bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500" />
+              <input type="number" placeholder="Max" value={stockMax} onChange={(e) => setStockMax(e.target.value)} className="w-1/2 bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          {/* Fila 3 */}
+          <div className="flex flex-col gap-1.5 md:col-span-1">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rango de Precio (€)</label>
+            <div className="flex gap-2">
+              <input type="number" placeholder="Min" value={precioMin} onChange={(e) => setPrecioMin(e.target.value)} className="w-1/2 bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500" />
+              <input type="number" placeholder="Max" value={precioMax} onChange={(e) => setPrecioMax(e.target.value)} className="w-1/2 bg-[#0a0a0a] border border-gray-800 text-gray-300 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabla */}
