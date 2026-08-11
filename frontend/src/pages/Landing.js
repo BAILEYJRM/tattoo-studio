@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check } from 'lucide-react';
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles } from 'lucide-react';
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -77,49 +77,46 @@ function ReactiveBackground() {
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
 }
 
-// ─── Data ───────────────────────────────────────────────────────────────────
 const features = [
   {
-    gradient: 'from-red-600 to-red-800',
-    shadow: 'rgba(220,38,38,0.35)',
-    icon: <CalendarDays className="w-8 h-8" />,
-    title: 'Calendario de Acero',
-    desc: 'Vista diaria, semanal y mensual. Crea citas en segundos. Evita conflictos entre artistas y espacios de trabajo.',
+    gradient: 'from-[#3b0764] to-[#1e1b4b]',
+    shadow: 'rgba(147, 51, 234, 0.2)',
+    borderColor: 'border-purple-800/50',
+    iconBg: 'bg-purple-500/10',
+    iconColor: 'text-purple-400',
+    icon: <Clock className="w-6 h-6" />,
+    title: 'Gestiona tu Tiempo',
+    desc: 'Registra cómo distribuyes tus horas entre tatuar, diseñar, administración y más',
   },
   {
-    gradient: 'from-gray-600 to-gray-900',
-    shadow: 'rgba(75,85,99,0.35)',
-    icon: <Users className="w-8 h-8" />,
-    title: 'Ficha de Clientes',
-    desc: 'Historial completo de sesiones, fotos de tatuajes curados, alergias y notas confidenciales.',
+    gradient: 'from-[#134e4a] to-[#042f2e]',
+    shadow: 'rgba(20, 184, 166, 0.2)',
+    borderColor: 'border-teal-800/50',
+    iconBg: 'bg-teal-500/10',
+    iconColor: 'text-teal-400',
+    icon: <DollarSign className="w-6 h-6" />,
+    title: 'Maximiza Ingresos',
+    desc: 'Descubre qué actividades son más rentables y optimiza tu tarifa por hora',
   },
   {
-    gradient: 'from-yellow-600 to-yellow-800',
-    shadow: 'rgba(202,138,4,0.35)',
-    icon: <FileSignature className="w-8 h-8" />,
-    title: 'Consentimientos Seguros',
-    desc: 'Firma digital vinculante. Archivo en la nube para proteger al estudio legalmente en todo momento.',
+    gradient: 'from-[#831843] to-[#4c0519]',
+    shadow: 'rgba(236, 72, 153, 0.2)',
+    borderColor: 'border-pink-800/50',
+    iconBg: 'bg-pink-500/10',
+    iconColor: 'text-pink-400',
+    icon: <BarChart2 className="w-6 h-6" />,
+    title: 'Visualiza Tendencias',
+    desc: 'Gráficos y métricas que te muestran tu evolución a lo largo del tiempo',
   },
   {
-    gradient: 'from-orange-600 to-orange-800',
-    shadow: 'rgba(234,88,12,0.35)',
-    icon: <CreditCard className="w-8 h-8" />,
-    title: 'TPV Implacable',
-    desc: 'Cobra sesiones, depósitos, joyería y merchan. Emite tickets y facturas directas al instante.',
-  },
-  {
-    gradient: 'from-red-700 to-gray-900',
-    shadow: 'rgba(185,28,28,0.35)',
-    icon: <BarChart3 className="w-8 h-8" />,
-    title: 'Contabilidad Clara',
-    desc: 'Ingresos, gastos y liquidaciones porcentuales por artista. Datos en bruto para tu gestor.',
-  },
-  {
-    gradient: 'from-stone-600 to-stone-800',
-    shadow: 'rgba(87,83,78,0.35)',
-    icon: <Package className="w-8 h-8" />,
-    title: 'Inventario y Material',
-    desc: 'Control estricto de tintas, cartuchos y grips. Notificaciones cuando el stock llegue al límite.',
+    gradient: 'from-[#064e3b] to-[#022c22]',
+    shadow: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'border-emerald-800/50',
+    iconBg: 'bg-emerald-500/10',
+    iconColor: 'text-emerald-400',
+    icon: <Sparkles className="w-6 h-6" />,
+    title: 'Análisis con IA',
+    desc: 'Recomendaciones personalizadas basadas en tu historial completo',
   },
 ];
 
@@ -231,20 +228,23 @@ export default function Landing() {
 
       {/* Features */}
       <section id="features" className="relative py-32 px-6 z-10 border-t border-white/5 bg-[#080808]">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter text-white">Tu estudio, tus reglas</h2>
-            <p className="text-lg text-gray-400 max-w-xl mx-auto font-medium">Hemos depurado años de feedback de artistas profesionales para forjar herramientas de precisión.</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Todo lo que necesitas</h2>
+            <p className="text-lg text-gray-400 max-w-xl mx-auto font-medium">Una plataforma completa diseñada específicamente para estudios de tatuajes</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="group relative rounded-2xl p-8 border border-white/5 hover:border-red-900/50 transition-all duration-300 hover:-translate-y-1 cursor-default overflow-hidden bg-[#111]">
+              <div key={f.title} className={`group relative rounded-2xl p-8 border ${f.borderColor} transition-all duration-300 hover:-translate-y-1 overflow-hidden bg-gradient-to-br ${f.gradient}`}>
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: `radial-gradient(circle at top right, ${f.shadow}, transparent 70%)` }} />
-                <div className={`relative w-14 h-14 rounded-xl flex items-center justify-center mb-6 text-white`} style={{ background: `linear-gradient(135deg,${f.gradient.includes('red') ? '#dc2626,#7f1d1d' : f.gradient.includes('gray') ? '#4b5563,#1f2937' : f.gradient.includes('yellow') ? '#ca8a04,#854d0e' : f.gradient.includes('orange') ? '#ea580c,#9a3412' : '#57534e,#292524'})`, boxShadow: `0 8px 24px ${f.shadow}` }}>
-                  {f.icon}
+                
+                <div className="flex flex-col items-center text-center">
+                  <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${f.iconBg} ${f.iconColor}`}>
+                    {f.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">{f.title}</h3>
+                  <p className="text-sm text-gray-300 leading-relaxed font-medium">{f.desc}</p>
                 </div>
-                <h3 className="text-xl font-black text-white mb-3 tracking-wide">{f.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed font-medium">{f.desc}</p>
               </div>
             ))}
           </div>
