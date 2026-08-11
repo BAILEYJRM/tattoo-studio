@@ -89,6 +89,37 @@ const gestionItems = [
   },
 ];
 
+/* ── Sección Comercial (Fase 2) ──────────────────────────────────── */
+const comercialItems = [
+  {
+    to: '/leads',
+    label: 'Leads',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/proyectos',
+    label: 'Proyectos',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    ),
+  },
+  {
+    to: '/presupuestos',
+    label: 'Presupuestos',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+      </svg>
+    ),
+  },
+];
+
 const inventarioItems = [
   {
     to: '/tintas',
@@ -248,6 +279,17 @@ export default function Layout({ children }) {
               </NavLink>
             );
           })}
+        </div>
+
+        {/* Comercial group (Fase 2) */}
+        <div className="pt-3">
+          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Comercial</p>
+          {comercialItems.map((item) => (
+            <NavLink key={item.to} to={item.to} className={linkClass}>
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
         </div>
 
         {/* Inventario group */}

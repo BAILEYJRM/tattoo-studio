@@ -241,3 +241,30 @@ export const deleteArticuloTpv = (id) => api.delete(`/articulos-tpv/${id}`);
 export const getAlertas = () => api.get('/alertas');
 export const scanAlertas = () => api.post('/alertas/scan');
 export const resolverAlerta = (id) => api.put(`/alertas/${id}/resolver`);
+
+// ── Comercial: Leads ──
+export const getLeads = () => api.get('/leads');
+export const getLead = (id) => api.get(`/leads/${id}`);
+export const createLead = (data) => api.post('/leads', data);
+export const updateLead = (id, data) => api.put(`/leads/${id}`, data);
+
+// ── Comercial: Proyectos ──
+export const getProyectos = () => api.get('/proyectos');
+export const getProyecto = (id) => api.get(`/proyectos/${id}`);
+export const createProyecto = (data) => api.post('/proyectos', data);
+export const updateProyecto = (id, data) => api.put(`/proyectos/${id}`, data);
+
+// ── Comercial: Presupuestos ──
+export const getPresupuestos = () => api.get('/presupuestos');
+export const getPresupuesto = (id) => api.get(`/presupuestos/${id}`);
+export const createPresupuesto = (data) => api.post('/presupuestos', data);
+export const updatePresupuesto = (id, data) => api.put(`/presupuestos/${id}`, data);
+export const generarTokenPresupuesto = (id) => api.post(`/presupuestos/${id}/token`);
+export const getPresupuestoPublico = (token) => api.get(`/presupuestos/public/${token}`);
+
+// ── Comercial: Seguimientos ──
+export const getSeguimientos = () => api.get('/seguimientos');
+export const getSeguimiento = (id) => api.get(`/seguimientos/${id}`);
+export const createSeguimiento = (data) => api.post('/seguimientos', data);
+export const updateSeguimiento = (id, data) => api.put(`/seguimientos/${id}`, data);
+

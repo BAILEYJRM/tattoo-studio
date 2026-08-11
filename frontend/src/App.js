@@ -25,6 +25,10 @@ import ResetPassword from './pages/ResetPassword';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
 import Alertas from './pages/Alertas';
+import Leads from './pages/Leads';
+import ProyectosPage from './pages/Proyectos';
+import PresupuestosPage from './pages/Presupuestos';
+import PresupuestoPublic from './pages/PresupuestoPublic';
 import { Terminos, Privacidad, Cookies, CompraVenta, AvisoLegal, FAQ } from './pages/LegalPages';
 
 
@@ -78,6 +82,8 @@ export default function App() {
           <Route path="/legal/compra-venta" element={<CompraVenta />} />
           <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
           <Route path="/faq" element={<FAQ />} />
+          {/* ── Vista pública de presupuesto (sin auth) ── */}
+          <Route path="/presupuesto/:token" element={<PresupuestoPublic />} />
 
           {/* ── Private App routes (at /app/*) ── */}
           <Route
@@ -245,6 +251,31 @@ export default function App() {
             element={
               <PrivateRoute>
                 <ClientesDuplicados />
+              </PrivateRoute>
+            }
+          />
+          {/* ── Rutas comerciales ── */}
+          <Route
+            path="/leads"
+            element={
+              <PrivateRoute>
+                <Leads />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/proyectos"
+            element={
+              <PrivateRoute>
+                <ProyectosPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/presupuestos"
+            element={
+              <PrivateRoute>
+                <PresupuestosPage />
               </PrivateRoute>
             }
           />
