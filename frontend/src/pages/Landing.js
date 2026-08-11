@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Quote } from 'lucide-react';
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -75,8 +76,6 @@ function ReactiveBackground() {
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
 }
-
-import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Quote } from 'lucide-react';
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 const features = [

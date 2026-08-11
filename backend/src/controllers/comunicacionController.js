@@ -62,29 +62,30 @@ const updatePlantilla = async (req, res) => {
 const enviarManual = async (req, res) => {
   try {
     const { tipo, cita_id, cliente_id, consentimiento_id } = req.body;
+    const estudio_id = req.usuario.estudio_id;
     let ok = false;
 
     switch (tipo) {
       case 'confirmacion_cita':
         if (!cita_id) return res.status(400).json({ error: 'cita_id requerido' });
-        ok = await enviarConfirmacionCita(cita_id);
+        ok = await enviarConfirmacionCita(cita_id, estudio_id);
         break;
       case 'recordatorio_cita':
         if (!cita_id) return res.status(400).json({ error: 'cita_id requerido' });
-        ok = await enviarRecordatorioCita(cita_id);
+        ok = await enviarRecordatorioCita(cita_id, estudio_id);
         break;
       case 'cuidados_tatuaje':
       case 'cuidados_piercing':
         if (!cita_id) return res.status(400).json({ error: 'cita_id requerido' });
-        ok = await enviarCuidadosPostServicio(cita_id);
+        ok = await enviarCuidadosPostServicio(cita_id, estudio_id);
         break;
       case 'cumpleanos':
         if (!cliente_id) return res.status(400).json({ error: 'cliente_id requerido' });
-        ok = await enviarCumpleanos(cliente_id);
+        ok = await enviarCumpleanos(cliente_id, estudio_id);
         break;
       case 'consentimiento_firmado':
         if (!consentimiento_id) return res.status(400).json({ error: 'consentimiento_id requerido' });
-        ok = await enviarConsentimientoFirmado(consentimiento_id);
+        ok = await enviarConsentimientoFirmado(consentimiento_id, estudio_id);
         break;
       default:
         return res.status(400).json({ error: `Tipo desconocido: ${tipo}` });
