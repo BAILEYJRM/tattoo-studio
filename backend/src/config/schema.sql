@@ -1,3 +1,14 @@
+-- Estudios
+CREATE TABLE IF NOT EXISTS estudios (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL,
+  email_admin VARCHAR(150) NOT NULL,
+  plan VARCHAR(50) DEFAULT 'basico',
+  estado VARCHAR(20) DEFAULT 'activo',
+  trial_ends_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Empleados
 CREATE TABLE IF NOT EXISTS empleados (
   id SERIAL PRIMARY KEY,

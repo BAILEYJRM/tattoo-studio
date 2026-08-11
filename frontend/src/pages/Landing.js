@@ -76,75 +76,49 @@ function ReactiveBackground() {
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
 }
 
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Quote } from 'lucide-react';
+
 // ─── Data ───────────────────────────────────────────────────────────────────
 const features = [
   {
     gradient: 'from-indigo-500 to-violet-600',
     shadow: 'rgba(99,102,241,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
-      </svg>
-    ),
+    icon: <CalendarDays className="w-8 h-8" />,
     title: 'Calendario Inteligente',
     desc: 'Vista diaria, semanal y mensual. Crea citas en segundos. Detección automática de conflictos entre artistas y cabinas.',
   },
   {
     gradient: 'from-cyan-500 to-blue-600',
     shadow: 'rgba(6,182,212,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    ),
+    icon: <Users className="w-8 h-8" />,
     title: 'Ficha de Clientes',
     desc: 'Historial completo de sesiones, fotos, alergias y notas. Toda la información de tu cliente accesible en segundos.',
   },
   {
     gradient: 'from-emerald-500 to-teal-600',
     shadow: 'rgba(16,185,129,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/>
-      </svg>
-    ),
+    icon: <FileSignature className="w-8 h-8" />,
     title: 'Consentimientos Digitales',
     desc: 'Formularios con firma digital. Legalmente válidos, sin papel y archivados automáticamente en la nube.',
   },
   {
     gradient: 'from-orange-500 to-rose-600',
     shadow: 'rgba(249,115,22,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M7 15h2M11 15h6"/>
-      </svg>
-    ),
+    icon: <CreditCard className="w-8 h-8" />,
     title: 'TPV y Punto de Venta',
     desc: 'Cobra sesiones, productos y servicios. Tickets, facturas y control de stock integrados en tiempo real.',
   },
   {
     gradient: 'from-violet-500 to-purple-700',
     shadow: 'rgba(139,92,246,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/><path d="M2 20h20"/>
-      </svg>
-    ),
+    icon: <BarChart3 className="w-8 h-8" />,
     title: 'Estadísticas y Contabilidad',
     desc: 'Dashboard con ingresos, gastos y liquidaciones por artista. Exporta datos para tu gestor en un clic.',
   },
   {
     gradient: 'from-pink-500 to-rose-600',
     shadow: 'rgba(236,72,153,0.35)',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-    ),
+    icon: <Package className="w-8 h-8" />,
     title: 'Inventario y Materiales',
     desc: 'Control de tintas, agujas y materiales de piercing. Alertas automáticas de stock bajo.',
   },
@@ -211,7 +185,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Link to="/registro" className="flex items-center gap-2 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:scale-105" style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)', boxShadow: '0 8px 30px rgba(99,102,241,0.4)' }}>
               Empezar 14 días gratis
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+              <ArrowRight className="w-5 h-5" />
             </Link>
             <a href="#features" className="flex items-center gap-2 text-gray-300 hover:text-white px-8 py-4 rounded-xl text-lg border border-white/10 hover:border-white/25 hover:bg-white/5 transition-all">
               Ver funcionalidades
@@ -334,7 +308,7 @@ export default function Landing() {
                   {plan.features.map((feat) => (
                     <li key={feat} className="flex items-center gap-2.5 text-sm text-gray-300">
                       <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }}>
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#818cf8"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                        <Check className="w-3 h-3 text-indigo-400" strokeWidth={3} />
                       </div>
                       {feat}
                     </li>
@@ -361,7 +335,7 @@ export default function Landing() {
             <p className="relative text-gray-300 mb-8 text-lg">14 días de prueba completa. Sin tarjeta. Sin compromisos.</p>
             <Link to="/registro" className="relative inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:scale-105" style={{ background: 'linear-gradient(135deg,#6366f1,#7c3aed)', boxShadow: '0 8px 30px rgba(99,102,241,0.45)' }}>
               Crear mi cuenta gratis
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
