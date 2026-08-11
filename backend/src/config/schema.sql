@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS empleados (
   puede_crear_citas BOOLEAN DEFAULT true,
   puede_ver_companeros BOOLEAN DEFAULT true,
   notificar_nueva_cita BOOLEAN DEFAULT true,
+  pin_acceso VARCHAR(10),
   created_at TIMESTAMP DEFAULT NOW()
 );
 

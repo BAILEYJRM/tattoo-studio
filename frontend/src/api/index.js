@@ -28,6 +28,9 @@ api.interceptors.response.use(
 export const login = (email, password) =>
   api.post('/auth/login', { email, password });
 
+export const loginPin = (pin) =>
+  api.post('/auth/login-pin', { pin });
+
 export const forgotPassword = (email) =>
   api.post('/auth/forgot-password', { email });
 

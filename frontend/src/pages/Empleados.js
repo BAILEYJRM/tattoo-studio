@@ -8,7 +8,7 @@ import {
 import Modal from '../components/Modal';
 
 const emptyForm = {
-  nombre: '', apellidos: '', email: '', password: '', telefono: '', rol: 'artista',
+  nombre: '', apellidos: '', email: '', password: '', pin_acceso: '', telefono: '', rol: 'artista',
   nombre_artistico: '', estilo_principal: '', color_calendario: '#6366f1',
   instagram: '', comision_porcentaje: '',
   puede_crear_citas: true, puede_ver_companeros: true, notificar_nueva_cita: true,
@@ -71,7 +71,7 @@ export default function Empleados() {
     setEditando(emp.id);
     setForm({
       nombre: emp.nombre || '', apellidos: emp.apellidos || '',
-      email: emp.email || '', password: '', telefono: emp.telefono || '', rol: emp.rol || 'artista',
+      email: emp.email || '', password: '', pin_acceso: emp.pin_acceso || '', telefono: emp.telefono || '', rol: emp.rol || 'artista',
       nombre_artistico: emp.nombre_artistico || '', estilo_principal: emp.estilo_principal || '',
       color_calendario: emp.color_calendario || '#6366f1',
       instagram: emp.instagram || '', comision_porcentaje: emp.comision_porcentaje || '',
@@ -291,6 +291,12 @@ export default function Empleados() {
                 <option value="artista">Artista</option>
                 <option value="admin">Admin</option>
               </select></div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">PIN Acceso Rápido (Tablet)</label>
+            <input type="text" maxLength={6} value={form.pin_acceso} onChange={(e) => setF('pin_acceso', e.target.value)}
+              placeholder="Ej: 1234 (4-6 dígitos)"
+              className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 font-mono" />
           </div>
 
           <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider pt-2 pb-1 border-t border-gray-700">Perfil artístico</p>

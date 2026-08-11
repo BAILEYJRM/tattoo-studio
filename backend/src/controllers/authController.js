@@ -25,6 +25,26 @@ const login = async (req, res) => {
 };
 
 
+const loginPin = async (req, res) => {
+  try {
+    const { pin } = req.body;
+    if (!pin) return res.status(400).json({ error: 'PIN de acceso requerido' });
+
+    const empleado = await Empleado.buscarPorPin(pin);
+    if (!empleado) return res.status(401).json({ error: 'PIN de acceso no válido' });
+
+    const token = jwt.sign(
+      { id: empleado.id, email: empleado.email, rol: empleado.rol, nombre: empleado.nombre, estudio_id: empleado.estudio_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    res.json({ token, usuario: { id: empleado.id, nombre: empleado.nombre, email: empleado.email, rol: empleado.rol, estudio_id: empleado.estudio_id } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const registro = async (req, res) => {
   try {
     const empleado = await Empleado.crear(req.body);
@@ -140,5 +160,5 @@ const registroPublico = async (req, res) => {
   }
 };
 
-module.exports = { login, registro, forgotPassword, resetPassword, registroPublico };
+module.exports = { login, loginPin, registro, forgotPassword, resetPassword, registroPublico };
 

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, forgotPassword } from '../api';
+import { login, loginPin, forgotPassword } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = useState('email'); // 'email' | 'pin'
   const [form, setForm] = useState({ email: '', password: '' });
+  const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,9 +19,15 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const res = await login(form.email, form.password);
-      loginUser(res.data.token, res.data.usuario);
-      navigate('/app');
+      if (mode === 'pin') {
+        const res = await loginPin(pin);
+        loginUser(res.data.token, res.data.usuario);
+        navigate('/app');
+      } else {
+        const res = await login(form.email, form.password);
+        loginUser(res.data.token, res.data.usuario);
+        navigate('/app');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión');
     } finally {
@@ -46,18 +54,42 @@ export default function Login() {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-3 shadow-lg shadow-indigo-500/20">
             <svg className="w-9 h-9 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white">Tattoo Studio</h1>
-          <p className="text-gray-400 text-sm mt-1">Sistema de gestión</p>
+          <h1 className="text-2xl font-bold text-white">KuroIchi Tattoo Studio</h1>
+          <p className="text-gray-400 text-sm mt-1">Acceso al sistema</p>
         </div>
 
+        {/* Tab switcher */}
+        {!isForgot && (
+          <div className="flex bg-gray-800 p-1 rounded-xl mb-4 border border-gray-700/60">
+            <button
+              type="button"
+              onClick={() => { setMode('email'); setError(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                mode === 'email' ? 'bg-indigo-600 text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Email y Contraseña
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('pin'); setError(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                mode === 'pin' ? 'bg-indigo-600 text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📱 PIN Tablet
+            </button>
+          </div>
+        )}
+
         {/* Form */}
-        <form onSubmit={isForgot ? handleForgot : handleLogin} className="bg-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <form onSubmit={isForgot ? handleForgot : handleLogin} className="bg-gray-800 rounded-2xl p-6 shadow-xl space-y-4 border border-gray-700/60">
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
               {error}
@@ -69,38 +101,57 @@ export default function Login() {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
-              placeholder="admin@estudio.com"
-            />
-          </div>
-
-          {!isForgot && (
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm text-gray-400">Contraseña</label>
-                <button
-                  type="button"
-                  onClick={() => { setIsForgot(true); setError(''); setSuccess(''); }}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  ¿Has olvidado tu contraseña?
-                </button>
+          {mode === 'email' || isForgot ? (
+            <>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                  className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+                  placeholder="manager@estudio.com"
+                />
               </div>
+
+              {!isForgot && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm text-gray-400">Contraseña</label>
+                    <button
+                      type="button"
+                      onClick={() => { setIsForgot(true); setError(''); setSuccess(''); }}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required={!isForgot}
+                    className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+                    placeholder="••••••••"
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div>
+              <label className="block text-sm text-gray-400 mb-1.5 text-center">Introduce tu PIN de Artista</label>
               <input
                 type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required={!isForgot}
-                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
-                placeholder="••••••••"
+                maxLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+                autoFocus
+                className="w-full bg-gray-700 text-white text-center text-2xl tracking-widest font-mono rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500"
+                placeholder="••••"
               />
+              <p className="text-xs text-gray-500 text-center mt-2">Pide tu PIN al Manager del estudio si aún no lo tienes</p>
             </div>
           )}
 
@@ -109,9 +160,9 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors mt-2"
           >
-            {loading ? 'Procesando...' : isForgot ? 'Enviar instrucciones' : 'Iniciar sesión'}
+            {loading ? 'Procesando...' : isForgot ? 'Enviar instrucciones' : mode === 'pin' ? 'Acceder con PIN' : 'Iniciar sesión'}
           </button>
-          
+
           {isForgot && (
             <div className="text-center mt-4">
               <button

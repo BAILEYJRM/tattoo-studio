@@ -19,12 +19,21 @@ const Estudio = {
 
 
 const Empleado = {
-  async crear({ nombre, apellidos, email, password, telefono, rol, estudio_id }) {
-    const hash = await bcrypt.hash(password, 10);
+  async crear({ nombre, apellidos, email, password, telefono, rol, estudio_id, pin_acceso }) {
+    const passToHash = password || 'Artista123!';
+    const hash = await bcrypt.hash(passToHash, 10);
     const result = await pool.query(
-      `INSERT INTO empleados (nombre, apellidos, email, password, telefono, rol, estudio_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nombre, apellidos, email, rol`,
-      [nombre, apellidos, email, hash, telefono, rol, estudio_id]
+      `INSERT INTO empleados (nombre, apellidos, email, password, telefono, rol, estudio_id, pin_acceso)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, nombre, apellidos, email, rol, pin_acceso`,
+      [nombre, apellidos, email, hash, telefono, rol || 'artista', estudio_id, pin_acceso || null]
+    );
+    return result.rows[0];
+  },
+
+  async buscarPorPin(pin) {
+    const result = await pool.query(
+      'SELECT * FROM empleados WHERE pin_acceso = $1 AND activo = true',
+      [pin]
     );
     return result.rows[0];
   },
@@ -38,7 +47,7 @@ const Empleado = {
   },
 
   async buscarTodos(estudio_id) {
-    let query = `SELECT id, nombre, apellidos, email, telefono, rol, activo, created_at
+    let query = `SELECT id, nombre, apellidos, email, telefono, rol, activo, pin_acceso, created_at
                  FROM empleados
                  WHERE rol != 'superadmin' AND email != 'baileyjrm@gmail.com'`;
     let params = [];
