@@ -38,10 +38,18 @@ const Empleado = {
   },
 
   async buscarTodos(estudio_id) {
-    const result = await pool.query(
-      'SELECT id, nombre, apellidos, email, telefono, rol, activo, created_at FROM empleados WHERE estudio_id = $1 ORDER BY nombre',
-      [estudio_id]
-    );
+    let query = `SELECT id, nombre, apellidos, email, telefono, rol, activo, created_at
+                 FROM empleados
+                 WHERE rol != 'superadmin' AND email != 'baileyjrm@gmail.com'`;
+    let params = [];
+
+    if (estudio_id) {
+      query += ` AND estudio_id = $1`;
+      params.push(estudio_id);
+    }
+
+    query += ` ORDER BY nombre`;
+    const result = await pool.query(query, params);
     return result.rows;
   },
 

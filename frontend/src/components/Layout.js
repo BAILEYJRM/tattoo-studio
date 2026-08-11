@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ThemeContext } from '../context/ThemeContext';
+import { ThemeContext, useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const dashboardItem = {
   to: '/app',
@@ -255,6 +256,7 @@ const contabilidadItems = [
 export default function Layout({ children }) {
   const { usuario, logout } = useAuth();
   const { colorMode, toggleColorMode } = useContext(ThemeContext);
+  const { lang, setLang } = useLanguage();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -353,21 +355,31 @@ export default function Layout({ children }) {
               <p className="text-white text-sm font-medium truncate">{usuario?.nombre}</p>
               <p className="text-gray-500 text-xs capitalize">{usuario?.rol}</p>
             </div>
-            <button
-              onClick={toggleColorMode}
-              className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-              title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
-            >
-              {colorMode === 'dark' ? (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+                className="px-2 py-1 text-xs font-bold text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700"
+                title="Cambiar idioma / Change language"
+              >
+                {lang === 'es' ? '🇺🇸 EN' : '🇪🇸 ES'}
+              </button>
+
+              <button
+                onClick={toggleColorMode}
+                className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
+              >
+                {colorMode === 'dark' ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
         
