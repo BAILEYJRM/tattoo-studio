@@ -320,3 +320,18 @@ CREATE TABLE IF NOT EXISTS dias_festivos (
   descripcion VARCHAR(200),
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Alertas
+CREATE TABLE IF NOT EXISTS alertas (
+  id SERIAL PRIMARY KEY,
+  tipo VARCHAR(50) NOT NULL,
+  gravedad VARCHAR(20) DEFAULT 'media',
+  titulo VARCHAR(200) NOT NULL,
+  mensaje TEXT,
+  entidad_tipo VARCHAR(50),
+  entidad_id INTEGER,
+  estado VARCHAR(20) DEFAULT 'pendiente',
+  resuelta_por INTEGER REFERENCES empleados(id),
+  resuelta_en TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);

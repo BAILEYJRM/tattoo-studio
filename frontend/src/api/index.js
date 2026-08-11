@@ -236,3 +236,8 @@ export const getArticuloTpv = (id) => api.get(`/articulos-tpv/${id}`);
 export const createArticuloTpv = (data) => api.post('/articulos-tpv', data);
 export const updateArticuloTpv = (id, data) => api.put(`/articulos-tpv/${id}`, data);
 export const deleteArticuloTpv = (id) => api.delete(`/articulos-tpv/${id}`);
+
+// Alertas
+export const getAlertas = () => api.get('/alertas');
+export const scanAlertas = () => api.post('/alertas/scan');
+export const resolverAlerta = (id) => api.put(`/alertas/${id}/resolver`);

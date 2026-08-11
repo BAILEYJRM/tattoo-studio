@@ -69,6 +69,7 @@ app.use('/api/estadisticas', require('./routes/estadisticas'));
 app.use('/api/configuracion', require('./routes/configuracion'));
 app.use('/api/articulos-tpv', require('./routes/articulosTpv'));
 app.use('/api/sync', require('./routes/sync'));
+app.use('/api/alertas', require('./routes/alertasRoutes'));
 
 // Cron jobs
 require('./services/cronService');

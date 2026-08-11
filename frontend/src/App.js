@@ -24,6 +24,7 @@ import ClientesDuplicados from './pages/ClientesDuplicados';
 import ResetPassword from './pages/ResetPassword';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
+import Alertas from './pages/Alertas';
 
 
 function PrivateRoute({ children, adminOnly = false }) {
@@ -141,6 +142,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Ingresos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/alertas"
+            element={
+              <PrivateRoute>
+                <Alertas />
               </PrivateRoute>
             }
           />
