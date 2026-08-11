@@ -107,8 +107,8 @@ const registroPublico = async (req, res) => {
     // 2. Create the first admin user linked to this studio
     const hash = await bcrypt.hash(password, 10);
     const empRes = await client.query(
-      `INSERT INTO empleados (nombre, email, password, rol, estudio_id)
-       VALUES ($1, $2, $3, 'admin', $4)
+      `INSERT INTO empleados (nombre, apellidos, email, password, rol, estudio_id)
+       VALUES ($1, '', $2, $3, 'admin', $4)
        RETURNING id, nombre, email, rol`,
       [nombreEstudio, email, hash, estudio.id]
     );
