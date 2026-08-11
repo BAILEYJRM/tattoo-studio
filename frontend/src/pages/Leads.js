@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getLeads, createLead, updateLead, getEmpleados } from '../api';
+import { getLeads, createLead, updateLead, getEmpleados, getMotivosPerdida } from '../api';
 import Modal from '../components/Modal';
 
 /* ── Configuración de estados y colores ────────────────────────────── */
@@ -40,14 +40,16 @@ export default function Leads() {
   const [editId, setEditId] = useState(null);
   const [buscar, setBuscar] = useState('');
   const [empleados, setEmpleados] = useState([]);
+  const [motivosPerdida, setMotivosPerdida] = useState([]);
   const [detalle, setDetalle] = useState(null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const [leadsRes, empRes] = await Promise.all([getLeads(), getEmpleados()]);
+      const [leadsRes, empRes, motRes] = await Promise.all([getLeads(), getEmpleados(), getMotivosPerdida()]);
       setLeads(leadsRes.data);
       setEmpleados(empRes.data);
+      setMotivosPerdida(motRes.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   }, []);
@@ -260,6 +262,20 @@ export default function Leads() {
               {Object.keys(ESTADO_LEAD).map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </div>
+          {form.estado === 'Perdido' && (
+            <div>
+              <label className="block text-xs text-red-400 mb-1">Motivo de Pérdida</label>
+              <select className={inp} onChange={e => {
+                if (e.target.value) {
+                  const notaActual = form.notas_internas ? form.notas_internas + '\n' : '';
+                  setForm({...form, notas_internas: `${notaActual}[Motivo de pérdida: ${e.target.value}]`});
+                }
+              }}>
+                <option value="">Seleccionar motivo...</option>
+                {motivosPerdida.map(m => <option key={m.id} value={m.descripcion}>{m.descripcion}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-xs text-gray-400 mb-1">Artista solicitado</label>
             <input className={inp} value={form.artista_solicitado} onChange={e => setForm({...form, artista_solicitado: e.target.value})} placeholder="Nombre del artista" />

@@ -115,8 +115,26 @@ export default function Presupuestos() {
       await navigator.clipboard.writeText(publicUrl);
       setTokenCopiado(id);
       setTimeout(() => setTokenCopiado(null), 3000);
-    } catch (e) { console.error(e); }
-    setGenerandoToken(null);
+      return publicUrl;
+    } catch (e) { console.error(e); return null; }
+    finally { setGenerandoToken(null); }
+  };
+
+  const compartirWhatsApp = async (id) => {
+    let publicUrl = await generarToken(id);
+    if (publicUrl) {
+      const msg = encodeURIComponent(`Hola! Aquí tienes el presupuesto de tu proyecto: ${publicUrl}`);
+      window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+    }
+  };
+
+  const compartirEmail = async (id) => {
+    let publicUrl = await generarToken(id);
+    if (publicUrl) {
+      const subject = encodeURIComponent('Presupuesto de tu proyecto - Tattoo Studio');
+      const body = encodeURIComponent(`Hola,\n\nPuedes consultar los detalles de tu presupuesto en el siguiente enlace:\n${publicUrl}\n\nUn saludo,\nEl equipo de Tattoo Studio`);
+      window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+    }
   };
 
   const getNombre = (list, id, field = 'nombre') => {
@@ -231,14 +249,25 @@ export default function Presupuestos() {
                 <h2 className="text-white font-semibold text-lg">Presupuesto #{String(detalle.id).padStart(4, '0')}</h2>
                 <Badge estado={detalle.estado} />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button onClick={() => { generarToken(detalle.id); }}
                   className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  {tokenCopiado === detalle.id ? '¡Copiado!' : 'Compartir'}
+                  {tokenCopiado === detalle.id ? '¡Copiado!' : 'Copiar Enlace'}
                 </button>
+
+                <button onClick={() => compartirWhatsApp(detalle.id)}
+                  className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-1">
+                  <span>WhatsApp</span>
+                </button>
+
+                <button onClick={() => compartirEmail(detalle.id)}
+                  className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-1">
+                  <span>Email</span>
+                </button>
+
                 <button onClick={() => { setDetalle(null); abrirEditar(detalle); }}
                   className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Editar</button>
                 <button onClick={() => setDetalle(null)}

@@ -29,6 +29,7 @@ import Leads from './pages/Leads';
 import ProyectosPage from './pages/Proyectos';
 import PresupuestosPage from './pages/Presupuestos';
 import PresupuestoPublic from './pages/PresupuestoPublic';
+import Seguimientos from './pages/Seguimientos';
 import { Terminos, Privacidad, Cookies, CompraVenta, AvisoLegal, FAQ } from './pages/LegalPages';
 
 
@@ -276,6 +277,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <PresupuestosPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/seguimientos"
+            element={
+              <PrivateRoute>
+                <Seguimientos />
               </PrivateRoute>
             }
           />

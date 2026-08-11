@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles, Eye, Cookie, CheckCircle, FileText, HelpCircle, MapPin, Phone, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles, Eye, Cookie, CheckCircle, FileText, HelpCircle, MapPin, Phone, Mail, ChevronLeft, ChevronRight, Briefcase, FileCheck } from 'lucide-react';
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -149,14 +149,24 @@ const features = [
     desc: 'Registra cómo distribuyes tus horas entre tatuar, diseñar, administración y más',
   },
   {
-    gradient: 'from-[#134e4a] to-[#042f2e]',
-    shadow: 'rgba(20, 184, 166, 0.2)',
-    borderColor: 'border-teal-800/50',
-    iconBg: 'bg-teal-500/10',
-    iconColor: 'text-teal-400',
-    icon: <DollarSign className="w-6 h-6" />,
-    title: 'Maximiza Ingresos',
-    desc: 'Descubre qué actividades son más rentables y optimiza tu tarifa por hora',
+    gradient: 'from-[#1e1b4b] to-[#312e81]',
+    shadow: 'rgba(99, 102, 241, 0.2)',
+    borderColor: 'border-indigo-800/50',
+    iconBg: 'bg-indigo-500/10',
+    iconColor: 'text-indigo-400',
+    icon: <Briefcase className="w-6 h-6" />,
+    title: 'CRM y Gestión de Leads',
+    desc: 'Captura y haz seguimiento de clientes potenciales, asigna responsables y mide motivos de pérdida.',
+  },
+  {
+    gradient: 'from-[#065f46] to-[#064e3b]',
+    shadow: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'border-emerald-800/50',
+    iconBg: 'bg-emerald-500/10',
+    iconColor: 'text-emerald-400',
+    icon: <FileCheck className="w-6 h-6" />,
+    title: 'Presupuestos Interactivos',
+    desc: 'Genera enlaces públicos con token seguro y comparte propuestas económicas por WhatsApp o Email al instante.',
   },
   {
     gradient: 'from-[#831843] to-[#4c0519]',

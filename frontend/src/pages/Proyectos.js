@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getProyectos, createProyecto, updateProyecto, getEmpleados, getClientes } from '../api';
+import { getProyectos, createProyecto, updateProyecto, getEmpleados, getClientes, getMotivosPerdida } from '../api';
 import Modal from '../components/Modal';
 
 /* ── Configuración de estados y colores ────────────────────────────── */
@@ -42,15 +42,17 @@ export default function Proyectos() {
   const [buscar, setBuscar] = useState('');
   const [empleados, setEmpleados] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [motivosPerdida, setMotivosPerdida] = useState([]);
   const [detalle, setDetalle] = useState(null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const [projRes, empRes, cliRes] = await Promise.all([getProyectos(), getEmpleados(), getClientes()]);
+      const [projRes, empRes, cliRes, motRes] = await Promise.all([getProyectos(), getEmpleados(), getClientes(), getMotivosPerdida()]);
       setProyectos(projRes.data);
       setEmpleados(empRes.data);
       setClientes(cliRes.data);
+      setMotivosPerdida(motRes.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   }, []);
@@ -279,6 +281,20 @@ export default function Proyectos() {
               {Object.keys(ESTADO_PROYECTO).map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </div>
+          {form.estado === 'Cancelado' && (
+            <div>
+              <label className="block text-xs text-red-400 mb-1">Motivo de Cancelación / Pérdida</label>
+              <select className={inp} onChange={e => {
+                if (e.target.value) {
+                  const notaActual = form.notas_internas ? form.notas_internas + '\n' : '';
+                  setForm({...form, notas_internas: `${notaActual}[Motivo de cancelación: ${e.target.value}]`});
+                }
+              }}>
+                <option value="">Seleccionar motivo...</option>
+                {motivosPerdida.map(m => <option key={m.id} value={m.descripcion}>{m.descripcion}</option>)}
+              </select>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <label className="block text-xs text-gray-400 mb-1">Descripción</label>
             <textarea className={inp} rows={3} value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} placeholder="Descripción del proyecto…" />

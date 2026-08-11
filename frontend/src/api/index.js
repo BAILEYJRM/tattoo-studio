@@ -268,3 +268,8 @@ export const getSeguimiento = (id) => api.get(`/seguimientos/${id}`);
 export const createSeguimiento = (data) => api.post('/seguimientos', data);
 export const updateSeguimiento = (id, data) => api.put(`/seguimientos/${id}`, data);
 
+// ── Comercial: Motivos de pérdida ──
+export const getMotivosPerdida = () => api.get('/motivos-perdida');
+export const createMotivoPerdida = (descripcion) => api.post('/motivos-perdida', { descripcion });
+
+

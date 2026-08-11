@@ -73,6 +73,7 @@ app.use('/api/leads', require('./routes/leads'));
 app.use('/api/proyectos', require('./routes/proyectos'));
 app.use('/api/presupuestos', require('./routes/presupuestos'));
 app.use('/api/seguimientos', require('./routes/seguimientos'));
+app.use('/api/motivos-perdida', require('./routes/motivosPerdida'));
 
 
 // Cron jobs
@@ -83,7 +84,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
   const seedPlantillas = require('./config/seedPlantillas');
+  const setupTriggers = require('./config/setupTriggers');
   await seedPlantillas();
+  await setupTriggers();
 });
 
 module.exports = app;
