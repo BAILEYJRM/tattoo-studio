@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 
 const dashboardItem = {
-  to: '/',
+  to: '/app',
   label: 'Dashboard',
   icon: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

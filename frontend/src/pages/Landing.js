@@ -310,16 +310,47 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-white/5 py-12 px-6 z-10 bg-black">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <span className="text-gray-500 text-sm font-bold uppercase tracking-wider">© 2026 KuroIchi. Todos los derechos reservados.</span>
+
+      <footer className="border-t border-white/5 bg-[#050505] pt-16 pb-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 text-sm">
+            <div>
+              <h4 className="text-white font-bold mb-4">Contacto</h4>
+              <ul className="space-y-3 text-gray-400 font-medium">
+                <li className="flex items-center gap-2">
+                  <span className="text-purple-500">📞</span> Tel: +34 938 501 106
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">💬</span> WhatsApp: +34 628 352 910
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-teal-500">✉️</span> hola@cooltattoo.es
+                </li>
+                <li className="flex items-start gap-2 mt-2 text-xs">
+                  <span className="text-pink-500 mt-0.5">📍</span>
+                  <span>C/Generalitat, 5<br/>08960 Sant Just Desvern<br/>Barcelona, España</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-4">Empresa</h4>
+              <ul className="space-y-3 text-gray-400 font-medium">
+                <li>Cool Tattoo S.L.</li>
+                <li>CIF: B64272024</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-4">Legal</h4>
+              <ul className="space-y-3 text-gray-400 font-medium">
+                <li><Link to="/legal/terminos" className="hover:text-white transition-colors">Términos y Condiciones</Link></li>
+                <li><Link to="/legal/privacidad" className="hover:text-white transition-colors">Política de Privacidad</Link></li>
+                <li><Link to="/legal/cookies" className="hover:text-white transition-colors">Política de Cookies</Link></li>
+                <li><Link to="/legal/compra-venta" className="hover:text-white transition-colors">Política de Compra Venta</Link></li>
+              </ul>
+            </div>
           </div>
-          <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-gray-600">
-            <a href="#" className="hover:text-red-400 transition-colors">Privacidad</a>
-            <a href="#" className="hover:text-red-400 transition-colors">Términos</a>
-            <a href="mailto:hola@kuroichi.com" className="hover:text-red-400 transition-colors">Contacto</a>
+          <div className="text-center text-gray-600 text-xs font-medium border-t border-white/5 pt-8">
+            © 2026 Cool Tattoo S.L. Todos los derechos reservados.<br/>kuroichi.com
           </div>
         </div>
       </footer>

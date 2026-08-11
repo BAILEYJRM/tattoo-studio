@@ -25,6 +25,7 @@ import ResetPassword from './pages/ResetPassword';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
 import Alertas from './pages/Alertas';
+import { Terminos, Privacidad, Cookies, CompraVenta } from './pages/LegalPages';
 
 
 function PrivateRoute({ children, adminOnly = false }) {
@@ -71,6 +72,10 @@ export default function App() {
               </PublicRoute>
             }
           />
+          <Route path="/legal/terminos" element={<Terminos />} />
+          <Route path="/legal/privacidad" element={<Privacidad />} />
+          <Route path="/legal/cookies" element={<Cookies />} />
+          <Route path="/legal/compra-venta" element={<CompraVenta />} />
 
           {/* ── Private App routes (at /app/*) ── */}
           <Route
