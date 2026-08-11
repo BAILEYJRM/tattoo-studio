@@ -316,29 +316,24 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-sm text-gray-300">
             {/* Column 1: Logo and Social */}
             <div className="flex flex-col items-center md:items-start text-center md:text-left">
-              <div className="mb-8">
-                <div className="text-center font-serif">
-                  <div className="text-[10px] tracking-[0.3em] text-gray-400 mb-1">EST. 2016</div>
-                  <div className="text-3xl font-black tracking-widest text-white border-y border-white/20 py-2 my-2" style={{ fontFamily: 'Times New Roman, serif' }}>
-                    BLACK <span className="mx-2 text-xl align-middle">⚔️</span> BLOOD
-                  </div>
-                  <div className="text-sm tracking-[0.3em] text-white font-light">TATTOO STUDIO</div>
-                </div>
+              <div className="mb-6">
+                <span className="font-black text-3xl tracking-tighter text-white uppercase" style={{ letterSpacing: '-0.05em' }}>KuroIchi</span>
+                <p className="mt-2 text-gray-400 font-medium text-sm">El sistema definitivo de gestión para la verdadera industria del tatuaje.</p>
               </div>
-              <div className="flex gap-4 mt-2">
-                <a href="#" className="w-10 h-10 flex items-center justify-center bg-[#c29b38] text-black hover:bg-white transition-colors rounded shadow-lg">
+              <div className="flex gap-4">
+                <a href="#" className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 transition-all rounded-lg">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                   </svg>
                 </a>
-                <a href="#" className="w-10 h-10 flex items-center justify-center bg-[#c29b38] text-black hover:bg-white transition-colors rounded shadow-lg">
+                <a href="#" className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 transition-all rounded-lg">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                   </svg>
                 </a>
-                <a href="#" className="w-10 h-10 flex items-center justify-center bg-[#c29b38] text-black hover:bg-white transition-colors rounded shadow-lg">
+                <a href="#" className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-red-500 hover:bg-red-500/10 transition-all rounded-lg">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.34 2.88 2.88 0 012.31-4.53 2.66 2.66 0 011.04.2v-3.46a6.34 6.34 0 00-6.28 6.5A6.36 6.36 0 0010.5 22a6.38 6.38 0 006.32-6.5V9.41a8.4 8.4 0 005.15 1.76V7.62a4.9 4.9 0 01-2.38-.93z"/>
                   </svg>
@@ -348,35 +343,35 @@ export default function Landing() {
 
             {/* Column 2: Links */}
             <div>
-              <h4 className="text-[#c29b38] font-bold text-lg mb-6 uppercase tracking-wider">Enlaces de Interés</h4>
-              <ul className="space-y-4 font-medium text-gray-300">
-                <li><Link to="/legal/privacidad" className="flex items-center gap-3 hover:text-white transition-colors"><Eye className="w-4 h-4 text-[#c29b38]" /> Política de Privacidad</Link></li>
-                <li><Link to="/legal/cookies" className="flex items-center gap-3 hover:text-white transition-colors"><Cookie className="w-4 h-4 text-[#c29b38]" /> Política de Cookies</Link></li>
-                <li><Link to="/legal/terminos" className="flex items-center gap-3 hover:text-white transition-colors"><CheckCircle className="w-4 h-4 text-[#c29b38]" /> Condiciones Generales</Link></li>
-                <li><Link to="/legal/aviso-legal" className="flex items-center gap-3 hover:text-white transition-colors"><FileText className="w-4 h-4 text-[#c29b38]" /> Aviso Legal</Link></li>
-                <li><Link to="/faq" className="flex items-center gap-3 hover:text-white transition-colors"><HelpCircle className="w-4 h-4 text-[#c29b38]" /> FAQ</Link></li>
+              <h4 className="text-white font-bold text-lg mb-6 uppercase tracking-wider">Enlaces de Interés</h4>
+              <ul className="space-y-4 font-medium text-gray-400">
+                <li><Link to="/legal/privacidad" className="flex items-center gap-3 hover:text-white transition-colors"><Eye className="w-4 h-4 text-red-500" /> Política de Privacidad</Link></li>
+                <li><Link to="/legal/cookies" className="flex items-center gap-3 hover:text-white transition-colors"><Cookie className="w-4 h-4 text-red-500" /> Política de Cookies</Link></li>
+                <li><Link to="/legal/terminos" className="flex items-center gap-3 hover:text-white transition-colors"><CheckCircle className="w-4 h-4 text-red-500" /> Condiciones Generales</Link></li>
+                <li><Link to="/legal/aviso-legal" className="flex items-center gap-3 hover:text-white transition-colors"><FileText className="w-4 h-4 text-red-500" /> Aviso Legal</Link></li>
+                <li><Link to="/faq" className="flex items-center gap-3 hover:text-white transition-colors"><HelpCircle className="w-4 h-4 text-red-500" /> FAQ</Link></li>
               </ul>
             </div>
 
             {/* Column 3: Contact */}
             <div>
-              <h4 className="text-[#c29b38] font-bold text-lg mb-6 uppercase tracking-wider">Información de Contacto</h4>
-              <ul className="space-y-4 font-medium text-gray-300">
+              <h4 className="text-white font-bold text-lg mb-6 uppercase tracking-wider">Información de Contacto</h4>
+              <ul className="space-y-4 font-medium text-gray-400">
                 <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#c29b38] shrink-0 mt-0.5" />
-                  <span>Av. de Galicia, 15, 27700 Ribadeo, Lugo, España</span>
+                  <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                  <span>C/Generalitat, 5, 08960 Sant Just Desvern, Barcelona</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-[#c29b38] shrink-0" />
-                  <span>(+34) 611 15 69 33</span>
+                  <Phone className="w-5 h-5 text-red-500 shrink-0" />
+                  <span>(+34) 938 501 106</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#c29b38] shrink-0" />
-                  <span>blackbloodartstudio@gmail.com</span>
+                  <Mail className="w-5 h-5 text-red-500 shrink-0" />
+                  <span>hola@cooltattoo.es</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-[#c29b38] shrink-0" />
-                  <span>LUN - VIE: 12:00h a 20:00h</span>
+                  <Clock className="w-5 h-5 text-red-500 shrink-0" />
+                  <span>LUN - VIE: 10:00h a 20:00h</span>
                 </li>
               </ul>
             </div>
