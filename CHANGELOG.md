@@ -2,14 +2,14 @@
 
 ## [Unreleased] - 2026-08-11
 
-### Añadido (Panel de Control SuperAdmin SaaS - `/superadmin`)
-- **Middleware de Autorización (`superadminAuth.js`)**: Protección estricta en el backend para validar que únicamente cuentas `superadmin` (`baileyjrm@gmail.com`) puedan acceder a las funciones globales de gestión del software.
-- **Rutas y Controlador SuperAdmin (`superadmin.js`)**: Endpoints para consulta de métricas globales, listado de estudios registrados, actualización de planes (`Starter`, `PRO Mensual`, `PRO Semestral`, `PRO Anual`), suspensión/activación de acceso, extensión de periodo de prueba gratis por +14 días y restablecimiento de contraseña de administradores de estudio.
-- **Vista Frontend SuperAdmin (`SuperAdmin.js`)**: Panel en modo oscuro con métricas clave (MRR estimado, Estudios totales, Estudios activos, En prueba y Total de tatuadores en la plataforma), buscador/filtrado de estudios y modal de control directo.
-- **Navegación Protegida (`Layout.js` & `App.js`)**: Botón exclusivo **Panel SuperAdmin** en la barra lateral para el propietario de la plataforma y protección de rutas.
+### Estilo & Diseño (Rediseño Visual del Landing Page)
+- **Eliminación de Líneas Horizontales**: Eliminadas todas las bordes de separación horizontales entre secciones para lograr una experiencia de desplazamiento fluido y moderno.
+- **Fondo Oscuro Uniforme**: Eliminados los bloques de fondos grises en favor de un tono negro profundo uniforme (`#050505`) con degradados radiales rojos sutiles.
+- **Mockups de Interfaz del Software**: Añadidos componentes visuales interactivos de KuroIchi en el Landing Page:
+  - Mockup del Dashboard Principal (Citas, TPV, iCal Feed, Cabinas).
+  - Mockup del Pipeline CRM Kanban (Leads comercial).
+  - Mockup de Firma Digital en Tablet y Consentimientos Informados PDF con lotes de tintas.
 
-### Añadido (Landing Page Renovada inspirada en Inkoru)
-- **Cinta Marquee de Estudios de Tatuaje (`Landing.js`)**: Marquesina animada en el Hero.
-- **Estructura de Precios Transparente**: Planes Mensual, Semestral y Anual.
-- **Modal de Matriz Completa de Características**: +40 características organizadas.
-- **Módulo de Contacto Directo & WhatsApp**: Formulario con antispam y botón directo a WhatsApp.
+### Añadido (Panel de Control SuperAdmin SaaS - `/superadmin`)
+- **Middleware de Autorización y Rutas (`superadminAuth.js` & `superadmin.js`)**: Panel de gestión para el propietario de la plataforma.
+- **Vista Frontend SuperAdmin (`SuperAdmin.js`)**: MRR, Estudios totales, activos, en prueba gratis y gestión de contraseñas.
