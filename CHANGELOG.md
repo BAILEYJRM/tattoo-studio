@@ -2,6 +2,10 @@
 
 ## [Unreleased] - 2026-08-11
 
+### Añadido (Fase 3 - Tareas de Alta Complejidad)
+- **Pipeline Kanban**: Página `Pipeline.js` con tablero visual interactivo Drag & Drop para cambiar estados de Leads y Proyectos dinámicamente.
+- **Analytics / Insights Comercial**: Página `Insights.js` y ruta `/api/insights/resumen` con embudo de conversión, origen de leads, estado de proyectos y análisis de motivos de pérdida.
+
 ### Añadido (Fase 3 - Tareas de Complejidad Media)
 - **Transiciones de Estado Automáticas**: Endpoint `POST /api/leads/:id/convertir` para convertir Lead a Cliente y Proyecto automáticamente. Actualización automática de estado de Proyecto a 'Aprobado' al aceptar Presupuesto.
 - **Generador de Presupuesto en PDF**: Componente `PresupuestoImprimible.js` con vista A4 limpia, desglose económico, marcas de agua y botón de impresión / descarga en PDF.

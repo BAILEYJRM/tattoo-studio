@@ -30,6 +30,8 @@ import ProyectosPage from './pages/Proyectos';
 import PresupuestosPage from './pages/Presupuestos';
 import PresupuestoPublic from './pages/PresupuestoPublic';
 import Seguimientos from './pages/Seguimientos';
+import Pipeline from './pages/Pipeline';
+import Insights from './pages/Insights';
 import { Terminos, Privacidad, Cookies, CompraVenta, AvisoLegal, FAQ } from './pages/LegalPages';
 
 
@@ -285,6 +287,22 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Seguimientos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/pipeline"
+            element={
+              <PrivateRoute>
+                <Pipeline />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/insights"
+            element={
+              <PrivateRoute>
+                <Insights />
               </PrivateRoute>
             }
           />

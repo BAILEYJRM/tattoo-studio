@@ -273,4 +273,7 @@ export const updateSeguimiento = (id, data) => api.put(`/seguimientos/${id}`, da
 export const getMotivosPerdida = () => api.get('/motivos-perdida');
 export const createMotivoPerdida = (descripcion) => api.post('/motivos-perdida', { descripcion });
 
+// ── Comercial: Insights ──
+export const getInsightsResumen = () => api.get('/insights/resumen');
+
 
