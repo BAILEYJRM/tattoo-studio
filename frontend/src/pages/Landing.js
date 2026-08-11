@@ -301,7 +301,7 @@ export default function Landing() {
             <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle,rgba(220,38,38,0.4),transparent 70%)' }} />
             <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle,rgba(251,191,36,0.4),transparent 70%)' }} />
             <img src="/inkuro-logo.png" className="w-16 h-16 mx-auto mb-8 rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.3)] border border-red-500/20" alt="Inkuro Icon" />
-            <h2 className="relative text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">Únete al culto</h2>
+            <h2 className="relative text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">Únete a los Profesionales</h2>
             <p className="relative text-gray-400 mb-10 text-lg font-medium max-w-xl mx-auto">14 días de prueba con todas las funcionalidades habilitadas. Da el salto y profesionaliza tu estudio hoy mismo.</p>
             <Link to="/registro" className="relative inline-flex items-center gap-3 text-white font-black px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105 uppercase tracking-wide border border-red-500/30 shadow-[0_10px_40px_rgba(220,38,38,0.3)]" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
               Crear mi cuenta gratis
