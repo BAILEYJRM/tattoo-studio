@@ -32,6 +32,7 @@ import PresupuestoPublic from './pages/PresupuestoPublic';
 import Seguimientos from './pages/Seguimientos';
 import Pipeline from './pages/Pipeline';
 import Insights from './pages/Insights';
+import SuperAdmin from './pages/SuperAdmin';
 import { Terminos, Privacidad, Cookies, CompraVenta, AvisoLegal, FAQ } from './pages/LegalPages';
 
 
@@ -39,6 +40,14 @@ function PrivateRoute({ children, adminOnly = false }) {
   const { token, usuario } = useAuth();
   if (!token) return <Navigate to="/login" replace />;
   if (adminOnly && usuario?.rol !== 'admin') return <Navigate to="/app" replace />;
+  return <Layout>{children}</Layout>;
+}
+
+function SuperAdminRoute({ children }) {
+  const { token, usuario } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
+  const isSuperAdmin = usuario?.rol === 'superadmin' || usuario?.email === 'baileyjrm@gmail.com';
+  if (!isSuperAdmin) return <Navigate to="/app" replace />;
   return <Layout>{children}</Layout>;
 }
 
@@ -312,6 +321,14 @@ export default function App() {
               <PrivateRoute adminOnly>
                 <Configuracion />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="/superadmin"
+            element={
+              <SuperAdminRoute>
+                <SuperAdmin />
+              </SuperAdminRoute>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -284,4 +284,10 @@ export const getAlquileresCabina = () => api.get('/alquileres-cabina');
 export const createAlquilerCabina = (data) => api.post('/alquileres-cabina', data);
 export const pagarAlquilerCabina = (id, data) => api.post(`/alquileres-cabina/${id}/pagar`, data);
 
-
+// ── SuperAdmin SaaS ──
+export const getSuperAdminStats = () => api.get('/superadmin/stats');
+export const getSuperAdminEstudios = () => api.get('/superadmin/estudios');
+export const updateEstudioPlan = (id, plan) => api.put(`/superadmin/estudios/${id}/plan`, { plan });
+export const updateEstudioEstado = (id, estado) => api.put(`/superadmin/estudios/${id}/estado`, { estado });
+export const ampliarPruebaEstudio = (id, dias = 14) => api.put(`/superadmin/estudios/${id}/ampliar-prueba`, { dias });
+export const resetEstudioPassword = (id, newPassword) => api.post(`/superadmin/estudios/${id}/reset-password`, { newPassword });

@@ -76,7 +76,7 @@ app.use('/api/seguimientos', require('./routes/seguimientos'));
 app.use('/api/motivos-perdida', require('./routes/motivosPerdida'));
 app.use('/api/insights', require('./routes/insights'));
 app.use('/api/alquileres-cabina', require('./routes/alquileresCabina'));
-
+app.use('/api/superadmin', require('./routes/superadmin'));
 
 // Cron jobs
 require('./services/cronService');
