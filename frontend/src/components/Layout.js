@@ -18,6 +18,7 @@ const gestionItems = [
   {
     to: '/alertas',
     label: 'Alertas',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -44,7 +45,8 @@ const gestionItems = [
   },
   {
     to: '/ventas',
-    label: 'Ventas',
+    label: 'Ventas (TPV)',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -62,7 +64,8 @@ const gestionItems = [
   },
   {
     to: '/cabinas',
-    label: 'Cabinas',
+    label: 'Cabinas & Alquileres',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -140,6 +143,7 @@ const comercialItems = [
   {
     to: '/insights',
     label: 'Insights Comercial',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -191,6 +195,7 @@ const contabilidadItems = [
   {
     to: '/estadisticas',
     label: 'Estadísticas',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -200,6 +205,7 @@ const contabilidadItems = [
   {
     to: '/gastos',
     label: 'Gastos',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -209,6 +215,7 @@ const contabilidadItems = [
   {
     to: '/ingresos',
     label: 'Ingresos',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -218,6 +225,7 @@ const contabilidadItems = [
   {
     to: '/contabilidad/recuento-diario',
     label: 'Recuento diario',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M12 7h.01M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -226,7 +234,7 @@ const contabilidadItems = [
   },
   {
     to: '/contabilidad/liquidacion-artista',
-    label: 'Liq. artistas',
+    label: 'Mi Liquidación',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -236,6 +244,7 @@ const contabilidadItems = [
   {
     to: '/contabilidad/liquidacion-estudio',
     label: 'Liq. estudio',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -245,6 +254,7 @@ const contabilidadItems = [
   {
     to: '/contabilidad/recibos',
     label: 'Recibos',
+    managerOnly: true,
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -296,52 +306,76 @@ export default function Layout({ children }) {
           {dashboardItem.label}
         </NavLink>
 
-        {/* Gestión group */}
-        <div className="pt-3">
-          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Gestión</p>
-          {gestionItems.map((item) => {
-            if (item.adminOnly && usuario?.rol !== 'admin') return null;
-            return (
-              <NavLink key={item.to} to={item.to} className={linkClass}>
-                {item.icon}
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </div>
+        {/* Helper de filtrado por rol */}
+        {(() => {
+          const isArtista = usuario?.rol === 'artista';
+          const filterItems = (items) => items.filter(i => {
+            if (i.adminOnly && usuario?.rol !== 'admin') return false;
+            if (i.managerOnly && isArtista) return false;
+            return true;
+          });
 
-        {/* Comercial group (Fase 2) */}
-        <div className="pt-3">
-          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Comercial</p>
-          {comercialItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={linkClass}>
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+          const gItems = filterItems(gestionItems);
+          const cItems = filterItems(comercialItems);
+          const iItems = filterItems(inventarioItems);
+          const contItems = filterItems(contabilidadItems);
 
-        {/* Inventario group */}
-        <div className="pt-3">
-          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Inventario</p>
-          {inventarioItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={linkClass}>
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+          return (
+            <>
+              {/* Gestión group */}
+              {gItems.length > 0 && (
+                <div className="pt-3">
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Gestión</p>
+                  {gItems.map((item) => (
+                    <NavLink key={item.to} to={item.to} className={linkClass}>
+                      {item.icon}
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
 
-        {/* Contabilidad group */}
-        <div className="pt-3">
-          <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Contabilidad</p>
-          {contabilidadItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={linkClass}>
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
+              {/* Comercial group */}
+              {cItems.length > 0 && (
+                <div className="pt-3">
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Comercial</p>
+                  {cItems.map((item) => (
+                    <NavLink key={item.to} to={item.to} className={linkClass}>
+                      {item.icon}
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
+              {/* Inventario group */}
+              {iItems.length > 0 && (
+                <div className="pt-3">
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Inventario</p>
+                  {iItems.map((item) => (
+                    <NavLink key={item.to} to={item.to} className={linkClass}>
+                      {item.icon}
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
+              {/* Contabilidad group */}
+              {contItems.length > 0 && (
+                <div className="pt-3">
+                  <p className="px-4 pb-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Contabilidad</p>
+                  {contItems.map((item) => (
+                    <NavLink key={item.to} to={item.to} className={linkClass}>
+                      {item.icon}
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </nav>
 
       {/* User */}
