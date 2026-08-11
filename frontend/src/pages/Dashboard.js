@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo, getAusenciasRango } from '../api';
+import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo, getAusenciasRango, getLeads, getProyectos, getPresupuestos } from '../api';
 
 const ESTADO_CONFIG = {
   pendiente: { label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [stockBajo, setStockBajo] = useState([]);
   const [clientesConflictivos, setClientesConflictivos] = useState([]);
   const [ausenciasSemana, setAusenciasSemana] = useState([]);
+  const [crmStats, setCrmStats] = useState({ leadsNuevos: 0, proyectosActivos: 0, presupuestosAceptados: 0, tasaConversion: 0 });
 
   useEffect(() => {
     const hoy = new Date();
@@ -62,7 +63,10 @@ export default function Dashboard() {
       getResumenMesGastos(year, month).catch(() => ({ data: { total: 0 } })),
       getStockBajo().catch(() => ({ data: [] })),
       getAusenciasRango({ fecha_inicio: lunesStr, fecha_fin: domingoStr }).catch(() => ({ data: [] })),
-    ]).then(([clientes, empleados, citasDeHoy, todasCitas, ventas, gastos, bajo, ausencias]) => {
+      getLeads().catch(() => ({ data: [] })),
+      getProyectos().catch(() => ({ data: [] })),
+      getPresupuestos().catch(() => ({ data: [] })),
+    ]).then(([clientes, empleados, citasDeHoy, todasCitas, ventas, gastos, bajo, ausencias, leads, proyectos, presupuestos]) => {
       const pendientes = todasCitas.data.filter((c) => c.estado === 'pendiente').length;
       setStats({
         clientes: clientes.data.length,
@@ -75,6 +79,18 @@ export default function Dashboard() {
       setStockBajo(bajo.data || []);
       setClientesConflictivos(clientes.data.filter((c) => Number(c.no_shows) >= 3));
       setAusenciasSemana(ausencias.data || []);
+
+      // Cálculo de métricas CRM
+      const totalLeads = leads.data.length;
+      const convertidos = leads.data.filter(l => l.estado === 'Convertido').length;
+      const tasaConv = totalLeads > 0 ? ((convertidos / totalLeads) * 100).toFixed(0) : 0;
+
+      setCrmStats({
+        leadsNuevos: leads.data.filter(l => l.estado === 'Nuevo' || l.estado === 'Contactado').length,
+        proyectosActivos: proyectos.data.filter(p => p.estado === 'En curso' || p.estado === 'Aprobado' || p.estado === 'En diseño').length,
+        presupuestosAceptados: presupuestos.data.filter(p => p.estado === 'Aceptado').length,
+        tasaConversion: tasaConv
+      });
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -142,20 +158,42 @@ export default function Dashboard() {
           {[...Array(4)].map((_, i) => <div key={i} className="bg-[#141414] border border-white/5 rounded-xl p-5 h-24 animate-pulse shadow-lg" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Clientes" value={stats.clientes} color="bg-blue-600"
-            icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
-          />
-          <StatCard label="Empleados" value={stats.empleados} color="bg-purple-600"
-            icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-          />
-          <StatCard label="Citas hoy" value={stats.hoy} color="bg-green-600"
-            icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-          />
-          <StatCard label="Pendientes" value={stats.pendientes} color="bg-orange-500"
-            subtext={stats.pendientes > 0 ? `${stats.pendientes} alertas` : ''} subtextColor="text-orange-400"
-            icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-          />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Clientes" value={stats.clientes} color="bg-blue-600"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+            />
+            <StatCard label="Empleados" value={stats.empleados} color="bg-purple-600"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+            />
+            <StatCard label="Citas hoy" value={stats.hoy} color="bg-green-600"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+            />
+            <StatCard label="Pendientes" value={stats.pendientes} color="bg-orange-500"
+              subtext={stats.pendientes > 0 ? `${stats.pendientes} alertas` : ''} subtextColor="text-orange-400"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            />
+          </div>
+
+          {/* Fila Comercial CRM */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Leads Activos" value={crmStats.leadsNuevos} color="bg-indigo-600"
+              subtext="En seguimiento" subtextColor="text-indigo-400"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
+            />
+            <StatCard label="Proyectos" value={crmStats.proyectosActivos} color="bg-cyan-600"
+              subtext="En diseño / curso" subtextColor="text-cyan-400"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+            />
+            <StatCard label="Presupuestos" value={crmStats.presupuestosAceptados} color="bg-emerald-600"
+              subtext="Aceptados" subtextColor="text-emerald-400"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>}
+            />
+            <StatCard label="Conversión CRM" value={`${crmStats.tasaConversion}%`} color="bg-pink-600"
+              subtext="Leads a Clientes" subtextColor="text-pink-400"
+              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+            />
+          </div>
         </div>
       )}
 

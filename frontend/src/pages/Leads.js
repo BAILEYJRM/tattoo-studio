@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getLeads, createLead, updateLead, getEmpleados, getMotivosPerdida } from '../api';
+import { getLeads, createLead, updateLead, getEmpleados, getMotivosPerdida, convertirLead } from '../api';
 import Modal from '../components/Modal';
 
 /* ── Configuración de estados y colores ────────────────────────────── */
@@ -88,6 +88,14 @@ export default function Leads() {
         await createLead(form);
       }
       setModalOpen(false);
+      cargar();
+    } catch (e) { console.error(e); }
+  };
+
+  const ejecutarConversion = async (id) => {
+    try {
+      await convertirLead(id);
+      setDetalle(null);
       cargar();
     } catch (e) { console.error(e); }
   };
@@ -206,6 +214,12 @@ export default function Leads() {
                 <Badge estado={detalle.estado} />
               </div>
               <div className="flex items-center gap-2">
+                {detalle.estado !== 'Convertido' && (
+                  <button onClick={() => ejecutarConversion(detalle.id)}
+                    className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                    <span>Convertir a Cliente</span>
+                  </button>
+                )}
                 <button onClick={() => { setDetalle(null); abrirEditar(detalle); }}
                   className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Editar</button>
                 <button onClick={() => setDetalle(null)}

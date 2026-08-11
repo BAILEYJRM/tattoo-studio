@@ -15,10 +15,25 @@ const auth = (req, res, next) => {
 };
 
 const soloAdmin = (req, res, next) => {
-  if (req.usuario.rol !== 'admin') {
-    return res.status(403).json({ error: 'Acceso denegado' });
+  if (req.usuario?.rol !== 'admin') {
+    return res.status(403).json({ error: 'Acceso denegado: se requieren permisos de Administrador' });
   }
   next();
 };
 
-module.exports = { auth, soloAdmin };
+const soloGerenteOAdmin = (req, res, next) => {
+  if (req.usuario?.rol !== 'admin' && req.usuario?.rol !== 'gerente') {
+    return res.status(403).json({ error: 'Acceso denegado: se requieren permisos de Gerencia' });
+  }
+  next();
+};
+
+const esStaffComercial = (req, res, next) => {
+  const rolesPermitidos = ['admin', 'gerente', 'recepcion', 'artista'];
+  if (!rolesPermitidos.includes(req.usuario?.rol)) {
+    return res.status(403).json({ error: 'Acceso denegado a funciones comerciales' });
+  }
+  next();
+};
+
+module.exports = { auth, soloAdmin, soloGerenteOAdmin, esStaffComercial };

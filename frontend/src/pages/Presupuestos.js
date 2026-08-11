@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getPresupuestos, createPresupuesto, updatePresupuesto, generarTokenPresupuesto, getClientes, getEmpleados, getProyectos } from '../api';
 import Modal from '../components/Modal';
+import PresupuestoImprimible from '../components/PresupuestoImprimible';
 
 /* ── Configuración de estados ──────────────────────────────────────── */
 const ESTADO_PRESUPUESTO = {
@@ -42,6 +43,7 @@ export default function Presupuestos() {
   const [tokenCopiado, setTokenCopiado] = useState(null);
   const [generandoToken, setGenerandoToken] = useState(null);
   const [detalle, setDetalle] = useState(null);
+  const [imprimiendo, setImprimiendo] = useState(null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -268,6 +270,11 @@ export default function Presupuestos() {
                   <span>Email</span>
                 </button>
 
+                <button onClick={() => setImprimiendo(detalle)}
+                  className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-1">
+                  <span>PDF</span>
+                </button>
+
                 <button onClick={() => { setDetalle(null); abrirEditar(detalle); }}
                   className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Editar</button>
                 <button onClick={() => setDetalle(null)}
@@ -393,6 +400,16 @@ export default function Presupuestos() {
           </button>
         </div>
       </Modal>
+
+      {/* Vista previa imprimible */}
+      {imprimiendo && (
+        <PresupuestoImprimible
+          presupuesto={imprimiendo}
+          cliente={clientes.find(c => c.id === imprimiendo.cliente_id)}
+          proyecto={proyectos.find(p => p.id === imprimiendo.proyecto_id)}
+          onClose={() => setImprimiendo(null)}
+        />
+      )}
     </div>
   );
 }

@@ -41,8 +41,19 @@ router.post('/', async (req, res) => {
 // Actualizar presupuesto existente
 router.put('/:id', async (req, res) => {
   try {
+    const pool = require('../config/database');
     const presupuestoActualizado = await Presupuesto.actualizar(req.params.id, req.body);
     await logActivity(req.user?.id || null, 'presupuesto', presupuestoActualizado.id, 'actualizado', { data: req.body });
+
+    // Si el presupuesto ha sido marcado como 'Aceptado' y tiene proyecto vinculado, actualizar el proyecto a 'Aprobado'
+    if (presupuestoActualizado.estado === 'Aceptado' && presupuestoActualizado.proyecto_id) {
+      await pool.query(
+        `UPDATE proyectos SET estado = 'Aprobado' WHERE id = $1`,
+        [presupuestoActualizado.proyecto_id]
+      );
+      await logActivity(req.user?.id || null, 'proyecto', presupuestoActualizado.proyecto_id, 'aprobado_via_presupuesto', { presupuestoId: presupuestoActualizado.id });
+    }
+
     res.json(presupuestoActualizado);
   } catch (err) {
     console.error(err);
