@@ -172,7 +172,7 @@ export default function Landing() {
           </div>
           <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6 uppercase tracking-tighter text-white" style={{ letterSpacing: '-0.03em' }}>
             Gobierna tu estudio,<br />
-            <span style={{ background: 'linear-gradient(90deg,#ef4444,#dc2626,#fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span className="bg-gradient-to-r from-red-500 via-red-600 to-amber-400 bg-clip-text text-transparent">
               domina la tinta
             </span>
           </h1>
