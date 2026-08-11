@@ -359,19 +359,19 @@ export default function Landing() {
               <ul className="space-y-4 font-medium text-gray-400">
                 <li className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                  <span>C/Generalitat, 5, 08960 Sant Just Desvern, Barcelona</span>
+                  <span>Av. de Galicia, 15, 27700 Ribadeo, Lugo, España</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-red-500 shrink-0" />
-                  <span>(+34) 938 501 106</span>
+                  <span>(+34) 611 15 69 33</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-red-500 shrink-0" />
-                  <span>hola@cooltattoo.es</span>
+                  <span>blackbloodartstudio@gmail.com</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Clock className="w-5 h-5 text-red-500 shrink-0" />
-                  <span>LUN - VIE: 10:00h a 20:00h</span>
+                  <span>LUN - VIE: 12:00h a 20:00h</span>
                 </li>
               </ul>
             </div>
