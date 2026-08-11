@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles, Eye, Cookie, CheckCircle, FileText, HelpCircle, MapPin, Phone, Mail } from 'lucide-react';
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles, Eye, Cookie, CheckCircle, FileText, HelpCircle, MapPin, Phone, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -189,8 +189,16 @@ const plans = [
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function Landing() {
-  const [billing, setBilling] = useState('monthly');
   const [scrolled, setScrolled] = useState(false);
+  const [billing, setBilling] = useState('monthly');
+  const scrollRef = useRef(null);
+
+  const scroll = (offset) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => { const f = () => setScrolled(window.scrollY > 20); window.addEventListener('scroll', f); return () => window.removeEventListener('scroll', f); }, []);
 
   return (
@@ -205,6 +213,7 @@ export default function Landing() {
           </div>
           <div className="hidden md:flex gap-8 text-sm font-bold tracking-wide text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">HERRAMIENTAS</a>
+            <a href="#incluye" className="hover:text-white transition-colors">INCLUYE</a>
             <a href="#pricing" className="hover:text-white transition-colors">TARIFAS</a>
           </div>
           <div className="flex items-center gap-4">
@@ -312,34 +321,61 @@ export default function Landing() {
       </section>
 
       {/* Qué incluye */}
-      <section className="relative py-24 px-6 z-10 border-t border-white/5 bg-[#0a0a0a]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter text-white">¿Qué incluye?</h2>
-            <p className="text-lg text-gray-400 font-medium max-w-2xl mx-auto">
-              Todo el ecosistema KuroIchi integrado de serie para que solo te preocupes de tatuar.
-            </p>
+      <section id="incluye" className="relative py-24 px-6 z-10 border-t border-white/5 bg-[#0a0a0a]">
+        <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black mb-4 uppercase tracking-tighter text-white">¿Qué incluye?</h2>
+              <p className="text-lg text-gray-400 font-medium">
+                Todo el ecosistema KuroIchi integrado de serie.
+              </p>
+            </div>
+            <div className="flex gap-3 mt-6 md:mt-0">
+              <button onClick={() => scroll(-400)} className="w-12 h-12 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-red-500 transition-colors shadow-lg">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button onClick={() => scroll(400)} className="w-12 h-12 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-white hover:bg-white/10 hover:border-red-500 transition-colors shadow-lg">
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              "Agenda inteligente con recordatorios automáticos",
-              "Dashboard con métricas de rentabilidad por artista",
-              "Fichas de clientes con histórico visual de tatuajes",
-              "Generación y firma legal de consentimientos",
-              "Gestor integral de tintas, agujas y material",
-              "Identifica estilos y patrones de mayores ingresos",
-              "Sistema TPV y facturación simplificada",
-              "Soporte y actualizaciones continuas incluidas"
-            ].map((feature, idx) => (
-              <div key={idx} className="flex items-center gap-4 bg-[#111] border border-white/10 rounded-xl p-5 hover:bg-white/5 hover:border-red-500/50 transition-colors">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-red-500/20 text-red-500">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <span className="text-gray-300 font-medium text-sm">{feature}</span>
+          
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none"></div>
+            
+            <div ref={scrollRef} className="overflow-x-auto pb-4 hide-scrollbar scroll-smooth">
+              <div className="grid grid-rows-2 grid-flow-col gap-4 min-w-max px-4">
+                {[
+                  "Agenda inteligente con recordatorios automáticos",
+                  "Dashboard con métricas de rentabilidad por artista",
+                  "Fichas de clientes con histórico visual de tatuajes",
+                  "Generación y firma legal de consentimientos",
+                  "Gestor integral de tintas, agujas y material",
+                  "Identifica estilos y patrones de mayores ingresos",
+                  "Sistema TPV y facturación simplificada",
+                  "Soporte técnico VIP y actualizaciones incluidas",
+                  "Control de comisiones y pago a colaboradores",
+                  "Módulo de gestión de citas online para clientes",
+                  "Exportación de datos para el gestor o contable",
+                  "Acceso multi-dispositivo y multi-usuario",
+                  "Alertas automáticas de caducidad de material",
+                  "Campañas de marketing (Próximamente)",
+                  "Copias de seguridad automáticas en la nube",
+                  "Personalización de la interfaz con tu logotipo"
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-4 bg-[#111] border border-white/10 rounded-xl p-5 w-80 hover:bg-white/5 hover:border-red-500/50 transition-colors shrink-0">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-red-500/20 text-red-500">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="text-gray-300 font-medium text-sm leading-tight">{feature}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
