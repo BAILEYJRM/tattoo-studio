@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Quote } from 'lucide-react';
+import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check } from 'lucide-react';
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -128,11 +128,7 @@ const plans = [
   { id: 'pro', name: 'Pro', monthlyPrice: 59, yearlyPrice: 49, desc: 'Para estudios de alto volumen.', popular: true, features: ['Artistas ilimitados', 'Todo lo del Starter', 'TPV y punto de venta', 'Contabilidad y liquidaciones', 'Estadísticas avanzadas', 'Inventario y stock', 'Sincronización Google Calendar', 'Soporte 24/7'] },
 ];
 
-const testimonials = [
-  { name: 'Carlos M.', studio: 'Black Rose Tattoo, Madrid', text: 'Desde que uso Inkuro llevo el control del estudio sin esfuerzo. Los consentimientos digitales me han salvado la vida y papel.', av: 'CM', color: 'from-red-600 to-red-800' },
-  { name: 'Ana Belén R.', studio: 'Luna Ink, Barcelona', text: 'El diseño oscuro no ciega cuando estamos tatuando. Mis clientes reciben sus recordatorios y no falla nadie.', av: 'AB', color: 'from-gray-600 to-gray-800' },
-  { name: 'Dario F.', studio: 'Skull & Roses, Valencia', text: 'Por fin un software hecho para nosotros, sin adornos innecesarios. Las liquidaciones a mis artistas se hacen en 2 clics.', av: 'DF', color: 'from-stone-600 to-stone-800' },
-];
+
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function Landing() {
@@ -154,7 +150,6 @@ export default function Landing() {
           <div className="hidden md:flex gap-8 text-sm font-bold tracking-wide text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">HERRAMIENTAS</a>
             <a href="#pricing" className="hover:text-white transition-colors">TARIFAS</a>
-            <a href="#testimonials" className="hover:text-white transition-colors">ESTUDIOS</a>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm font-bold tracking-wider text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all uppercase">Acceder</Link>
@@ -257,31 +252,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="relative py-32 px-6 z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-20"><h2 className="text-4xl md:text-5xl font-black mb-4 uppercase tracking-tighter text-white">La palabra de la calle</h2></div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t) => (
-              <div key={t.name} className="bg-[#111] border border-white/5 rounded-2xl p-8 hover:border-red-900/50 transition-all duration-300 shadow-2xl relative">
-                <Quote className="absolute top-6 right-6 w-8 h-8 text-white/5" />
-                <div className="flex gap-1 mb-6">{[...Array(5)].map((_, i) => <svg key={i} className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}</div>
-                <p className="text-gray-300 text-base leading-relaxed mb-8 font-medium">"{t.text}"</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-black text-white border border-white/10" style={{ background: `linear-gradient(135deg,${t.color.includes('red') ? '#dc2626,#7f1d1d' : t.color.includes('gray') ? '#4b5563,#1f2937' : '#57534e,#292524'})` }}>{t.av}</div>
-                  <div><div className="text-base font-bold text-white uppercase tracking-wider">{t.name}</div><div className="text-xs font-bold text-red-500/80 uppercase">{t.studio}</div></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing */}
       <section id="pricing" className="relative py-32 px-6 z-10 border-t border-white/5 bg-[#080808]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter text-white">Tarifas de sangre</h2>
+            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter text-white">Planes y Tarifas</h2>
             <p className="text-gray-400 mb-10 text-lg font-medium">Todo el poder, sin ataduras.</p>
             <div className="inline-flex bg-[#1a1a1a] border border-white/10 rounded-xl p-1.5 shadow-xl">
               {['monthly','yearly'].map(b => (
