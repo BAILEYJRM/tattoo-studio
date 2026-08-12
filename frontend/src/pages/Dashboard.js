@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo, getAusenciasRango, getLeads, getProyectos, getPresupuestos } from '../api';
+import { SlidingNumber } from '../components/animate-ui/sliding-number';
+import { AnimatedIcon } from '../components/animate-ui/animated-icon';
+import {
+  Users, UserCheck, Calendar, Clock, UserPlus, FolderKanban, FileText, Target,
+  TrendingUp, TrendingDown, Wallet, CalendarPlus, Package, Settings, AlertTriangle
+} from 'lucide-react';
 
 const ESTADO_CONFIG = {
   pendiente: { label: 'Pendiente', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
@@ -17,15 +23,23 @@ function EstadoBadge({ estado }) {
   );
 }
 
-function StatCard({ label, value, icon, color, subtext, subtextColor }) {
+function StatCard({ label, value, isNumber = true, prefix = "", suffix = "", icon, color, subtext, subtextColor, hoverEffect = "bounce" }) {
   return (
-    <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 flex justify-between items-start shadow-sm">
+    <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 flex justify-between items-start shadow-sm transition-all hover:border-indigo-500/40 group">
       <div className="flex flex-col gap-1">
         <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{label}</p>
-        <p className="text-white text-3xl font-black tracking-tight">{value}</p>
+        <div className="text-white text-3xl font-black tracking-tight">
+          {typeof value === 'number' && isNumber ? (
+            <SlidingNumber value={value} prefix={prefix} suffix={suffix} />
+          ) : (
+            <span>{prefix}{value}{suffix}</span>
+          )}
+        </div>
         {subtext && <p className={`text-xs font-medium mt-1 ${subtextColor || 'text-gray-500'}`}>{subtext}</p>}
       </div>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>{icon}</div>
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color} shadow-sm group-hover:scale-105 transition-transform`}>
+        <AnimatedIcon icon={icon} hoverEffect={hoverEffect} size={20} className="text-white" />
+      </div>
     </div>
   );
 }
@@ -47,7 +61,6 @@ export default function Dashboard() {
     const year = hoy.getFullYear();
     const month = hoy.getMonth() + 1;
 
-    // Calcular inicio y fin de la semana actual (lunes-domingo)
     const diaSemana = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1;
     const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - diaSemana);
     const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
@@ -80,10 +93,9 @@ export default function Dashboard() {
       setClientesConflictivos(clientes.data.filter((c) => Number(c.no_shows) >= 3));
       setAusenciasSemana(ausencias.data || []);
 
-      // Cálculo de métricas CRM
       const totalLeads = leads.data.length;
       const convertidos = leads.data.filter(l => l.estado === 'Convertido').length;
-      const tasaConv = totalLeads > 0 ? ((convertidos / totalLeads) * 100).toFixed(0) : 0;
+      const tasaConv = totalLeads > 0 ? Number(((convertidos / totalLeads) * 100).toFixed(0)) : 0;
 
       setCrmStats({
         leadsNuevos: leads.data.filter(l => l.estado === 'Nuevo' || l.estado === 'Contactado').length,
@@ -103,18 +115,15 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">{saludo}, {usuario?.nombre}</h1>
-        <p className="text-gray-400 text-sm mt-0.5">
+        <p className="text-gray-400 text-sm mt-0.5 capitalize">
           {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
-      {/* Alertas */}
       <div className="space-y-3">
         {!loading && stockBajo.length > 0 && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
+            <AnimatedIcon icon={AlertTriangle} hoverEffect="shake" size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-red-400 text-sm font-medium">Stock bajo en {stockBajo.length} producto{stockBajo.length > 1 ? 's' : ''}</p>
               <p className="text-red-400/70 text-xs mt-0.5">{stockBajo.slice(0, 3).map((p) => p.nombre).join(', ')}{stockBajo.length > 3 ? '…' : ''}</p>
@@ -123,9 +132,7 @@ export default function Dashboard() {
         )}
         {!loading && clientesConflictivos.length > 0 && (
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
-            <svg className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
+            <AnimatedIcon icon={AlertTriangle} hoverEffect="shake" size={20} className="text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-orange-400 text-sm font-medium">{clientesConflictivos.length} cliente{clientesConflictivos.length > 1 ? 's' : ''} con 3+ no-shows</p>
               <p className="text-orange-400/70 text-xs mt-0.5">{clientesConflictivos.slice(0, 3).map((c) => `${c.nombre} ${c.apellidos} (${c.no_shows})`).join(', ')}</p>
@@ -134,9 +141,7 @@ export default function Dashboard() {
         )}
         {!loading && ausenciasSemana.length > 0 && (
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
-            <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <AnimatedIcon icon={Calendar} hoverEffect="bounce" size={20} className="text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-yellow-400 text-sm font-medium">Ausencias esta semana</p>
               <div className="mt-1 space-y-0.5">
@@ -152,7 +157,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Stats */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 h-24 animate-pulse shadow-lg" />)}
@@ -160,64 +164,71 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Clientes" value={stats.clientes} color="bg-blue-600"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
-            />
-            <StatCard label="Empleados" value={stats.empleados} color="bg-purple-600"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-            />
-            <StatCard label="Citas hoy" value={stats.hoy} color="bg-green-600"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            />
-            <StatCard label="Pendientes" value={stats.pendientes} color="bg-orange-500"
+            <StatCard label="Clientes" value={stats.clientes} color="bg-blue-600" icon={Users} hoverEffect="bounce" />
+            <StatCard label="Empleados" value={stats.empleados} color="bg-purple-600" icon={UserCheck} hoverEffect="pulse" />
+            <StatCard label="Citas hoy" value={stats.hoy} color="bg-green-600" icon={Calendar} hoverEffect="rotate" />
+            <StatCard label="Pendientes" value={stats.pendientes} color="bg-orange-500" icon={Clock} hoverEffect="bounce"
               subtext={stats.pendientes > 0 ? `${stats.pendientes} alertas` : ''} subtextColor="text-orange-400"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
             />
           </div>
 
-          {/* Fila Comercial CRM */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Leads Activos" value={crmStats.leadsNuevos} color="bg-indigo-600"
+            <StatCard label="Leads Activos" value={crmStats.leadsNuevos} color="bg-indigo-600" icon={UserPlus} hoverEffect="pulse"
               subtext="En seguimiento" subtextColor="text-indigo-400"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
             />
-            <StatCard label="Proyectos" value={crmStats.proyectosActivos} color="bg-cyan-600"
+            <StatCard label="Proyectos" value={crmStats.proyectosActivos} color="bg-cyan-600" icon={FolderKanban} hoverEffect="bounce"
               subtext="En diseño / curso" subtextColor="text-cyan-400"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
             />
-            <StatCard label="Presupuestos" value={crmStats.presupuestosAceptados} color="bg-emerald-600"
+            <StatCard label="Presupuestos" value={crmStats.presupuestosAceptados} color="bg-emerald-600" icon={FileText} hoverEffect="rotate"
               subtext="Aceptados" subtextColor="text-emerald-400"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>}
             />
-            <StatCard label="Conversión CRM" value={`${crmStats.tasaConversion}%`} color="bg-pink-600"
+            <StatCard label="Conversión CRM" value={crmStats.tasaConversion} suffix="%" color="bg-pink-600" icon={Target} hoverEffect="pulse"
               subtext="Leads a Clientes" subtextColor="text-pink-400"
-              icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
             />
           </div>
         </div>
       )}
 
-      {/* Finanzas */}
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas del mes</p>
-            <p className="text-green-400 text-3xl font-black mt-2 tracking-tight">{finanzas.ventas.toFixed(2)} €</p>
+          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-green-500/40">
+            <div>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas del mes</p>
+              <div className="text-green-400 text-3xl font-black mt-2 tracking-tight">
+                <SlidingNumber value={finanzas.ventas} suffix=" €" />
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
+              <AnimatedIcon icon={TrendingUp} hoverEffect="bounce" size={22} />
+            </div>
           </div>
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Gastos del mes</p>
-            <p className="text-red-400 text-3xl font-black mt-2 tracking-tight">{finanzas.gastos.toFixed(2)} €</p>
+
+          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-red-500/40">
+            <div>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Gastos del mes</p>
+              <div className="text-red-400 text-3xl font-black mt-2 tracking-tight">
+                <SlidingNumber value={finanzas.gastos} suffix=" €" />
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+              <AnimatedIcon icon={TrendingDown} hoverEffect="shake" size={22} />
+            </div>
           </div>
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Beneficio del mes</p>
-            <p className={`text-3xl font-black mt-2 tracking-tight ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
-              {(finanzas.ventas - finanzas.gastos).toFixed(2)} €
-            </p>
+
+          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-indigo-500/40">
+            <div>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Beneficio del mes</p>
+              <div className={`text-3xl font-black mt-2 tracking-tight ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
+                <SlidingNumber value={finanzas.ventas - finanzas.gastos} suffix=" €" />
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <AnimatedIcon icon={Wallet} hoverEffect="rotate" size={22} />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Citas de hoy */}
       <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-6">
         <h2 className="text-white text-lg font-bold tracking-wide mb-6">Citas de hoy</h2>
         {loading ? (
@@ -238,34 +249,36 @@ export default function Dashboard() {
                     <p className="text-white text-sm font-medium truncate">{cita.cliente_nombre}</p>
                     {cita.cliente_conflictivo && <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">⚠</span>}
                   </div>
-                  <p className="text-gray-400 text-xs truncate">{cita.artista_nombre}</p>
+                  <p className="text-gray-400 text-xs truncate mt-0.5">
+                    {cita.artista_nombre} {cita.cabina_nombre ? `· Cabina: ${cita.cabina_nombre}` : ''}
+                  </p>
                 </div>
                 <EstadoBadge estado={cita.estado} />
-                {cita.precio && <span className="text-gray-300 text-sm font-medium">{Number(cita.precio).toFixed(2)} €</span>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Accesos Rápidos */}
       <div>
         <h2 className="text-white text-lg font-bold tracking-wide mb-4 mt-8">Accesos Rápidos</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { title: 'Nueva Cita', desc: 'Programa en el calendario', link: '/citas', color: 'bg-blue-600', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
-            { title: 'Añadir Cliente', desc: 'Registra un nuevo perfil', link: '/clientes', color: 'bg-green-600', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> },
-            { title: 'Ver Inventario', desc: 'Consulta tus productos', link: '/materiales', color: 'bg-purple-600', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
-            { title: 'Configuración', desc: 'Ajusta tu estudio', link: '/configuracion', color: 'bg-orange-500', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> }
+            { title: 'Nueva Cita', desc: 'Programa en el calendario', link: '/citas', color: 'bg-blue-600', icon: CalendarPlus, effect: 'bounce' },
+            { title: 'Añadir Cliente', desc: 'Registra un nuevo perfil', link: '/clientes', color: 'bg-green-600', icon: UserPlus, effect: 'pulse' },
+            { title: 'Ver Inventario', desc: 'Consulta tus productos', link: '/materiales', color: 'bg-purple-600', icon: Package, effect: 'rotate' },
+            { title: 'Configuración', desc: 'Ajusta tu estudio', link: '/configuracion', color: 'bg-orange-500', icon: Settings, effect: 'rotate' }
           ].map((action, i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 shadow-lg flex flex-col justify-between">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${action.color} mb-4`}>
-                {action.icon}
+            <div key={i} className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 shadow-lg flex flex-col justify-between group hover:border-indigo-500/40 transition-all">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${action.color} mb-4 shadow-sm`}>
+                <AnimatedIcon icon={action.icon} hoverEffect={action.effect} size={20} className="text-white" />
               </div>
               <div>
                 <h3 className="text-white font-bold mb-1">{action.title}</h3>
                 <p className="text-gray-400 text-xs mb-4">{action.desc}</p>
-                <Link to={action.link} className="text-blue-500 font-bold text-sm hover:text-blue-400 transition-colors">Ir</Link>
+                <Link to={action.link} className="text-blue-500 font-bold text-sm hover:text-blue-400 transition-colors inline-flex items-center gap-1">
+                  Ir →
+                </Link>
               </div>
             </div>
           ))}
