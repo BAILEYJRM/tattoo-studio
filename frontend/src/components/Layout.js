@@ -79,12 +79,12 @@ export default function Layout({ children }) {
 
   const Sidebar = () => (
     <aside className="flex flex-col h-full bg-gray-900 w-64 flex-shrink-0">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b border-gray-800">
+      {/* Logo y Modo de Color (arriba del todo) */}
+      <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z" />
+              <path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z" />
             </svg>
           </div>
           <div>
@@ -92,6 +92,16 @@ export default function Layout({ children }) {
             <p className="text-gray-500 text-xs mt-0.5">Gestión</p>
           </div>
         </div>
+
+        {/* Botón de Modo Claro / Oscuro */}
+        <motion.button
+          initial="rest" whileHover="hover" whileTap="tap"
+          onClick={toggleColorMode}
+          className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700/60"
+          title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
+        >
+          <AnimatedIcon icon={colorMode === 'dark' ? Sun : Moon} hoverEffect="rotate" size={16} />
+        </motion.button>
       </div>
 
       {/* Nav */}
@@ -162,33 +172,26 @@ export default function Layout({ children }) {
 
       {/* User */}
       <div className="px-3 py-4 border-t border-gray-800 flex flex-col gap-1">
-        <div className="flex items-center gap-3 px-4 py-2 mb-1">
+        <div className="flex items-center gap-3 px-3 py-2 mb-1">
           <div className="w-8 h-8 bg-indigo-700 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
             {usuario?.nombre?.charAt(0).toUpperCase()}
           </div>
-          <div className="min-w-0 flex-1 flex justify-between items-center">
-            <div>
+          <div className="min-w-0 flex-1 flex justify-between items-center gap-2">
+            <div className="min-w-0 flex-1">
               <p className="text-white text-sm font-medium truncate">{usuario?.nombre}</p>
               <p className="text-gray-500 text-xs capitalize">{usuario?.rol}</p>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-                className="px-2 py-1 text-xs font-bold text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700"
-                title="Cambiar idioma / Change language"
-              >
-                {lang === 'es' ? '🇺🇸 EN' : '🇪🇸 ES'}
-              </button>
-
-              <motion.button
-                initial="rest" whileHover="hover" whileTap="tap"
-                onClick={toggleColorMode}
-                className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-                title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
-              >
-                <AnimatedIcon icon={colorMode === 'dark' ? Sun : Moon} hoverEffect="rotate" size={16} />
-              </motion.button>
-            </div>
+            
+            {/* Botón de Idioma destacado con bandera ocupando el lugar libre */}
+            <motion.button
+              initial="rest" whileHover="hover" whileTap="tap"
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="px-2.5 py-1.5 text-xs font-bold text-gray-200 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700 flex items-center gap-1.5 flex-shrink-0 shadow-sm"
+              title="Cambiar idioma / Change language"
+            >
+              <span className="text-base leading-none">{lang === 'es' ? '🇪🇸' : '🇺🇸'}</span>
+              <span>{lang === 'es' ? 'ES' : 'EN'}</span>
+            </motion.button>
           </div>
         </div>
         
@@ -245,21 +248,14 @@ export default function Layout({ children }) {
             </svg>
           </button>
           <span className="text-white font-semibold text-sm">Tattoo Studio</span>
-          <button
+          <motion.button
+            initial="rest" whileHover="hover" whileTap="tap"
             onClick={toggleColorMode}
             className="p-1.5 text-gray-400 hover:text-white transition-colors"
             title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
           >
-            {colorMode === 'dark' ? (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+            <AnimatedIcon icon={colorMode === 'dark' ? Sun : Moon} hoverEffect="rotate" size={18} />
+          </motion.button>
         </div>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
