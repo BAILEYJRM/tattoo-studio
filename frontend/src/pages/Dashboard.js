@@ -19,7 +19,7 @@ function EstadoBadge({ estado }) {
 
 function StatCard({ label, value, icon, color, subtext, subtextColor }) {
   return (
-    <div className="bg-[#141414] border border-white/5 rounded-xl p-5 flex justify-between items-start shadow-lg">
+    <div className="bg-gray-800 border border-gray-700/60 rounded-xl p-5 flex justify-between items-start shadow-lg">
       <div className="flex flex-col gap-1">
         <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{label}</p>
         <p className="text-white text-3xl font-black tracking-tight">{value}</p>
@@ -155,7 +155,7 @@ export default function Dashboard() {
       {/* Stats */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="bg-[#141414] border border-white/5 rounded-xl p-5 h-24 animate-pulse shadow-lg" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="bg-gray-800 border border-gray-700/60 rounded-xl p-5 h-24 animate-pulse shadow-lg" />)}
         </div>
       ) : (
         <div className="space-y-4">
@@ -200,15 +200,15 @@ export default function Dashboard() {
       {/* Finanzas */}
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-[#141414] border border-white/5 shadow-lg rounded-xl p-5">
+          <div className="bg-gray-800 border border-gray-700/60 shadow-lg rounded-xl p-5">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas del mes</p>
             <p className="text-green-400 text-3xl font-black mt-2 tracking-tight">{finanzas.ventas.toFixed(2)} €</p>
           </div>
-          <div className="bg-[#141414] border border-white/5 shadow-lg rounded-xl p-5">
+          <div className="bg-gray-800 border border-gray-700/60 shadow-lg rounded-xl p-5">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Gastos del mes</p>
             <p className="text-red-400 text-3xl font-black mt-2 tracking-tight">{finanzas.gastos.toFixed(2)} €</p>
           </div>
-          <div className="bg-[#141414] border border-white/5 shadow-lg rounded-xl p-5">
+          <div className="bg-gray-800 border border-gray-700/60 shadow-lg rounded-xl p-5">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Beneficio del mes</p>
             <p className={`text-3xl font-black mt-2 tracking-tight ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
               {(finanzas.ventas - finanzas.gastos).toFixed(2)} €
@@ -218,7 +218,7 @@ export default function Dashboard() {
       )}
 
       {/* Citas de hoy */}
-      <div className="bg-[#141414] border border-white/5 shadow-lg rounded-xl p-6">
+      <div className="bg-gray-800 border border-gray-700/60 shadow-lg rounded-xl p-6">
         <h2 className="text-white text-lg font-bold tracking-wide mb-6">Citas de hoy</h2>
         {loading ? (
           <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-gray-800 rounded-lg animate-pulse" />)}</div>
@@ -258,7 +258,7 @@ export default function Dashboard() {
             { title: 'Ver Inventario', desc: 'Consulta tus productos', link: '/materiales', color: 'bg-purple-600', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
             { title: 'Configuración', desc: 'Ajusta tu estudio', link: '/configuracion', color: 'bg-orange-500', icon: <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> }
           ].map((action, i) => (
-            <div key={i} className="bg-[#141414] border border-white/5 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+            <div key={i} className="bg-gray-800 border border-gray-700/60 rounded-xl p-5 shadow-lg flex flex-col justify-between">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${action.color} mb-4`}>
                 {action.icon}
               </div>

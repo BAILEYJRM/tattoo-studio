@@ -64,9 +64,9 @@ export default function Alertas() {
       </div>
 
       {/* Controles de filtro */}
-      <div className="bg-[#141414] border border-white/5 rounded-xl p-5 mb-8 shadow-lg">
+      <div className="bg-gray-800 border border-gray-700/60 rounded-xl p-5 mb-8 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
-          <div className="flex gap-2 p-1 bg-[#0a0a0a] rounded-lg border border-gray-800">
+          <div className="flex gap-2 p-1 bg-gray-900 rounded-lg border border-gray-800">
             <button
               onClick={() => setFiltroEstado('pendiente')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${filtroEstado === 'pendiente' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
@@ -92,25 +92,25 @@ export default function Alertas() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFiltroTipo('todas')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'todas' ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30' : 'bg-[#0a0a0a] text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'todas' ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30' : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-700'}`}
               >
                 Todas
               </button>
               <button
                 onClick={() => setFiltroTipo('criticas')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'criticas' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-[#0a0a0a] text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'criticas' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-700'}`}
               >
                 Críticas ({countCriticas})
               </button>
               <button
                 onClick={() => setFiltroTipo('stock')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'stock' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'stock' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-700'}`}
               >
                 Stock ({countStock})
               </button>
               <button
                 onClick={() => setFiltroTipo('caducidad')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'caducidad' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-[#0a0a0a] text-gray-400 border-gray-800 hover:border-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${filtroTipo === 'caducidad' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-700'}`}
               >
                 Caducidad ({countCaducidad})
               </button>
@@ -136,14 +136,14 @@ export default function Alertas() {
         {loading ? (
           <div className="text-center py-10 text-gray-500">Cargando alertas...</div>
         ) : alertasFiltradas.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 bg-[#141414] rounded-xl border border-white/5">
+          <div className="text-center py-10 text-gray-500 bg-gray-800 rounded-xl border border-white/5">
             No hay alertas que coincidan con los filtros.
           </div>
         ) : (
           alertasFiltradas.map((alerta) => (
             <div 
               key={alerta.id} 
-              className={`bg-[#141414] border-l-4 rounded-xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-[#1a1a1a] ${
+              className={`bg-gray-800 border-l-4 rounded-xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-[#1a1a1a] ${
                 alerta.gravedad === 'critica' ? 'border-l-red-500' : 
                 alerta.gravedad === 'media' ? 'border-l-orange-500' : 'border-l-indigo-500'
               } border-y border-r border-y-white/5 border-r-white/5`}
@@ -197,7 +197,7 @@ export default function Alertas() {
                 {alerta.entidad_tipo === 'producto' && (
                   <Link 
                     to="/materiales" 
-                    className="bg-[#0a0a0a] text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-800 hover:border-gray-600 transition-colors"
+                    className="bg-gray-900 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-800 hover:border-gray-600 transition-colors"
                   >
                     Ver Producto
                   </Link>

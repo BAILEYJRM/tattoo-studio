@@ -6,7 +6,7 @@
 - **Soporte para Animate UI y Framer Motion**: Instaladas dependencias `framer-motion`, `clsx` y `tailwind-merge`.
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
 - **Componente Animado `SlidingNumber`**: Añadido primer componente de `animate-ui` en `src/components/animate-ui/sliding-number.jsx` para contadores numéricos fluídos.
-- **Solución a la Sincronización de Temas Visuales en Login/Logout**: Corregido `ThemeContext` e `index.js` reactivo para actualizar automáticamente el tema del estudio al iniciar sesión y purgar totalmente las variables CSS personalizadas al cerrar sesión sin requerir recargar la página (F5).
+- **Soporte Completo del Modo Claro en Paneles y Tarjetas**: Reemplazadas clases de fondos negros fijos (`bg-[#141414]`, `bg-[#0a0a0a]`, `bg-[#1C1F26]`) por clases semánticas reactivas (`bg-gray-800`, `bg-gray-900`) y agregadas reglas CSS globales en `index.css` para adaptar automáticamente filtros, tarjetas del Dashboard y campos en modo claro.
 
 
 ### Estilo & Diseño (Rediseño Visual del Landing Page)
