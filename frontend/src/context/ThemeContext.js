@@ -1,9 +1,11 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState, useCallback, useContext } from 'react';
 import { getConfiguracion, getConfiguracionPublica } from '../api';
+import { useAuth } from './AuthContext';
 
 export const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
+  const { token } = useAuth();
   const [theme, setTheme] = useState(() => {
     try {
       const stored = localStorage.getItem('app-theme');
@@ -23,7 +25,20 @@ export function ThemeProvider({ children }) {
     return (yiq >= 128) ? '#111827' : '#ffffff';
   };
 
-  const applyTheme = (config) => {
+  const resetThemeStyles = useCallback(() => {
+    const root = document.documentElement;
+    root.style.removeProperty('--color-primary');
+    root.style.removeProperty('--color-primary-content');
+    root.style.removeProperty('--color-bg');
+    root.style.removeProperty('--color-surface');
+    root.style.removeProperty('--font-main');
+    root.style.removeProperty('--font-base-size');
+    root.removeAttribute('data-skin');
+    localStorage.removeItem('app-theme');
+    setTheme(null);
+  }, []);
+
+  const applyTheme = useCallback((config) => {
     if (!config) return;
     const root = document.documentElement;
     if (config.theme_primary_color) {
@@ -47,37 +62,45 @@ export function ThemeProvider({ children }) {
     if (config.theme_font_size) {
       root.style.setProperty('--font-base-size', config.theme_font_size);
     }
-  };
+  }, []);
 
-  const loadTheme = () => {
-    const token = localStorage.getItem('token');
-    const fetchApi = token ? getConfiguracion() : getConfiguracionPublica();
-    
-    fetchApi.then(res => {
-      const config = res.data;
-      setTheme(config);
-      localStorage.setItem('app-theme', JSON.stringify(config));
-      applyTheme(config);
-    }).catch(err => {
-      console.warn('Falling back to local theme cache:', err);
-    });
-  };
+  const loadTheme = useCallback(() => {
+    if (token) {
+      getConfiguracion()
+        .then(res => {
+          const config = res.data;
+          setTheme(config);
+          localStorage.setItem('app-theme', JSON.stringify(config));
+          applyTheme(config);
+        })
+        .catch(err => {
+          console.warn('Falling back to local theme cache:', err);
+          const stored = localStorage.getItem('app-theme');
+          if (stored) {
+            try { applyTheme(JSON.parse(stored)); } catch (e) {}
+          }
+        });
+    } else {
+      resetThemeStyles();
+      getConfiguracionPublica()
+        .then(res => {
+          if (res.data && res.data.theme_primary_color) {
+            setTheme(res.data);
+            applyTheme(res.data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [token, applyTheme, resetThemeStyles]);
+
+  // Recargar/limpiar tema automáticamente al cambiar token (login/logout)
+  useEffect(() => {
+    loadTheme();
+  }, [token, loadTheme]);
 
   const [colorMode, setColorMode] = useState('dark');
 
   useEffect(() => {
-    // 1. Aplicar tema guardado inmediatamente desde localStorage
-    const storedTheme = localStorage.getItem('app-theme');
-    if (storedTheme) {
-      try {
-        applyTheme(JSON.parse(storedTheme));
-      } catch (e) {}
-    }
-
-    // 2. Cargar último tema desde backend
-    loadTheme();
-
-    // 3. Cargar modo oscuro/claro
     const storedMode = localStorage.getItem('app-color-mode');
     if (storedMode === 'light') {
       setColorMode('light');
@@ -99,7 +122,6 @@ export function ThemeProvider({ children }) {
   };
 
   const changePrimaryColor = (color) => {
-    // For local preview
     if (color.toLowerCase() === '#d4af37') {
       document.documentElement.setAttribute('data-skin', 'gold');
     } else {
@@ -116,8 +138,11 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, updateTheme, colorMode, toggleColorMode, changePrimaryColor }}>
+    <ThemeContext.Provider value={{ theme, updateTheme, colorMode, toggleColorMode, changePrimaryColor, loadTheme, resetThemeStyles }}>
       {children}
     </ThemeContext.Provider>
   );
 }
+
+export const useTheme = () => useContext(ThemeContext);
+

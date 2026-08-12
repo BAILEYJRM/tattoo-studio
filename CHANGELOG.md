@@ -6,7 +6,7 @@
 - **Soporte para Animate UI y Framer Motion**: Instaladas dependencias `framer-motion`, `clsx` y `tailwind-merge`.
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
 - **Componente Animado `SlidingNumber`**: Añadido primer componente de `animate-ui` en `src/components/animate-ui/sliding-number.jsx` para contadores numéricos fluídos.
-- **Script de Inicio Rápido (`iniciar.bat`)**: Creado script ejecutante para arrancar Backend, Frontend y abrir el navegador con un solo clic.
+- **Solución a la Sincronización de Temas Visuales en Login/Logout**: Corregido `ThemeContext` e `index.js` reactivo para actualizar automáticamente el tema del estudio al iniciar sesión y purgar totalmente las variables CSS personalizadas al cerrar sesión sin requerir recargar la página (F5).
 
 
 ### Estilo & Diseño (Rediseño Visual del Landing Page)
