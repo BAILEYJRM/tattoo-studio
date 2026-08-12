@@ -5,7 +5,7 @@
 ### Estilo & Animaciones (Integración Animate UI & Lucide React)
 - **Soporte para Animate UI y Framer Motion**: Instaladas dependencias `framer-motion`, `clsx` y `tailwind-merge`.
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
-- **Reorganización del Menú Lateral**: Reubicado el botón de cambio de modo (Claro / Oscuro) arriba del todo al lado del título del software `Tattoo Studio`, y ampliado el selector de idioma en el panel inferior del usuario ocupando su lugar con una bandera destacada (`🇪🇸 ES` / `🇺🇸 EN`).
+- **Reorganización del Menú Lateral**: Reubicado el botón de cambio de modo (Claro / Oscuro) arriba del todo al lado del título del software `Tattoo Studio`, y ampliado el selector de idioma en el panel inferior con **banderas vectoriales SVG nítidas multi-sistema** (`FlagES` 🇪🇸 / `FlagUS` 🇺🇸) para asegurar visualización perfecta en Windows, Mac, Linux e iOS.
 - **Contadores Animados con `SlidingNumber`**: Implementada la animación de conteo deslizante para los valores numéricos y métricas financieras de ventas, gastos y beneficio en el Dashboard.
 - **Eliminación del Destello de Modo Oscuro al Refrescar (FOUC)**: Actualizado el script síncrono del `<head>` en `public/index.html` para aplicar la propiedad `data-theme="light"` inmediatamente antes de la primera renderización de la página, eliminando el parpadeo oscuro al recargar con F5.
 - **Bordes y Delimitación Global de Tarjetas en Modo Claro**: Aplicada regla global en `index.css` y `Clientes.js` para que absolutamente todas las tarjetas, tablas y bloques contenedores de Clientes y el resto de páginas tengan bordes limpios `#cbd5e1` y sombra suave, distinguiéndose perfectamente del fondo en Modo Claro.

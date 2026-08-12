@@ -13,6 +13,33 @@ import {
 
 const MotionNavLink = motion(NavLink);
 
+// Componentes Vectoriales SVG de Banderas para máxima compatibilidad multiplataforma (Windows/Mac/Linux/iOS/Android)
+function FlagES({ className = "w-5 h-3.5" }) {
+  return (
+    <svg className={`rounded-[2px] overflow-hidden flex-shrink-0 border border-black/20 ${className}`} viewBox="0 0 750 500">
+      <rect width="750" height="500" fill="#c60b1e" />
+      <rect y="125" width="750" height="250" fill="#ffc400" />
+    </svg>
+  );
+}
+
+function FlagUS({ className = "w-5 h-3.5" }) {
+  return (
+    <svg className={`rounded-[2px] overflow-hidden flex-shrink-0 border border-black/20 ${className}`} viewBox="0 0 741 390">
+      <rect width="741" height="390" fill="#b22234" />
+      <path d="M0,60H741M0,120H741M0,180H741M0,240H741M0,300H741M0,360H741" stroke="#fff" strokeWidth="30" />
+      <rect width="296.4" height="210" fill="#3c3b6e" />
+      <g fill="#fff">
+        <polygon points="14.8,20 18,29.9 28.5,29.9 20,36.1 23.2,46 14.8,39.8 6.4,46 9.6,36.1 1.1,29.9 11.6,29.9" />
+        <polygon points="74.1,20 77.3,29.9 87.8,29.9 79.3,36.1 82.5,46 74.1,39.8 65.7,46 68.9,36.1 60.4,29.9 70.9,29.9" />
+        <polygon points="133.4,20 136.6,29.9 147.1,29.9 138.6,36.1 141.8,46 133.4,39.8 125,46 128.2,36.1 119.7,29.9 130.2,29.9" />
+        <polygon points="192.7,20 195.9,29.9 206.4,29.9 197.9,36.1 201.1,46 192.7,39.8 184.3,46 187.5,36.1 179,29.9 189.5,29.9" />
+        <polygon points="252,20 255.2,29.9 265.7,29.9 257.2,36.1 260.4,46 252,39.8 243.6,46 246.8,36.1 238.3,29.9 248.8,29.9" />
+      </g>
+    </svg>
+  );
+}
+
 const dashboardItem = {
   to: '/app',
   labelKey: 'dashboard',
@@ -182,14 +209,14 @@ export default function Layout({ children }) {
               <p className="text-gray-500 text-xs capitalize">{usuario?.rol}</p>
             </div>
             
-            {/* Botón de Idioma destacado con bandera ocupando el lugar libre */}
+            {/* Botón de Idioma destacado con bandera vectorial ocupando el lugar libre */}
             <motion.button
               initial="rest" whileHover="hover" whileTap="tap"
               onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-              className="px-2.5 py-1.5 text-xs font-bold text-gray-200 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700 flex items-center gap-1.5 flex-shrink-0 shadow-sm"
+              className="px-2.5 py-1.5 text-xs font-bold text-gray-200 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700 flex items-center gap-2 flex-shrink-0 shadow-sm"
               title="Cambiar idioma / Change language"
             >
-              <span className="text-base leading-none">{lang === 'es' ? '🇪🇸' : '🇺🇸'}</span>
+              {lang === 'es' ? <FlagES className="w-5 h-3.5" /> : <FlagUS className="w-5 h-3.5" />}
               <span>{lang === 'es' ? 'ES' : 'EN'}</span>
             </motion.button>
           </div>
