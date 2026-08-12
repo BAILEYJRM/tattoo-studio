@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,6 +10,8 @@ import {
   UserPlus, FolderKanban, Calculator, Clock, GitMerge, TrendingUp, Droplets, Syringe, Sparkles,
   Package, BarChart2, Receipt, DollarSign, Wallet, Building2, FileCheck, Settings, ShieldAlert, LogOut, Sun, Moon
 } from 'lucide-react';
+
+const MotionNavLink = motion(NavLink);
 
 const dashboardItem = {
   to: '/app',
@@ -70,8 +73,8 @@ export default function Layout({ children }) {
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
       isActive
-        ? 'bg-indigo-600 text-white'
-        : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+        ? 'bg-indigo-600 text-white font-semibold shadow-sm'
+        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
     }`;
 
   const Sidebar = () => (
@@ -93,10 +96,10 @@ export default function Layout({ children }) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <NavLink to={dashboardItem.to} end className={linkClass}>
+        <MotionNavLink to={dashboardItem.to} end initial="rest" whileHover="hover" whileTap="tap" className={linkClass}>
           <AnimatedIcon icon={dashboardItem.icon} hoverEffect={dashboardItem.hoverEffect} size={18} />
           {t(dashboardItem.labelKey)}
-        </NavLink>
+        </MotionNavLink>
 
         {/* Helper de filtrado por rol */}
         {(() => {
@@ -113,10 +116,10 @@ export default function Layout({ children }) {
           const contItems = filterItems(contabilidadItems);
 
           const renderNavLink = (item) => (
-            <NavLink key={item.to} to={item.to} className={linkClass}>
+            <MotionNavLink key={item.to} to={item.to} initial="rest" whileHover="hover" whileTap="tap" className={linkClass}>
               <AnimatedIcon icon={item.icon} hoverEffect={item.hoverEffect || 'bounce'} size={18} />
               {t(item.labelKey)}
-            </NavLink>
+            </MotionNavLink>
           );
 
           return (
@@ -177,38 +180,40 @@ export default function Layout({ children }) {
                 {lang === 'es' ? '🇺🇸 EN' : '🇪🇸 ES'}
               </button>
 
-              <button
+              <motion.button
+                initial="rest" whileHover="hover" whileTap="tap"
                 onClick={toggleColorMode}
                 className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                 title={`Cambiar a modo ${colorMode === 'dark' ? 'claro' : 'oscuro'}`}
               >
                 <AnimatedIcon icon={colorMode === 'dark' ? Sun : Moon} hoverEffect="rotate" size={16} />
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
         
         {(usuario?.rol === 'superadmin' || usuario?.email === 'baileyjrm@gmail.com') && (
-          <NavLink to="/superadmin" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-black text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-colors border border-red-900/50 mb-1">
+          <MotionNavLink to="/superadmin" initial="rest" whileHover="hover" whileTap="tap" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-black text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-colors border border-red-900/50 mb-1">
             <AnimatedIcon icon={ShieldAlert} hoverEffect="shake" size={18} className="text-red-500" />
             Panel SuperAdmin
-          </NavLink>
+          </MotionNavLink>
         )}
 
         {(usuario?.rol === 'admin' || usuario?.rol === 'superadmin' || usuario?.email === 'baileyjrm@gmail.com') && (
-          <NavLink to="/configuracion" className={linkClass}>
+          <MotionNavLink to="/configuracion" initial="rest" whileHover="hover" whileTap="tap" className={linkClass}>
             <AnimatedIcon icon={Settings} hoverEffect="rotate" size={18} />
             {t('configuracion')}
-          </NavLink>
+          </MotionNavLink>
         )}
 
-        <button
+        <motion.button
+          initial="rest" whileHover="hover" whileTap="tap"
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
         >
           <AnimatedIcon icon={LogOut} hoverEffect="bounce" size={18} />
           {t('cerrar_sesion')}
-        </button>
+        </motion.button>
       </div>
     </aside>
   );

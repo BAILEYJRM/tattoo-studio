@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo, getAusenciasRango, getLeads, getProyectos, getPresupuestos } from '../api';
 import { SlidingNumber } from '../components/animate-ui/sliding-number';
@@ -25,7 +26,7 @@ function EstadoBadge({ estado }) {
 
 function StatCard({ label, value, isNumber = true, prefix = "", suffix = "", icon, color, subtext, subtextColor, hoverEffect = "bounce" }) {
   return (
-    <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 flex justify-between items-start shadow-sm transition-all hover:border-indigo-500/40 group">
+    <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 flex justify-between items-start shadow-sm transition-all hover:border-indigo-500/40 group">
       <div className="flex flex-col gap-1">
         <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{label}</p>
         <div className="text-white text-3xl font-black tracking-tight">
@@ -40,9 +41,11 @@ function StatCard({ label, value, isNumber = true, prefix = "", suffix = "", ico
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color} shadow-sm group-hover:scale-105 transition-transform`}>
         <AnimatedIcon icon={icon} hoverEffect={hoverEffect} size={20} className="text-white" />
       </div>
-    </div>
+    </motion.div>
   );
 }
+
+const MotionLink = motion(Link);
 
 export default function Dashboard() {
   const { usuario } = useAuth();
@@ -191,7 +194,7 @@ export default function Dashboard() {
 
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-green-500/40">
+          <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-green-500/40">
             <div>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas del mes</p>
               <div className="text-green-400 text-3xl font-black mt-2 tracking-tight">
@@ -201,9 +204,9 @@ export default function Dashboard() {
             <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
               <AnimatedIcon icon={TrendingUp} hoverEffect="bounce" size={22} />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-red-500/40">
+          <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-red-500/40">
             <div>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Gastos del mes</p>
               <div className="text-red-400 text-3xl font-black mt-2 tracking-tight">
@@ -213,9 +216,9 @@ export default function Dashboard() {
             <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
               <AnimatedIcon icon={TrendingDown} hoverEffect="shake" size={22} />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-indigo-500/40">
+          <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-indigo-500/40">
             <div>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Beneficio del mes</p>
               <div className={`text-3xl font-black mt-2 tracking-tight ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
@@ -225,7 +228,7 @@ export default function Dashboard() {
             <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
               <AnimatedIcon icon={Wallet} hoverEffect="rotate" size={22} />
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -269,18 +272,25 @@ export default function Dashboard() {
             { title: 'Ver Inventario', desc: 'Consulta tus productos', link: '/materiales', color: 'bg-purple-600', icon: Package, effect: 'rotate' },
             { title: 'Configuración', desc: 'Ajusta tu estudio', link: '/configuracion', color: 'bg-orange-500', icon: Settings, effect: 'rotate' }
           ].map((action, i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 shadow-lg flex flex-col justify-between group hover:border-indigo-500/40 transition-all">
+            <MotionLink
+              key={i}
+              to={action.link}
+              initial="rest"
+              whileHover="hover"
+              whileTap="tap"
+              className="bg-gray-900 border border-gray-800/50 rounded-xl p-5 shadow-lg flex flex-col justify-between group hover:border-indigo-500/40 transition-all cursor-pointer"
+            >
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${action.color} mb-4 shadow-sm`}>
                 <AnimatedIcon icon={action.icon} hoverEffect={action.effect} size={20} className="text-white" />
               </div>
               <div>
                 <h3 className="text-white font-bold mb-1">{action.title}</h3>
                 <p className="text-gray-400 text-xs mb-4">{action.desc}</p>
-                <Link to={action.link} className="text-blue-500 font-bold text-sm hover:text-blue-400 transition-colors inline-flex items-center gap-1">
+                <span className="text-blue-500 font-bold text-sm group-hover:text-blue-400 transition-colors inline-flex items-center gap-1">
                   Ir →
-                </Link>
+                </span>
               </div>
-            </div>
+            </MotionLink>
           ))}
         </div>
       </div>
