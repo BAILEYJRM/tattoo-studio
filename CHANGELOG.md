@@ -7,6 +7,7 @@
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
 - **Componente Animado `SlidingNumber`**: Añadido primer componente de `animate-ui` en `src/components/animate-ui/sliding-number.jsx` para contadores numéricos fluídos.
 - **Eliminación del Destello de Modo Oscuro al Refrescar (FOUC)**: Actualizado el script síncrono del `<head>` en `public/index.html` para aplicar la propiedad `data-theme="light"` inmediatamente antes de la primera renderización de la página, eliminando el parpadeo oscuro al recargar con F5.
+- **Bordes y Delimitación Global de Tarjetas en Modo Claro**: Aplicada regla global en `index.css` y `Clientes.js` para que absolutamente todas las tarjetas, tablas y bloques contenedores de Clientes y el resto de páginas tengan bordes limpios `#cbd5e1` y sombra suave, distinguiéndose perfectamente del fondo en Modo Claro.
 
 
 ### Estilo & Diseño (Rediseño Visual del Landing Page)

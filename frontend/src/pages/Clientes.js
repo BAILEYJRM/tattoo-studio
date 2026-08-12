@@ -700,7 +700,7 @@ export default function Clientes() {
         </div>
       </div>
 
-      <div className="bg-gray-900 rounded-xl overflow-hidden">
+      <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-700/60 shadow-sm">
         {loading ? (
           <div className="p-8 text-center text-gray-500 text-sm">Cargando...</div>
         ) : clientesFiltrados.length === 0 ? (
