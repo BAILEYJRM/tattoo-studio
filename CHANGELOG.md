@@ -6,7 +6,7 @@
 - **Soporte para Animate UI y Framer Motion**: Instaladas dependencias `framer-motion`, `clsx` y `tailwind-merge`.
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
 - **Componente Animado `SlidingNumber`**: Añadido primer componente de `animate-ui` en `src/components/animate-ui/sliding-number.jsx` para contadores numéricos fluídos.
-- **Refinamiento del Modo Claro en Calendario y Sistema**: Ajustados los bordes, rejillas y contenedores de `TimeGrid` y `Citas` (`border-gray-700` y escala de grises sRGB invertida) para que la vista de Calendario (Día, Semana, Mes, Año) y el resto de páginas tengan un contraste perfecto y legibilidad nítida en Modo Claro.
+- **Eliminación del Destello de Modo Oscuro al Refrescar (FOUC)**: Actualizado el script síncrono del `<head>` en `public/index.html` para aplicar la propiedad `data-theme="light"` inmediatamente antes de la primera renderización de la página, eliminando el parpadeo oscuro al recargar con F5.
 
 
 ### Estilo & Diseño (Rediseño Visual del Landing Page)

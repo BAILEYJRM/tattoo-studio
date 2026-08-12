@@ -27,6 +27,17 @@
     <title>Tattoo Studio</title>
     <script>
       (function() {
+        // 1. Restaurar modo claro/oscuro de inmediato para evitar destello al refrescar (FOUC)
+        try {
+          var mode = localStorage.getItem('app-color-mode');
+          if (mode === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+          } else {
+            document.documentElement.removeAttribute('data-theme');
+          }
+        } catch (e) {}
+
+        // 2. Restaurar tema del estudio (si el usuario está autenticado)
         function getContrast(hex) {
           if (!hex) return '#ffffff';
           var h = hex.charAt(0) === '#' ? hex.substring(1, 7) : hex;
@@ -37,22 +48,33 @@
           return (yiq >= 128) ? '#111827' : '#ffffff';
         }
         try {
-          var configStr = localStorage.getItem('app-theme');
-          if (configStr) {
-            var config = JSON.parse(configStr);
-            var root = document.documentElement;
-            if (config.theme_primary_color) {
-              root.style.setProperty('--color-primary', config.theme_primary_color);
-              root.style.setProperty('--color-primary-content', getContrast(config.theme_primary_color));
-            }
-            if (config.theme_bg_color) {
-              root.style.setProperty('--color-bg', config.theme_bg_color);
-            }
-            if (config.theme_font_family) {
-              root.style.setProperty('--font-main', config.theme_font_family);
-            }
-            if (config.theme_font_size) {
-              root.style.setProperty('--font-base-size', config.theme_font_size);
+          var token = localStorage.getItem('token');
+          if (token) {
+            var configStr = localStorage.getItem('app-theme');
+            if (configStr) {
+              var config = JSON.parse(configStr);
+              var root = document.documentElement;
+              if (config.theme_primary_color) {
+                if (config.theme_primary_color.toLowerCase() === '#d4af37') {
+                  root.setAttribute('data-skin', 'gold');
+                } else {
+                  root.removeAttribute('data-skin');
+                }
+                root.style.setProperty('--color-primary', config.theme_primary_color);
+                root.style.setProperty('--color-primary-content', getContrast(config.theme_primary_color));
+              }
+              if (config.theme_bg_color) {
+                root.style.setProperty('--color-bg', config.theme_bg_color);
+              }
+              if (config.theme_surface_color) {
+                root.style.setProperty('--color-surface', config.theme_surface_color);
+              }
+              if (config.theme_font_family) {
+                root.style.setProperty('--font-main', config.theme_font_family);
+              }
+              if (config.theme_font_size) {
+                root.style.setProperty('--font-base-size', config.theme_font_size);
+              }
             }
           }
         } catch (e) {}
