@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import Modal from '../components/Modal';
 import {
   getProductos, buscarProductos, createProducto, updateProducto, deleteProducto, bulkDeleteProductos,
@@ -43,6 +44,7 @@ function StockBadge({ stock, minimo }) {
 }
 
 export default function Materiales() {
+  const { t } = useLanguage();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -336,25 +338,25 @@ export default function Materiales() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Materiales</h1>
+        <h1 className="text-2xl font-bold text-white">{t('materiales')}</h1>
         <button
           onClick={abrirCrear}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          + Nuevo producto
+          + {t('nuevo')}
         </button>
       </div>
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-white">Inventario</h1>
-          <p className="text-gray-400 mt-1">{productosFiltrados.length} productos encontrados</p>
+          <h1 className="text-3xl font-black tracking-tight text-white">{t('inventario')}</h1>
+          <p className="text-gray-400 mt-1">{productosFiltrados.length} {t('productos')}</p>
         </div>
         <button onClick={abrirCrear} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Añadir Producto
+          {t('crear')}
         </button>
       </div>
 

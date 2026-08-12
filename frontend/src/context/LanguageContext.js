@@ -71,9 +71,34 @@ const translations = {
     con_no_shows: 'con 3+ no-shows',
     ausencias_semana: 'Ausencias esta semana',
 
+    // Clientes
+    clientes_titulo: 'Clientes',
+    nuevo_cliente: 'Nuevo cliente',
+    duplicados: 'Duplicados',
+    buscar_cliente_placeholder: 'Buscar por nombre, apellidos o email...',
+    todos: 'Todos',
+    conflictivos: '⚠ Conflictivos',
+    flexibles: 'Flexibles',
+    sin_resultados: 'No se encontraron resultados',
+    no_hay_clientes: 'No hay clientes registrados',
+    primer_apellido: 'Primer apellido',
+    segundo_apellido: 'Segundo apellido',
+    fecha_nacimiento: 'Fecha de nacimiento',
+    sexo: 'Sexo',
+
+    // Calendario & Citas
+    calendario_titulo: 'Calendario de Citas',
+    mes: 'Mes',
+    semana: 'Semana',
+    dia: 'Día',
+    hoy: 'Hoy',
+
     // Textos comunes
     nuevo: 'Nuevo',
     guardar: 'Guardar',
+    guardando: 'Guardando...',
+    crear: 'Crear',
+    actualizar: 'Actualizar',
     cancelar: 'Cancelar',
     editar: 'Editar',
     eliminar: 'Eliminar',
@@ -164,9 +189,34 @@ const translations = {
     con_no_shows: 'with 3+ no-shows',
     ausencias_semana: 'Absences this week',
 
+    // Clientes
+    clientes_titulo: 'Clients',
+    nuevo_cliente: 'New Client',
+    duplicados: 'Duplicates',
+    buscar_cliente_placeholder: 'Search by name, last name or email...',
+    todos: 'All',
+    conflictivos: '⚠ Problematic',
+    flexibles: 'Flexible',
+    sin_resultados: 'No results found',
+    no_hay_clientes: 'No registered clients',
+    primer_apellido: 'First Last Name',
+    segundo_apellido: 'Second Last Name',
+    fecha_nacimiento: 'Date of Birth',
+    sexo: 'Gender',
+
+    // Calendario & Citas
+    calendario_titulo: 'Appointments Calendar',
+    mes: 'Month',
+    semana: 'Week',
+    dia: 'Day',
+    hoy: 'Today',
+
     // Common Text
     nuevo: 'New',
     guardar: 'Save',
+    guardando: 'Saving...',
+    crear: 'Create',
+    actualizar: 'Update',
     cancelar: 'Cancel',
     editar: 'Edit',
     eliminar: 'Delete',
