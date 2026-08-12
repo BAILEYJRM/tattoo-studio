@@ -6,6 +6,7 @@
 - **Soporte para Animate UI y Framer Motion**: Instaladas dependencias `framer-motion`, `clsx` y `tailwind-merge`.
 - **Configuración de Aliases `@/*`**: Creado `jsconfig.json` y la función de utilidad `cn` en `src/lib/utils.js`.
 - **Componente Animado `SlidingNumber`**: Añadido primer componente de `animate-ui` en `src/components/animate-ui/sliding-number.jsx` para contadores numéricos fluídos.
+- **Script de Inicio Rápido (`iniciar.bat`)**: Creado script ejecutante para arrancar Backend, Frontend y abrir el navegador con un solo clic.
 
 
 ### Estilo & Diseño (Rediseño Visual del Landing Page)
