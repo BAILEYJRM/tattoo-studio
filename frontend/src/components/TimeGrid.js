@@ -117,9 +117,9 @@ export default function TimeGrid({ mode, citas, eventos, currentDate, onChangeDa
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 flex flex-col overflow-hidden">
+    <div className="bg-gray-900 rounded-xl border border-gray-700 flex flex-col overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-900">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900">
         <h2 className="text-xl font-bold text-white capitalize">
           {mode === 'dia' ? `${baseDate.getDate()} ${monthNames[baseDate.getMonth()]} ${baseDate.getFullYear()}` : 
            `${monthNames[days[0].getMonth()]} ${days[0].getFullYear()}`}
@@ -134,13 +134,13 @@ export default function TimeGrid({ mode, citas, eventos, currentDate, onChangeDa
         </div>
       </div>
 
-      <div className="flex bg-gray-800/30 overflow-y-auto" style={{ height: '70vh' }}>
+      <div className="flex bg-gray-900 overflow-y-auto" style={{ height: '70vh' }}>
         {/* Time axis */}
-        <div className="flex flex-col w-16 flex-shrink-0 border-r border-gray-800 bg-gray-900">
-          <div className="h-12 border-b border-gray-800" /> {/* Empty corner */}
+        <div className="flex flex-col w-16 flex-shrink-0 border-r border-gray-700 bg-gray-900">
+          <div className="h-12 border-b border-gray-700" /> {/* Empty corner */}
           <div className="relative flex-1" style={{ minHeight: `${hours.length * 60}px` }}>
             {hours.map(hour => (
-              <div key={hour} className="absolute w-full text-right pr-2 text-xs text-gray-500" style={{ top: `${((hour - minHour) / (maxHour - minHour)) * 100}%`, transform: 'translateY(-50%)' }}>
+              <div key={hour} className="absolute w-full text-right pr-2 text-xs text-gray-400 font-medium" style={{ top: `${((hour - minHour) / (maxHour - minHour)) * 100}%`, transform: 'translateY(-50%)' }}>
                 {String(hour).padStart(2, '0')}:00
               </div>
             ))}
@@ -162,13 +162,13 @@ export default function TimeGrid({ mode, citas, eventos, currentDate, onChangeDa
                 {/* Day Header */}
                 <div className="h-12 flex flex-col items-center justify-center border-b border-gray-700 bg-gray-900 sticky top-0 z-10">
                   <span className="text-xs text-gray-400 font-semibold uppercase">{DAY_NAMES[dateObj.getDay()]}</span>
-                  <span className={`text-sm mt-0.5 ${isToday ? 'w-6 h-6 flex items-center justify-center bg-indigo-600 text-white rounded-full font-bold' : 'text-gray-300'}`}>
+                  <span className={`text-sm mt-0.5 ${isToday ? 'w-6 h-6 flex items-center justify-center bg-indigo-600 text-white rounded-full font-bold' : 'text-gray-300 font-medium'}`}>
                     {dateObj.getDate()}
                   </span>
                 </div>
                 
                 {/* Day Content */}
-                <div className="relative flex-1 bg-gray-800" style={{ minHeight: `${hours.length * 60}px` }} onClick={(e) => handleSlotClick(e, dateObj)}>
+                <div className="relative flex-1 bg-gray-900" style={{ minHeight: `${hours.length * 60}px` }} onClick={(e) => handleSlotClick(e, dateObj)}>
                   {/* Grid lines */}
                   {hours.map(hour => (
                     <div key={hour} className="absolute w-full border-t border-gray-700" style={{ top: `${((hour - minHour) / (maxHour - minHour)) * 100}%` }} />

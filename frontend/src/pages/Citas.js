@@ -185,9 +185,9 @@ function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMont
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 flex flex-col overflow-hidden">
+    <div className="bg-gray-900 rounded-xl border border-gray-700 flex flex-col overflow-hidden shadow-sm">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-900">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900">
         <h2 className="text-xl font-bold text-white capitalize">{monthNames[month]} {year}</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => onMonthChange(-1)} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
@@ -200,12 +200,12 @@ function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMont
       </div>
 
       {/* Days of week */}
-      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} border-b border-gray-800 bg-gray-800/30`}>
+      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} border-b border-gray-700 bg-gray-900`}>
         {dayNames.filter((_, i) => showWeekends || i < 5).map((d) => <div key={d} className="text-center text-xs text-gray-400 font-semibold py-3 uppercase tracking-wider">{d}</div>)}
       </div>
 
       {/* Grid */}
-      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} bg-gray-800 gap-[1px]`}>
+      <div className={`grid ${showWeekends ? 'grid-cols-7' : 'grid-cols-5'} bg-gray-700 gap-[1px]`}>
         {cells.map((day, idx) => {
           if (!showWeekends && idx % 7 >= 5) return null; // Skip weekend cells
           if (!day) return <div key={`empty-${idx}`} className="bg-gray-900 min-h-[160px]" />;
@@ -223,7 +223,7 @@ function Calendar({ citas, eventos = [], selectedDate, onSelectDate, currentMont
               key={dateStr}
               onClick={() => onSelectDate(isSelected ? null : dateStr)}
               className={`relative bg-gray-900 min-h-[160px] flex flex-col p-1.5 transition-colors text-left focus:outline-none ${
-                isSelected ? 'ring-2 ring-inset ring-indigo-500 bg-gray-800/50' : 'hover:bg-gray-800/50'
+                isSelected ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-500/10' : 'hover:bg-gray-800/60'
               }`}
             >
               {/* Day Header */}
