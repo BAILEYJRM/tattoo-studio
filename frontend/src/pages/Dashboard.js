@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getClientes, getEmpleados, getCitas, getResumenMesVentas, getResumenMesGastos, getStockBajo, getAusenciasRango, getLeads, getProyectos, getPresupuestos } from '../api';
 import { SlidingNumber } from '../components/animate-ui/sliding-number';
 import { AnimatedIcon } from '../components/animate-ui/animated-icon';
@@ -49,6 +50,7 @@ const MotionLink = motion(Link);
 
 export default function Dashboard() {
   const { usuario } = useAuth();
+  const { lang, t } = useLanguage();
   const [stats, setStats] = useState({ clientes: 0, empleados: 0, hoy: 0, pendientes: 0 });
   const [citasHoy, setCitasHoy] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,16 +112,16 @@ export default function Dashboard() {
   }, []);
 
   const hora = new Date().getHours();
-  const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const saludo = hora < 12 ? t('buenos_dias') : hora < 18 ? t('buenas_tardes') : t('buenas_noches');
 
-  const fmtDate = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '';
+  const fmtDate = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'short' }) : '';
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">{saludo}, {usuario?.nombre}</h1>
         <p className="text-gray-400 text-sm mt-0.5 capitalize">
-          {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
@@ -128,7 +130,7 @@ export default function Dashboard() {
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
             <AnimatedIcon icon={AlertTriangle} hoverEffect="shake" size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-red-400 text-sm font-medium">Stock bajo en {stockBajo.length} producto{stockBajo.length > 1 ? 's' : ''}</p>
+              <p className="text-red-400 text-sm font-medium">{t('stock_bajo_en')} {stockBajo.length} {stockBajo.length > 1 ? 'productos' : 'producto'}</p>
               <p className="text-red-400/70 text-xs mt-0.5">{stockBajo.slice(0, 3).map((p) => p.nombre).join(', ')}{stockBajo.length > 3 ? '…' : ''}</p>
             </div>
           </div>
@@ -137,7 +139,7 @@ export default function Dashboard() {
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
             <AnimatedIcon icon={AlertTriangle} hoverEffect="shake" size={20} className="text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-orange-400 text-sm font-medium">{clientesConflictivos.length} cliente{clientesConflictivos.length > 1 ? 's' : ''} con 3+ no-shows</p>
+              <p className="text-orange-400 text-sm font-medium">{clientesConflictivos.length} {t('con_no_shows')}</p>
               <p className="text-orange-400/70 text-xs mt-0.5">{clientesConflictivos.slice(0, 3).map((c) => `${c.nombre} ${c.apellidos} (${c.no_shows})`).join(', ')}</p>
             </div>
           </div>
@@ -146,7 +148,7 @@ export default function Dashboard() {
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 flex items-start gap-3">
             <AnimatedIcon icon={Calendar} hoverEffect="bounce" size={20} className="text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-yellow-400 text-sm font-medium">Ausencias esta semana</p>
+              <p className="text-yellow-400 text-sm font-medium">{t('ausencias_semana')}</p>
               <div className="mt-1 space-y-0.5">
                 {ausenciasSemana.map((a) => (
                   <p key={a.id} className="text-yellow-400/70 text-xs">
@@ -167,26 +169,26 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Clientes" value={stats.clientes} color="bg-blue-600" icon={Users} hoverEffect="bounce" />
-            <StatCard label="Empleados" value={stats.empleados} color="bg-purple-600" icon={UserCheck} hoverEffect="pulse" />
-            <StatCard label="Citas hoy" value={stats.hoy} color="bg-green-600" icon={Calendar} hoverEffect="rotate" />
-            <StatCard label="Pendientes" value={stats.pendientes} color="bg-orange-500" icon={Clock} hoverEffect="bounce"
-              subtext={stats.pendientes > 0 ? `${stats.pendientes} alertas` : ''} subtextColor="text-orange-400"
+            <StatCard label={t('clientes')} value={stats.clientes} color="bg-blue-600" icon={Users} hoverEffect="bounce" />
+            <StatCard label={t('empleados')} value={stats.empleados} color="bg-purple-600" icon={UserCheck} hoverEffect="pulse" />
+            <StatCard label={t('citas_de_hoy')} value={stats.hoy} color="bg-green-600" icon={Calendar} hoverEffect="rotate" />
+            <StatCard label={t('pendientes')} value={stats.pendientes} color="bg-orange-500" icon={Clock} hoverEffect="bounce"
+              subtext={stats.pendientes > 0 ? `${stats.pendientes} ${t('alertas_pendientes')}` : ''} subtextColor="text-orange-400"
             />
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Leads Activos" value={crmStats.leadsNuevos} color="bg-indigo-600" icon={UserPlus} hoverEffect="pulse"
-              subtext="En seguimiento" subtextColor="text-indigo-400"
+            <StatCard label={t('leads_activos')} value={crmStats.leadsNuevos} color="bg-indigo-600" icon={UserPlus} hoverEffect="pulse"
+              subtext={t('en_seguimiento')} subtextColor="text-indigo-400"
             />
-            <StatCard label="Proyectos" value={crmStats.proyectosActivos} color="bg-cyan-600" icon={FolderKanban} hoverEffect="bounce"
-              subtext="En diseño / curso" subtextColor="text-cyan-400"
+            <StatCard label={t('proyectos_diseno')} value={crmStats.proyectosActivos} color="bg-cyan-600" icon={FolderKanban} hoverEffect="bounce"
+              subtext={t('en_diseno')} subtextColor="text-cyan-400"
             />
-            <StatCard label="Presupuestos" value={crmStats.presupuestosAceptados} color="bg-emerald-600" icon={FileText} hoverEffect="rotate"
-              subtext="Aceptados" subtextColor="text-emerald-400"
+            <StatCard label={t('presupuestos_aceptados')} value={crmStats.presupuestosAceptados} color="bg-emerald-600" icon={FileText} hoverEffect="rotate"
+              subtext={t('aceptados')} subtextColor="text-emerald-400"
             />
-            <StatCard label="Conversión CRM" value={crmStats.tasaConversion} suffix="%" color="bg-pink-600" icon={Target} hoverEffect="pulse"
-              subtext="Leads a Clientes" subtextColor="text-pink-400"
+            <StatCard label={t('conversion_crm')} value={crmStats.tasaConversion} suffix="%" color="bg-pink-600" icon={Target} hoverEffect="pulse"
+              subtext={t('leads_a_clientes')} subtextColor="text-pink-400"
             />
           </div>
         </div>
@@ -196,7 +198,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-green-500/40">
             <div>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas del mes</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t('ventas_del_mes')}</p>
               <div className="text-green-400 text-3xl font-black mt-2 tracking-tight">
                 <SlidingNumber value={finanzas.ventas} suffix=" €" />
               </div>
@@ -208,7 +210,7 @@ export default function Dashboard() {
 
           <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-red-500/40">
             <div>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Gastos del mes</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t('gastos_del_mes')}</p>
               <div className="text-red-400 text-3xl font-black mt-2 tracking-tight">
                 <SlidingNumber value={finanzas.gastos} suffix=" €" />
               </div>
@@ -220,7 +222,7 @@ export default function Dashboard() {
 
           <motion.div initial="rest" whileHover="hover" className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-5 flex justify-between items-center group transition-all hover:border-indigo-500/40">
             <div>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Beneficio del mes</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{t('beneficio_del_mes')}</p>
               <div className={`text-3xl font-black mt-2 tracking-tight ${finanzas.ventas - finanzas.gastos >= 0 ? 'text-white' : 'text-red-400'}`}>
                 <SlidingNumber value={finanzas.ventas - finanzas.gastos} suffix=" €" />
               </div>
@@ -233,11 +235,11 @@ export default function Dashboard() {
       )}
 
       <div className="bg-gray-900 border border-gray-800/50 shadow-lg rounded-xl p-6">
-        <h2 className="text-white text-lg font-bold tracking-wide mb-6">Citas de hoy</h2>
+        <h2 className="text-white text-lg font-bold tracking-wide mb-6">{t('citas_de_hoy')}</h2>
         {loading ? (
           <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-gray-800 rounded-lg animate-pulse" />)}</div>
         ) : citasHoy.length === 0 ? (
-          <div className="text-center py-8"><p className="text-gray-500 text-sm">No hay citas programadas para hoy</p></div>
+          <div className="text-center py-8"><p className="text-gray-500 text-sm">{t('no_hay_citas_hoy')}</p></div>
         ) : (
           <div className="space-y-2">
             {citasHoy.map((cita) => (
@@ -264,13 +266,13 @@ export default function Dashboard() {
       </div>
 
       <div>
-        <h2 className="text-white text-lg font-bold tracking-wide mb-4 mt-8">Accesos Rápidos</h2>
+        <h2 className="text-white text-lg font-bold tracking-wide mb-4 mt-8">{t('accesos_rapidos')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { title: 'Nueva Cita', desc: 'Programa en el calendario', link: '/citas', color: 'bg-blue-600', icon: CalendarPlus, effect: 'bounce' },
-            { title: 'Añadir Cliente', desc: 'Registra un nuevo perfil', link: '/clientes', color: 'bg-green-600', icon: UserPlus, effect: 'pulse' },
-            { title: 'Ver Inventario', desc: 'Consulta tus productos', link: '/materiales', color: 'bg-purple-600', icon: Package, effect: 'rotate' },
-            { title: 'Configuración', desc: 'Ajusta tu estudio', link: '/configuracion', color: 'bg-orange-500', icon: Settings, effect: 'rotate' }
+            { title: t('nueva_cita'), desc: t('programa_calendario'), link: '/citas', color: 'bg-blue-600', icon: CalendarPlus, effect: 'bounce' },
+            { title: t('anadir_cliente'), desc: t('registra_perfil'), link: '/clientes', color: 'bg-green-600', icon: UserPlus, effect: 'pulse' },
+            { title: t('ver_inventario'), desc: t('consulta_productos'), link: '/materiales', color: 'bg-purple-600', icon: Package, effect: 'rotate' },
+            { title: t('configuracion'), desc: t('ajusta_estudio'), link: '/configuracion', color: 'bg-orange-500', icon: Settings, effect: 'rotate' }
           ].map((action, i) => (
             <MotionLink
               key={i}
@@ -287,7 +289,7 @@ export default function Dashboard() {
                 <h3 className="text-white font-bold mb-1">{action.title}</h3>
                 <p className="text-gray-400 text-xs mb-4">{action.desc}</p>
                 <span className="text-blue-500 font-bold text-sm group-hover:text-blue-400 transition-colors inline-flex items-center gap-1">
-                  Ir →
+                  {t('ir')}
                 </span>
               </div>
             </MotionLink>
