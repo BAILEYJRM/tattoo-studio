@@ -12,23 +12,23 @@
     --color-primary: #4f46e5;
     
     /* Default (Dark Mode) Colors */
-    --color-bg: #171717;
-    --color-surface: #262626;
+    --color-bg: #0f0f11;
+    --color-surface: #18181b;
     
     --color-white: #ffffff;
     --color-black: #000000;
 
     --color-gray-50: #fafafa;
-    --color-gray-100: #f5f5f5;
-    --color-gray-200: #e5e5e5;
-    --color-gray-300: #d4d4d4;
-    --color-gray-400: #a3a3a3;
-    --color-gray-500: #737373;
-    --color-gray-600: #525252;
-    --color-gray-700: #404040;
-    --color-gray-800: #262626;
-    --color-gray-900: #171717;
-    --color-gray-950: #0a0a0a;
+    --color-gray-100: #f4f4f5;
+    --color-gray-200: #e4e4e7;
+    --color-gray-300: #d4d4d8;
+    --color-gray-400: #a1a1aa;
+    --color-gray-500: #71717a;
+    --color-gray-600: #52525b;
+    --color-gray-700: #3f3f46;
+    --color-gray-800: #27272a;
+    --color-gray-900: #18181b;
+    --color-gray-950: #09090b;
 
     --font-main: 'Inter', sans-serif;
     --font-base-size: 14px;
@@ -36,7 +36,7 @@
   
   /* Light Theme */
   [data-theme='light'] {
-    --color-bg: #f3f4f6; /* light gray bg */
+    --color-bg: #f4f5f7; /* light gray page bg like Gastos */
     --color-surface: #ffffff; /* white surface */
 
     --color-white: #111827; /* text-white becomes dark slate */
@@ -44,15 +44,15 @@
 
     /* Inverted gray scale */
     --color-gray-950: #ffffff;
-    --color-gray-900: #f8fafc;
-    --color-gray-800: #ffffff;
-    --color-gray-700: #e5e7eb;
+    --color-gray-900: #ffffff; /* white cards */
+    --color-gray-800: #f8fafc; /* light surface */
+    --color-gray-700: #e2e8f0; /* light border */
     --color-gray-600: #cbd5e1;
     --color-gray-500: #64748b;
-    --color-gray-400: #374151;
-    --color-gray-300: #1f2937;
-    --color-gray-200: #111827;
-    --color-gray-100: #030712;
+    --color-gray-400: #475569;
+    --color-gray-300: #334155;
+    --color-gray-200: #1e293b;
+    --color-gray-100: #0f172a;
     --color-gray-50:  #000000;
   }
 
