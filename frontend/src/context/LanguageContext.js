@@ -39,6 +39,20 @@ const translations = {
     cerrar_sesion: 'Cerrar sesión',
     panel_superadmin: 'Panel SuperAdmin',
 
+    // Landing Page
+    landing_herramientas: 'HERRAMIENTAS',
+    landing_vista: 'VISTA SOFTWARE',
+    landing_precios: 'PRECIOS',
+    landing_contacto: 'CONTACTO',
+    landing_acceder: 'Acceder',
+    landing_prueba_gratis: 'Pruébalo Gratis',
+    landing_badge: 'Software de Gestión para Estudios de Tatuaje & Piercing',
+    landing_hero_title1: 'Gobierna tu estudio,',
+    landing_hero_title2: 'domina el arte de la tinta',
+    landing_hero_sub: 'Gestión completa de citas, agenda iCal, consentimientos informados con Firma Digital en Tablet, TPV, CRM Kanban y alquiler de cabinas.',
+    landing_hero_cta: 'Prueba KuroIchi PRO 14 Días Gratis',
+    landing_trust: 'Ya confían en KuroIchi:',
+
     // Dashboard
     buenos_dias: 'Buenos días',
     buenas_tardes: 'Buenas tardes',
@@ -301,6 +315,20 @@ const translations = {
     configuracion: 'Settings',
     cerrar_sesion: 'Log Out',
     panel_superadmin: 'SuperAdmin Panel',
+
+    // Landing Page
+    landing_herramientas: 'FEATURES',
+    landing_vista: 'APP PREVIEW',
+    landing_precios: 'PRICING',
+    landing_contacto: 'CONTACT',
+    landing_acceder: 'Log In',
+    landing_prueba_gratis: 'Try Free',
+    landing_badge: 'Tattoo & Piercing Studio Management Software',
+    landing_hero_title1: 'Govern your studio,',
+    landing_hero_title2: 'master the art of ink',
+    landing_hero_sub: 'Complete appointment management, iCal sync, Digital Signature waivers on Tablet, POS, Kanban CRM, and booth rentals.',
+    landing_hero_cta: 'Try KuroIchi PRO 14 Days Free',
+    landing_trust: 'Trusted by leading studios:',
 
     // Dashboard
     buenos_dias: 'Good morning',

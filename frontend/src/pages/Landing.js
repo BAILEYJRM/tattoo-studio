@@ -1,6 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import { CalendarDays, Users, FileSignature, CreditCard, BarChart3, Package, ArrowRight, Check, Clock, DollarSign, BarChart2, Sparkles, Eye, Cookie, CheckCircle, FileText, HelpCircle, MapPin, Phone, Mail, ChevronLeft, ChevronRight, Briefcase, FileCheck, Zap, MessageSquare, X, Shield, Globe, Monitor, Send, Smartphone, Calendar, Layers } from 'lucide-react';
+
+function FlagES() {
+  return (
+    <svg className="w-5 h-3.5 rounded-sm overflow-hidden flex-shrink-0 shadow-sm inline-block" viewBox="0 0 750 500">
+      <rect width="750" height="500" fill="#c60b1e" />
+      <rect y="125" width="750" height="250" fill="#ffc400" />
+    </svg>
+  );
+}
+
+function FlagUS() {
+  return (
+    <svg className="w-5 h-3.5 rounded-sm overflow-hidden flex-shrink-0 shadow-sm inline-block" viewBox="0 0 741 390">
+      <rect width="741" height="390" fill="#bb133e"/>
+      <path d="M0,60H741M0,120H741M0,180H741M0,240H741M0,300H741M0,360H741" stroke="#fff" strokeWidth="30"/>
+      <rect width="296" height="210" fill="#002147"/>
+    </svg>
+  );
+}
 
 // ─── Reactive Background Canvas ─────────────────────────────────────────────
 function ReactiveBackground() {
@@ -165,6 +185,7 @@ const plans = [
 ];
 
 export default function Landing() {
+  const { lang, setLang, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [showFullFeatures, setShowFullFeatures] = useState(false);
   const [contactSent, setContactSent] = useState(false);
@@ -204,14 +225,22 @@ export default function Landing() {
             <span className="bg-red-950/60 text-red-400 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">Pro Studio</span>
           </div>
           <div className="hidden md:flex gap-8 text-sm font-bold tracking-wide text-gray-400">
-            <a href="#features" className="hover:text-white transition-colors">HERRAMIENTAS</a>
-            <a href="#capacidad" className="hover:text-white transition-colors">VISTA SOFTWARE</a>
-            <a href="#pricing" className="hover:text-white transition-colors">PRECIOS</a>
-            <a href="#contacto" className="hover:text-white transition-colors">CONTACTO</a>
+            <a href="#features" className="hover:text-white transition-colors">{t('landing_herramientas')}</a>
+            <a href="#capacidad" className="hover:text-white transition-colors">{t('landing_vista')}</a>
+            <a href="#pricing" className="hover:text-white transition-colors">{t('landing_precios')}</a>
+            <a href="#contacto" className="hover:text-white transition-colors">{t('landing_contacto')}</a>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/login" className="text-sm font-bold tracking-wider text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all uppercase">Acceder</Link>
-            <Link to="/registro" className="text-sm font-black text-white px-5 py-2 rounded-lg transition-all hover:scale-105 uppercase tracking-wider shadow-[0_4px_16px_rgba(220,38,38,0.25)]" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>Pruébalo Gratis</Link>
+            <button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-900/80 hover:bg-gray-800 border border-gray-800 rounded-lg text-xs font-bold text-gray-300 transition-all"
+              title="Cambiar idioma / Change language"
+            >
+              {lang === 'es' ? <FlagES /> : <FlagUS />}
+              <span>{lang.toUpperCase()}</span>
+            </button>
+            <Link to="/login" className="text-sm font-bold tracking-wider text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all uppercase">{t('landing_acceder')}</Link>
+            <Link to="/registro" className="text-sm font-black text-white px-5 py-2 rounded-lg transition-all hover:scale-105 uppercase tracking-wider shadow-[0_4px_16px_rgba(220,38,38,0.25)]" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>{t('landing_prueba_gratis')}</Link>
           </div>
         </div>
       </nav>
@@ -221,20 +250,20 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full mb-8 shadow-sm" style={{ background: 'rgba(220,38,38,0.1)', color: '#fca5a5' }}>
             <Zap className="w-4 h-4 text-red-400 animate-pulse" />
-            Software de Gestión para Estudios de Tatuaje & Piercing
+            {t('landing_badge')}
           </div>
           <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6 uppercase tracking-tighter text-white" style={{ letterSpacing: '-0.03em' }}>
-            Gobierna tu estudio,<br />
+            {t('landing_hero_title1')}<br />
             <span className="bg-gradient-to-r from-red-500 via-red-600 to-amber-400 bg-clip-text text-transparent">
-              domina el arte de la tinta
+              {t('landing_hero_title2')}
             </span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            Gestión completa de citas, agenda iCal, consentimientos informados con Firma Digital en Tablet, TPV, CRM Kanban y alquiler de cabinas.
+            {t('landing_hero_sub')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Link to="/registro" className="flex items-center gap-3 text-white font-black px-8 py-4 rounded-xl text-lg transition-all hover:scale-105 uppercase tracking-wide shadow-[0_8px_30px_rgba(220,38,38,0.4)]" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
-              Prueba KuroIchi PRO 14 Días Gratis
+              {t('landing_hero_cta')}
               <ArrowRight className="w-6 h-6" />
             </Link>
           </div>
@@ -244,7 +273,7 @@ export default function Landing() {
         <div className="w-full py-4 overflow-hidden my-6">
           <div className="max-w-7xl mx-auto flex items-center gap-4 px-4">
             <div className="flex items-center gap-2 text-xs font-black uppercase text-red-400 tracking-wider flex-shrink-0 bg-red-950/40 px-3 py-1.5 rounded-lg">
-              <Zap className="w-4 h-4" /> Ya confían en KuroIchi:
+              <Zap className="w-4 h-4" /> {t('landing_trust')}
             </div>
             <div className="overflow-hidden whitespace-nowrap flex-1">
               <div className="inline-block animate-marquee text-xs font-bold text-gray-400 tracking-wider">
