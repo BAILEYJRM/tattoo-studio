@@ -78,7 +78,7 @@ function serializeHorario({ abierto, apertura, cierre }) {
 }
 
 export default function Configuracion() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [tab, setTab] = useState('estudio');
   const [subTabPersonalizacion, setSubTabPersonalizacion] = useState('panel');
   const [config, setConfig] = useState({});
