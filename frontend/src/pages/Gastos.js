@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import Modal from '../components/Modal';
 import { getGastos, createGasto, updateGasto, deleteGasto, getResumenMesGastos, getProductos } from '../api';
 
@@ -25,12 +26,12 @@ const TIPO_CONFIG = {
 
 const FORM_VACIO = {
   fecha: new Date().toISOString().split('T')[0],
-  concepto: '', tipo: 'fijo', categoria: 'otros',
-  importe: '', proveedor: '', producto_id: '', notas: '',
+  concepto: '', monto: '', tipo: 'sesion', categoria: 'otros', proveedor: '', num_factura: '', notas: '',
   agregar_inventario: false, cantidad_inventario: 1,
 };
 
 export default function Gastos() {
+  const { t } = useLanguage();
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resumen, setResumen] = useState(null);
@@ -124,12 +125,12 @@ export default function Gastos() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Gastos</h1>
+        <h1 className="text-2xl font-bold text-white">{t('gastos_titulo')}</h1>
         <button
           onClick={abrirCrear}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          + Nuevo gasto
+          + {t('nuevo_gasto')}
         </button>
       </div>
 

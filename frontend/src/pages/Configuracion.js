@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   getConfiguracion, updateConfiguracion, uploadLogo, getImagenUrl,
   getDiasFestivos, addDiaFestivo, deleteDiaFestivo, resetSecuenciaFactura
@@ -23,20 +24,19 @@ const DIAS_LABEL = { lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles', 
 
 function Toggle({ checked, onChange }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? 'bg-indigo-600' : 'bg-gray-600'}`}
-    >
-      <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-4' : ''}`} />
-    </button>
+    <label className="flex items-center gap-2 cursor-pointer">
+      <div onClick={onChange}
+        className={`relative w-9 h-5 rounded-full transition-colors ${checked ? 'bg-indigo-600' : 'bg-gray-600'}`}>
+        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-4' : ''}`} />
+      </div>
+    </label>
   );
 }
 
-function Field({ label, children, hint }) {
+function Field({ label, hint, children }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
+    <div className="space-y-1">
+      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</label>
       {children}
       {hint && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
     </div>
@@ -78,6 +78,7 @@ function serializeHorario({ abierto, apertura, cierre }) {
 }
 
 export default function Configuracion() {
+  const { t } = useLanguage();
   const [tab, setTab] = useState('estudio');
   const [subTabPersonalizacion, setSubTabPersonalizacion] = useState('panel');
   const [config, setConfig] = useState({});
@@ -166,7 +167,7 @@ export default function Configuracion() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white mb-6">Configuración del estudio</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">{t('configuracion_titulo')}</h1>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-1 mb-6 bg-gray-900 p-1 rounded-xl">

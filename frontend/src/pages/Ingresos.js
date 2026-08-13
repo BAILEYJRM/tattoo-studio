@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { getEstResumen, getEstEvolucion } from '../api';
 
 function eur(v) { return `${Number(v || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`; }
@@ -77,7 +78,7 @@ export default function Ingresos() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Ingresos</h1>
+      <h1 className="text-2xl font-bold text-white">{t('ingresos_titulo')}</h1>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

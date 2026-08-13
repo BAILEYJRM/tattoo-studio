@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado, getAusencias, crearAusencia, eliminarAusencia,
   getTintasPorDefecto, addTintaDefectoArtista, removeTintaDefectoArtista,
@@ -23,12 +24,13 @@ function Toggle({ label, checked, onChange }) {
         className={`relative w-9 h-5 rounded-full transition-colors ${checked ? 'bg-indigo-600' : 'bg-gray-600'}`}>
         <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-4' : ''}`} />
       </div>
-      <span className="text-sm text-gray-300">{label}</span>
+      <span className="text-gray-300 text-xs">{label}</span>
     </label>
   );
 }
 
 export default function Empleados() {
+  const { t } = useLanguage();
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
@@ -189,11 +191,11 @@ export default function Empleados() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Empleados</h1>
+        <h1 className="text-2xl font-bold text-white">{t('empleados_titulo')}</h1>
         <button onClick={openNew}
           className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Nuevo empleado
+          + {t('nuevo')}
         </button>
       </div>
 

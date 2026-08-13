@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { getAlertas, scanAlertas, resolverAlerta } from '../api';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, Clock, Calendar, Package } from 'lucide-react';
 
 export default function Alertas() {
+  const { t } = useLanguage();
   const [alertas, setAlertas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState('pendiente'); // 'pendiente', 'resuelta', 'todas'
@@ -59,8 +61,8 @@ export default function Alertas() {
   return (
     <div className="max-w-6xl mx-auto pb-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight text-white mb-2">Alertas</h1>
-        <p className="text-gray-400">{countPendientes} alertas pendientes</p>
+        <h1 className="text-3xl font-black tracking-tight text-white mb-2">{t('alertas')}</h1>
+        <p className="text-gray-400">{countPendientes} {t('alertas_pendientes')}</p>
       </div>
 
       {/* Controles de filtro */}

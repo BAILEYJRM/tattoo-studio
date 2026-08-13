@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { getLeads, updateLead, getProyectos, updateProyecto, getEmpleados } from '../api';
 import Modal from '../components/Modal';
 
@@ -21,6 +22,7 @@ const BADGE_COLOR = {
 };
 
 export default function Pipeline() {
+  const { t } = useLanguage();
   const [tab, setTab] = useState('leads'); // 'leads' o 'proyectos'
   const [leads, setLeads] = useState([]);
   const [proyectos, setProyectos] = useState([]);
@@ -116,8 +118,8 @@ export default function Pipeline() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Pipeline Comercial (Kanban)</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Arrastra y suelta para cambiar el estado del flujo de ventas</p>
+          <h1 className="text-2xl font-bold text-white">{t('pipeline_titulo')}</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{t('pipeline')}</p>
         </div>
 
         {/* Tab Switcher */}

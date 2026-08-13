@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   getEstResumen, getEstArtistas, getEstTopClientes,
   getEstEvolucion, getEstEdades, getEstMetodosPago, getEstEco,
@@ -156,6 +157,7 @@ const PAGO_COLORS = {
 };
 
 export default function Estadisticas() {
+  const { t } = useLanguage();
   const n = new Date();
   const [fechaInicio, setFechaInicio] = useState(primerDiaMes());
   const [fechaFin, setFechaFin] = useState(hoy());
@@ -211,8 +213,8 @@ export default function Estadisticas() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Estadísticas</h1>
-        <p className="text-gray-400 text-sm mt-0.5">Análisis completo del estudio</p>
+        <h1 className="text-2xl font-bold text-white">{t('estadisticas')}</h1>
+        <p className="text-gray-400 text-sm mt-0.5">{t('estadisticas')}</p>
       </div>
 
       {/* Filtros */}

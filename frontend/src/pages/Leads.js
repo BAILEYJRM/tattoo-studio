@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { getLeads, createLead, updateLead, getEmpleados, getMotivosPerdida, convertirLead } from '../api';
 import Modal from '../components/Modal';
 
@@ -33,6 +34,7 @@ function Badge({ estado }) {
 
 /* ── Componente principal ──────────────────────────────────────────── */
 export default function Leads() {
+  const { t } = useLanguage();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -113,15 +115,15 @@ export default function Leads() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Leads</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Gestiona tus contactos comerciales y oportunidades</p>
+          <h1 className="text-2xl font-bold text-white">{t('leads_titulo')}</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{t('leads')}</p>
         </div>
         <button onClick={abrirCrear}
           className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Nuevo Lead
+          + {t('nuevo_lead')}
         </button>
       </div>
 

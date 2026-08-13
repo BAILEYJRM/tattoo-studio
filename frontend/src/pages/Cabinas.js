@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import Modal from '../components/Modal';
 import {
   getCabinas, cambiarEstadoCabina, crearCabina,
@@ -115,6 +116,7 @@ function TarjetaCabina({ cabina, onCambiarEstado, onRegistrarLimpieza, onVerHist
 
 // ─── Componente principal ────────────────────────────────────────────────────
 export default function Cabinas() {
+  const { t } = useLanguage();
   const [tab, setTab] = useState('cabinas'); // 'cabinas' | 'incidencias' | 'historial'
   const [cabinas, setCabinas] = useState([]);
   const [limpiezas, setLimpiezas] = useState([]);
@@ -367,11 +369,11 @@ export default function Cabinas() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-white">Cabinas</h1>
+        <h1 className="text-2xl font-bold text-white">{t('cabinas_titulo')}</h1>
         <div className="flex gap-2">
           <button onClick={() => { setError(''); setModalNuevaCabina(true); }}
             className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-            + Cabina
+            + {t('nueva_cabina')}
           </button>
           <button onClick={() => { setIncForm({ cabina_id: '', titulo: '', descripcion: '' }); setFotoFile(null); setError(''); setModalIncidencia(true); }}
             className="bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm font-medium px-3 py-2 rounded-lg transition-colors">

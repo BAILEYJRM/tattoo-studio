@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import Modal from '../components/Modal';
 import {
   getProductos, buscarProductos, createProducto, updateProducto, deleteProducto, bulkDeleteProductos,
@@ -46,6 +47,7 @@ function StockBadge({ stock, minimo }) {
 }
 
 export default function Piercing() {
+  const { t } = useLanguage();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -270,12 +272,12 @@ export default function Piercing() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">Piercing</h1>
+        <h1 className="text-2xl font-bold text-white">{t('piercing_titulo')}</h1>
         <button
           onClick={abrirCrear}
           className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          + Nuevo producto
+          + {t('nuevo')}
         </button>
       </div>
 
