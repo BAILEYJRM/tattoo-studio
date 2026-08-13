@@ -39,6 +39,7 @@ function BarHorizontal({ label, value, max, color = '#6366f1' }) {
 }
 
 export default function Ingresos() {
+  const { t } = useLanguage();
   const [dataSemana, setDataSemana] = useState(null);
   const [dataMes, setDataMes] = useState(null);
   const [dataEvo, setDataEvo] = useState(null);
