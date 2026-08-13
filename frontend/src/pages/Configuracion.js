@@ -7,16 +7,16 @@ import {
 import { ThemeContext } from '../context/ThemeContext';
 
 const TABS = [
-  { id: 'estudio', label: 'Información del estudio' },
-  { id: 'regional', label: 'Ajustes Regionales (US / ES)' },
-  { id: 'servicios', label: 'Servicios' },
-  { id: 'horarios', label: 'Horarios' },
-  { id: 'festivos', label: 'Días festivos' },
-  { id: 'facturacion', label: 'Facturación' },
-  { id: 'comunicaciones', label: 'Comunicaciones' },
-  { id: 'calendario', label: 'Calendario' },
-  { id: 'politica', label: 'Política' },
-  { id: 'personalizacion', label: 'Personalización' },
+  { id: 'estudio', key: 'tab_estudio' },
+  { id: 'regional', key: 'tab_regional' },
+  { id: 'servicios', key: 'tab_servicios' },
+  { id: 'horarios', key: 'tab_horarios' },
+  { id: 'festivos', key: 'tab_festivos' },
+  { id: 'facturacion', key: 'tab_facturacion' },
+  { id: 'comunicaciones', key: 'tab_comunicaciones' },
+  { id: 'calendario', key: 'tab_calendario' },
+  { id: 'politica', key: 'tab_politica' },
+  { id: 'personalizacion', key: 'tab_personalizacion' },
 ];
 
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
@@ -55,14 +55,14 @@ function Input({ value, onChange, type = 'text', placeholder }) {
   );
 }
 
-function SaveBtn({ onClick, saving }) {
+function SaveBtn({ onClick, saving, labelSave, labelSaving }) {
   return (
     <button
       onClick={onClick}
       disabled={saving}
       className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
     >
-      {saving ? 'Guardando...' : 'Guardar'}
+      {saving ? (labelSaving || 'Guardando...') : (labelSave || 'Guardar')}
     </button>
   );
 }
@@ -171,15 +171,15 @@ export default function Configuracion() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-1 mb-6 bg-gray-900 p-1 rounded-xl">
-        {TABS.map(t => (
+        {TABS.map(tabItem => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={tabItem.id}
+            onClick={() => setTab(tabItem.id)}
             className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-              tab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              tab === tabItem.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
           >
-            {t.label}
+            {t(tabItem.key)}
           </button>
         ))}
       </div>
@@ -195,36 +195,36 @@ export default function Configuracion() {
         {/* ── Información del estudio ── */}
         {tab === 'estudio' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Información del estudio</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('info_estudio_titulo')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Nombre del estudio">
+              <Field label={t('nombre_estudio')}>
                 <Input value={c('estudio_nombre')} onChange={v => setC('estudio_nombre', v)} />
               </Field>
-              <Field label="CIF/NIF">
+              <Field label={t('cif_nif')}>
                 <Input value={c('estudio_cif')} onChange={v => setC('estudio_cif', v)} />
               </Field>
-              <Field label="Dirección">
+              <Field label={t('direccion')}>
                 <Input value={c('estudio_direccion')} onChange={v => setC('estudio_direccion', v)} />
               </Field>
-              <Field label="Código Postal">
+              <Field label={t('codigo_postal')}>
                 <Input value={c('estudio_cp')} onChange={v => setC('estudio_cp', v)} />
               </Field>
-              <Field label="Localidad">
+              <Field label={t('localidad')}>
                 <Input value={c('estudio_localidad')} onChange={v => setC('estudio_localidad', v)} />
               </Field>
-              <Field label="Provincia">
+              <Field label={t('provincia')}>
                 <Input value={c('estudio_provincia')} onChange={v => setC('estudio_provincia', v)} />
               </Field>
-              <Field label="Email">
+              <Field label={t('email')}>
                 <Input value={c('estudio_email')} onChange={v => setC('estudio_email', v)} type="email" />
               </Field>
-              <Field label="Teléfono">
+              <Field label={t('telefono')}>
                 <Input value={c('estudio_telefono')} onChange={v => setC('estudio_telefono', v)} />
               </Field>
-              <Field label="Código Higiénico Sanitario">
+              <Field label={t('codigo_higienico')}>
                 <Input value={c('codigo_higienico')} onChange={v => setC('codigo_higienico', v)} />
               </Field>
-              <Field label="Instagram" hint="Ej: @mi_estudio">
+              <Field label="Instagram" hint={t('instagram_hint')}>
                 <Input value={c('estudio_instagram')} onChange={v => setC('estudio_instagram', v)} placeholder="@usuario" />
               </Field>
               <Field label="Facebook">
@@ -232,7 +232,7 @@ export default function Configuracion() {
               </Field>
             </div>
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save([
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save([
                 'estudio_nombre','estudio_cif','estudio_direccion','estudio_cp','estudio_localidad',
                 'estudio_provincia','estudio_email','estudio_telefono','codigo_higienico',
                 'estudio_instagram','estudio_facebook',
@@ -245,12 +245,12 @@ export default function Configuracion() {
         {tab === 'regional' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-white">Configuración Regional e Internacionalización</h2>
-              <p className="text-gray-400 text-xs mt-1">Adapta KuroIchi al mercado de España (EUR, 24h, DD/MM/YYYY) o Estados Unidos (USD, 12h AM/PM, MM/DD/YYYY, Sales Tax, Tipping).</p>
+              <h2 className="text-lg font-semibold text-white">{t('config_regional_titulo')}</h2>
+              <p className="text-gray-400 text-xs mt-1">{t('config_regional_sub')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-800/50 p-5 rounded-xl border border-gray-700/50">
-              <Field label="País / Mercado Principal" hint="Define los ajustes por defecto de moneda e idioma">
+              <Field label={t('pais_mercado')}>
                 <select value={c('pais') || 'ES'} onChange={e => {
                   const val = e.target.value;
                   setC('pais', val);
@@ -271,7 +271,7 @@ export default function Configuracion() {
                 </select>
               </Field>
 
-              <Field label="Moneda de Trabajo">
+              <Field label={t('moneda_principal')}>
                 <select value={c('moneda') || 'EUR'} onChange={e => setC('moneda', e.target.value)}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
                   <option value="EUR">€ EUR (Euro)</option>
@@ -279,37 +279,38 @@ export default function Configuracion() {
                 </select>
               </Field>
 
-              <Field label="Formato de Fecha">
+              <Field label={t('formato_fecha')}>
                 <select value={c('formato_fecha') || 'DD/MM/YYYY'} onChange={e => setC('formato_fecha', e.target.value)}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
-                  <option value="DD/MM/YYYY">DD/MM/YYYY (Día/Mes/Año - ES)</option>
-                  <option value="MM/DD/YYYY">MM/DD/YYYY (Mes/Día/Año - US)</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                 </select>
               </Field>
 
-              <Field label="Formato de Hora">
+              <Field label={t('formato_hora')}>
                 <select value={c('formato_hora') || '24h'} onChange={e => setC('formato_hora', e.target.value)}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm">
-                  <option value="24h">24 Horas (ej: 16:30)</option>
-                  <option value="12h">12 Horas AM/PM (ej: 4:30 PM)</option>
+                  <option value="24h">24h</option>
+                  <option value="12h">12h AM/PM</option>
                 </select>
               </Field>
 
-              <Field label="Sales Tax (%) - EE.UU." hint="Porcentaje de impuesto estatal/local en EE.UU.">
+              <Field label="Sales Tax (%)">
                 <Input type="number" value={c('sales_tax_porcentaje')} onChange={v => setC('sales_tax_porcentaje', v)} placeholder="8.875" />
               </Field>
 
               <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
                 <div>
-                  <p className="text-white text-sm font-medium">Habilitar Propinas (Tipping)</p>
-                  <p className="text-xs text-gray-500">Muestra selector de propinas en TPV y cobros (15%, 20%, 25%)</p>
+                  <p className="text-white text-sm font-medium">{t('propina_tpv')}</p>
                 </div>
                 <Toggle checked={bool('mostrar_propinas')} onChange={() => setC('mostrar_propinas', !bool('mostrar_propinas'))} />
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <SaveBtn onClick={() => save(['pais', 'moneda', 'formato_fecha', 'formato_hora', 'sales_tax_porcentaje', 'mostrar_propinas'])} saving={saving} />
+            <div className="flex justify-end pt-2">
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save([
+                'pais','moneda','formato_fecha','formato_hora','sales_tax_porcentaje','mostrar_propinas',
+              ])} saving={saving} />
             </div>
           </div>
         )}
@@ -317,8 +318,8 @@ export default function Configuracion() {
         {/* ── Servicios ── */}
         {tab === 'servicios' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Servicios activos</h2>
-            <p className="text-sm text-gray-400 mb-4">Activa los servicios que ofrece tu estudio. Esto afecta a los filtros, estadísticas y formularios del sistema.</p>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('servicios_titulo')}</h2>
+            <p className="text-sm text-gray-400 mb-4">{t('servicios_sub')}</p>
             {[
               { clave: 'servicios_tatuaje', label: 'Tatuaje', desc: 'Activa las citas y opciones relacionadas con tatuajes.' },
               { clave: 'servicios_piercing', label: 'Piercing', desc: 'Habilita la gestión de citas de piercing y sus cuidados.' },
@@ -336,7 +337,7 @@ export default function Configuracion() {
               </div>
             ))}
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save([
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save([
                 'servicios_tatuaje','servicios_piercing','servicios_microblading',
                 'servicios_laser','servicios_barberia','servicios_estetica',
               ])} saving={saving} />
@@ -347,7 +348,7 @@ export default function Configuracion() {
         {/* ── Horarios ── */}
         {tab === 'horarios' && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-white mb-4">Horario del estudio</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('horarios_titulo')}</h2>
             {DIAS.map(dia => {
               const horario = parseHorario(c(`horario_${dia}`));
               const update = (patch) => {
@@ -375,13 +376,13 @@ export default function Configuracion() {
                       />
                     </div>
                   ) : (
-                    <span className="text-gray-500 text-sm">Cerrado</span>
+                    <span className="text-gray-500 text-sm">{t('cerrado')}</span>
                   )}
                 </div>
               );
             })}
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save(DIAS.map(d => `horario_${d}`))} saving={saving} />
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save(DIAS.map(d => `horario_${d}`))} saving={saving} />
             </div>
           </div>
         )}
@@ -389,7 +390,7 @@ export default function Configuracion() {
         {/* ── Días festivos ── */}
         {tab === 'festivos' && (
           <div>
-            <h2 className="text-lg font-semibold text-white mb-2">Días festivos</h2>
+            <h2 className="text-lg font-semibold text-white mb-2">{t('festivos_titulo')}</h2>
             <p className="text-sm text-gray-400 mb-4">Los días festivos se marcan en rojo en el calendario.</p>
 
             {/* Añadir festivo */}
@@ -456,7 +457,7 @@ export default function Configuracion() {
         {/* ── Facturación ── */}
         {tab === 'facturacion' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Facturación</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('facturacion_titulo')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="IVA por defecto (%)" hint="Se aplica al crear nuevas facturas">
                 <Input type="number" value={c('iva_defecto')} onChange={v => setC('iva_defecto', v)} />
@@ -473,7 +474,7 @@ export default function Configuracion() {
               <Toggle checked={bool('facturas_automaticas')} onChange={() => setC('facturas_automaticas', !bool('facturas_automaticas'))} />
             </div>
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save(['iva_defecto', 'facturas_automaticas', 'comision_clientes_estudio'])} saving={saving} />
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save(['iva_defecto', 'facturas_automaticas', 'comision_clientes_estudio'])} saving={saving} />
             </div>
           </div>
         )}
@@ -481,7 +482,7 @@ export default function Configuracion() {
         {/* ── Comunicaciones ── */}
         {tab === 'comunicaciones' && (
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-white mb-4">Comunicaciones</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('comunicaciones_config_titulo')}</h2>
             {[
               { clave: 'dni_obligatorio', label: 'DNI obligatorio en consentimientos', desc: 'Requiere que el cliente introduzca su DNI al firmar el consentimiento' },
               { clave: 'enviar_copia_consentimiento_cliente', label: 'Enviar copia del consentimiento al cliente', desc: 'Envía el PDF del consentimiento firmado por email al cliente' },
@@ -497,7 +498,7 @@ export default function Configuracion() {
               </div>
             ))}
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save([
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save([
                 'dni_obligatorio','enviar_copia_consentimiento_cliente',
                 'enviar_copia_consentimiento_estudio','incluir_enlace_firma_email',
               ])} saving={saving} />
@@ -508,7 +509,7 @@ export default function Configuracion() {
         {/* ── Calendario ── */}
         {tab === 'calendario' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Calendario</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('calendario_config_titulo')}</h2>
             <div className="flex items-center justify-between py-3 border-b border-gray-800">
               <div>
                 <p className="text-white text-sm font-medium">Abrir citas en nueva pestaña</p>
@@ -541,7 +542,7 @@ export default function Configuracion() {
               />
             </div>
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save(['citas_nueva_pestana', 'forzar_texto_blanco_calendario', 'intensidad_color_artistas'])} saving={saving} />
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save(['citas_nueva_pestana', 'forzar_texto_blanco_calendario', 'intensidad_color_artistas'])} saving={saving} />
             </div>
           </div>
         )}
@@ -549,9 +550,9 @@ export default function Configuracion() {
         {/* ── Política ── */}
         {tab === 'politica' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Política y textos</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t('politica_titulo')}</h2>
             <p className="text-sm text-gray-400">Estos textos aparecen en los emails de confirmación de cita y en los consentimientos.</p>
-            <Field label="Política de cancelación">
+            <Field label={t('texto_politica_cancelacion')}>
               <textarea
                 value={c('politica_cancelacion')}
                 onChange={e => setC('politica_cancelacion', e.target.value)}
@@ -588,7 +589,7 @@ export default function Configuracion() {
               />
             </Field>
             <div className="flex justify-end pt-2">
-              <SaveBtn onClick={() => save(['politica_cancelacion', 'info_adicional_clientes', 'politica_reembolso', 'politica_privacidad'])} saving={saving} />
+              <SaveBtn labelSave={t('guardar')} labelSaving={t('guardando')} onClick={() => save(['politica_cancelacion', 'info_adicional_clientes', 'politica_reembolso', 'politica_privacidad'])} saving={saving} />
             </div>
           </div>
         )}
